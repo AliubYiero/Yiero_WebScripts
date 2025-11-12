@@ -7,8 +7,6 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-# 资源根
-**/node_modules
 node_modules
 dist-ssr
 *.local
@@ -16,7 +14,6 @@ dist-ssr
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
-**/.idea
 .idea
 .DS_Store
 *.suo
@@ -24,6 +21,3 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
-
-# ignore test folder
-src/.ui
