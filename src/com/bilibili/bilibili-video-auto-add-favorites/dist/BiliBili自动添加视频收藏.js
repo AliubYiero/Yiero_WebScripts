@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           BiliBili自动添加视频收藏
 // @description    进入视频页面后, 自动添加视频到收藏夹中. 
-// @version        0.6.1
+// @version        0.6.2
 // @author         Yiero
 // @match          https://www.bilibili.com/video/*
 // @match          https://www.bilibili.com/s/video/*
@@ -215,6 +215,160 @@ function elementWaiter(selector, options) {
     getElementByTimer(selector, elementWaiterOptions, resolve, reject);
   });
 }
+let messageContainer = null;
+const messageTypes = {
+  success: {
+    backgroundColor: "#f0f9eb",
+    borderColor: "#e1f3d8",
+    textColor: "#67c23a",
+    icon: "\u2713"
+  },
+  warning: {
+    backgroundColor: "#fdf6ec",
+    borderColor: "#faecd8",
+    textColor: "#e6a23c",
+    icon: "\u26A0"
+  },
+  error: {
+    backgroundColor: "#fef0f0",
+    borderColor: "#fde2e2",
+    textColor: "#f56c6c",
+    icon: "\u2715"
+  },
+  info: {
+    backgroundColor: "#edf2fc",
+    borderColor: "#e4e7ed",
+    textColor: "#909399",
+    icon: "i"
+  }
+};
+const messagePositions = {
+  "top": { top: "20px" },
+  "top-left": { top: "20px", left: "20px" },
+  "top-right": { top: "20px", right: "20px" },
+  "left": { left: "20px" },
+  "right": { right: "20px" },
+  "bottom": { bottom: "20px" },
+  "bottom-left": { bottom: "20px", left: "20px" },
+  "bottom-right": { bottom: "20px", right: "20px" }
+};
+function createMessageContainer() {
+  if (!messageContainer) {
+    messageContainer = document.createElement("div");
+    messageContainer.setAttribute("style", `
+                    position: fixed;
+                    z-index: 9999999999;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    pointer-events: none;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    width: 100vw;
+                `);
+    document.body.appendChild(messageContainer);
+  }
+  return messageContainer;
+}
+function Message(options) {
+  const detail = {
+    type: "info",
+    duration: 3e3,
+    position: "top",
+    message: ""
+  };
+  if (typeof options === "string") {
+    detail.message = options;
+  } else {
+    Object.assign(detail, options);
+  }
+  messageContainer = createMessageContainer();
+  const messageEl = document.createElement("div");
+  const typeConfig = messageTypes[detail.type] || messageTypes.info;
+  messageEl.setAttribute("style", `
+                position: absolute;
+                min-width: 300px;
+                max-width: 500px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                transform: translateY(-20px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                background-color: ${typeConfig.backgroundColor};
+                border: 1px solid ${typeConfig.borderColor};
+                color: ${typeConfig.textColor};
+                display: flex;
+                align-items: center;
+                transition: all 0.3s ease;
+                opacity: 0;
+                pointer-events: auto;
+                cursor: pointer;
+                ${Object.entries(messagePositions[detail.position || "top"]).map(([k, v]) => `${k}: ${v};`).join(" ")}
+            `);
+  const iconEl = document.createElement("span");
+  iconEl.setAttribute("style", `
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 24px;
+                height: 24px;
+                margin-right: 12px;
+                font-size: 16px;
+                font-weight: bold;
+            `);
+  iconEl.textContent = typeConfig.icon;
+  messageEl.appendChild(iconEl);
+  const contentEl = document.createElement("span");
+  contentEl.setAttribute("style", `
+                flex: 1;
+                font-size: 14px;
+                line-height: 1.5;
+            `);
+  contentEl.textContent = detail.message;
+  messageEl.appendChild(contentEl);
+  messageContainer.appendChild(messageEl);
+  setTimeout(() => {
+    messageEl.style.opacity = "1";
+    messageEl.style.transform = "translateY(0)";
+  }, 10);
+  let timer = setTimeout(() => {
+    closeMessage(messageEl);
+  }, detail.duration);
+  messageEl.addEventListener("click", () => {
+    clearTimeout(timer);
+    closeMessage(messageEl);
+  });
+}
+function closeMessage(element) {
+  element.style.opacity = "0";
+  element.style.transform = "translateY(-20px)";
+  setTimeout(() => {
+    if (element.parentNode) {
+      element.parentNode.removeChild(element);
+    }
+  }, 300);
+}
+Message.success = (message, options) => Message({
+  ...options,
+  message,
+  type: "success"
+});
+Message.warning = (message, options) => Message({
+  ...options,
+  message,
+  type: "warning"
+});
+Message.error = (message, options) => Message({
+  ...options,
+  message,
+  type: "error"
+});
+Message.info = (message, options) => Message({
+  ...options,
+  message,
+  type: "info"
+});
 const _gmMenuCommand = class _gmMenuCommand2 {
   constructor() {
   }
@@ -369,6 +523,7 @@ class GmStorage {
   }
 }
 const favoriteTitleStorage = new GmStorage("\u914D\u7F6E\u9879.favouriteTitle", "fun");
+const showMessageStorage = new GmStorage("showMessage", true);
 const registerMenu = () => {
   gmMenuCommand.create("\u8BF7\u8F93\u5165\u6536\u85CF\u5939\u6807\u9898", () => {
     const title = (prompt("\u8BF7\u8F93\u5165\u6536\u85CF\u5939\u6807\u9898", favoriteTitleStorage.get()) || "").trim();
@@ -376,7 +531,23 @@ const registerMenu = () => {
       return;
     }
     favoriteTitleStorage.set(title);
+  }).createToggle({
+    active: {
+      title: "\u6536\u85CF\u72B6\u6001\u901A\u77E5(on)",
+      onClick: () => {
+        showMessageStorage.set(false);
+      }
+    },
+    inactive: {
+      title: "\u6536\u85CF\u72B6\u6001\u901A\u77E5(off)",
+      onClick: () => {
+        showMessageStorage.set(true);
+      }
+    }
   }).render();
+  if (!showMessageStorage.get()) {
+    gmMenuCommand.toggleActive("\u6536\u85CF\u72B6\u6001\u901A\u77E5(on)").toggleActive("\u6536\u85CF\u72B6\u6001\u901A\u77E5(off)").render();
+  }
 };
 async function freshListenerPushState(callback, delayPerSecond = 1) {
   let _pushState = window.history.pushState.bind(window.history);
@@ -702,6 +873,15 @@ const favourites = new Favourites();
 const addVideoToFavorites = async () => {
   await favourites.init();
   let isFavorVideo = await api_isFavorVideo();
+  if (showMessageStorage.get()) {
+    await elementWaiter("body");
+    Message({
+      type: isFavorVideo ? "warning" : "success",
+      message: isFavorVideo ? "\u5F53\u524D\u89C6\u9891\u5DF2\u6536\u85CF" : "\u89C6\u9891\u6536\u85CF\u6210\u529F",
+      duration: 3e3,
+      position: "top-left"
+    });
+  }
   const videoAvId = await getVideoAvId();
   if (isFavorVideo) {
     console.info("\u5F53\u524D\u89C6\u9891\u5DF2\u7ECF\u88AB\u6536\u85CF:", `av${videoAvId}`);

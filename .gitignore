@@ -27,3 +27,8 @@ dist-ssr
 
 # ignore test folder
 src/.ui
+src/.WIP
+src/.Test
+
+# ignore local dev file
+**/dist/*.dev.js

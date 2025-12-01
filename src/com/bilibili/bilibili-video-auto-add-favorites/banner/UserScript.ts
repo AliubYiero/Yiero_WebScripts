@@ -3,7 +3,7 @@ import { IUserScript } from './UserScript.d';
 const UserScript: IUserScript[] = [
 	[ 'name', 'BiliBili自动添加视频收藏' ],
 	[ 'description', '进入视频页面后, 自动添加视频到收藏夹中. ' ],
-	[ 'version', '0.6.1' ],
+	[ 'version', '0.6.2' ],
 	[ 'author', 'Yiero' ],
 	[ 'match', 'https://www.bilibili.com/video/*' ],
 	[ 'match', 'https://www.bilibili.com/s/video/*' ],

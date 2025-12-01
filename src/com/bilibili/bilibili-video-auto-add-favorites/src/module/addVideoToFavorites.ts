@@ -3,7 +3,8 @@ import { getVideoAvId } from './getVideoAvId/getVideoAvId.ts';
 import { favourites } from './Favourites/Favourites.ts';
 import { sleep } from 'radash';
 import { getVideoEpId } from './getVideoAvId/getVideoEpId.ts';
-import { elementWaiter } from '@yiero/gmlib';
+import { elementWaiter, Message } from '@yiero/gmlib';
+import { showMessageStorage } from '../store/showMessageStorage.ts';
 
 /**
  * 自动添加视频收藏
@@ -14,6 +15,18 @@ export const addVideoToFavorites = async () => {
 	
 	// 判断当前视频是否已经被收藏
 	let isFavorVideo = await api_isFavorVideo();
+	
+	// 通知
+	if ( showMessageStorage.get() ) {
+		// 等待 body 出现
+		await elementWaiter( 'body' );
+		Message( {
+			type: isFavorVideo ? 'warning' : 'success',
+			message: isFavorVideo ? '当前视频已收藏' : '视频收藏成功',
+			duration: 3000,
+			position: 'top-left',
+		} );
+	}
 	
 	// 获取视频av号
 	const videoAvId = await getVideoAvId();
@@ -45,6 +58,8 @@ export const addVideoToFavorites = async () => {
 	
 	const favButtonDom = await elementWaiter( '[title="收藏（E）"]' )
 		.catch( () => document.createElement( 'div' ) as HTMLElement );
+	
+	
 	// 如果仍未收藏, 则报错
 	if ( !isFavorVideo ) {
 		favButtonDom.classList.remove( 'on' );
