@@ -2,12 +2,23 @@
 .watch-mark {
 	position: relative;
 }
-.watch-mark::after {
-	z-index: 1;
-}
 
 .watch-mark.watched, .watch-mark.same-watch {
 	opacity: .6;
+}
+
+.watch-mark::after {
+	position: absolute;
+	text-align: center;
+	font-size: 12px;
+	align-items: center;
+	border-radius: 2px;
+	display: flex;
+	height: 18px;
+	padding: 0 5px;
+	pointer-events: none;
+	top: 8px;
+	z-index: 10;
 }
 
 .watch-mark.watched::after {
@@ -38,16 +49,6 @@
 	content: '番剧';
 	background-color: rgba(109, 221, 132);
 	color: #F5F5F5DE;
-}
-
-.watch-mark::after {
-	padding: 4px 5px;
-	display: block;
-	position: absolute;
-	top: 8px;
-	border-radius: 3px;
-	text-align: center;
-	font-size: 12px;
 }
 
 .watch-mark.left::after {

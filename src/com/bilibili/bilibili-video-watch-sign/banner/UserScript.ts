@@ -3,7 +3,7 @@ import { IUserScript } from './UserScript.d';
 const UserScript: IUserScript[] = [
 	[ 'name', 'Bilibili视频观看状态标记' ],
 	[ 'description', '基于收藏夹内容, 自动标记Bilibili视频的观看状态(已看/未看)' ],
-	[ 'version', '1.0.1' ],
+	[ 'version', '1.0.2' ],
 	[ 'author', 'Yiero' ],
 	[ 'match', 'https://*.bilibili.com/*' ],
 	[ 'require', '' ],

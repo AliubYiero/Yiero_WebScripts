@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Bilibili视频观看状态标记
 // @description    基于收藏夹内容, 自动标记Bilibili视频的观看状态(已看/未看)
-// @version        1.0.1
+// @version        1.0.2
 // @author         Yiero
 // @match          https://*.bilibili.com/*
 // @icon           https://www.bilibili.com/favicon.ico
@@ -23,12 +23,23 @@ const styleContent = `/* \u901A\u7528\u5DF2\u770B\u6837\u5F0F */
 .watch-mark {
 	position: relative;
 }
-.watch-mark::after {
-	z-index: 1;
-}
 
 .watch-mark.watched, .watch-mark.same-watch {
 	opacity: .6;
+}
+
+.watch-mark::after {
+	position: absolute;
+	text-align: center;
+	font-size: 12px;
+	align-items: center;
+	border-radius: 2px;
+	display: flex;
+	height: 18px;
+	padding: 0 5px;
+	pointer-events: none;
+	top: 8px;
+	z-index: 10;
 }
 
 .watch-mark.watched::after {
@@ -59,16 +70,6 @@ const styleContent = `/* \u901A\u7528\u5DF2\u770B\u6837\u5F0F */
 	content: '\u756A\u5267';
 	background-color: rgba(109, 221, 132);
 	color: #F5F5F5DE;
-}
-
-.watch-mark::after {
-	padding: 4px 5px;
-	display: block;
-	position: absolute;
-	top: 8px;
-	border-radius: 3px;
-	text-align: center;
-	font-size: 12px;
 }
 
 .watch-mark.left::after {
