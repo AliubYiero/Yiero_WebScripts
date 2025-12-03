@@ -1,0 +1,59 @@
+.watch-mark {
+  position: relative;
+}
+.watch-mark.watched,
+.watch-mark.same-watch {
+  opacity: .6;
+}
+.watch-mark::after {
+  z-index: 99;
+}
+.watch-mark.watched::after {
+  content: "已看";
+  background-color: #9E9E9EDE;
+  color: #F5F5F5DE;
+}
+.watch-mark.same-watch::after {
+  content: "看过类似";
+  background-color: #FF9800DE;
+  color: #F5F5F5DE;
+}
+.watch-mark.unwatched::after {
+  content: "未看";
+  background-color: #00BCD4;
+  color: #F5F5F5;
+}
+.watch-mark.watching::after {
+  content: "正在看";
+  background-color: #FF9800DE;
+  color: #F5F5F5DE;
+}
+.watch-mark.ep::after {
+  content: "番剧";
+  background-color: rgba(109, 221, 132);
+  color: #F5F5F5DE;
+}
+.watch-mark::after {
+  padding: 2px 5px;
+  display: block;
+  position: absolute;
+  top: 8px;
+  border-radius: 3px;
+  text-align: center;
+  font-size: 12px;
+}
+.watch-mark.left::after {
+  left: 8px;
+}
+.watch-mark.right::after {
+  right: 8px;
+}
+.video-pod__item.simple.watch-mark {
+  display: flex;
+  align-items: center;
+}
+.video-pod__item.simple.watch-mark > .single-p {
+  flex: 1;
+}
+.video-pod__item.simple.watch-mark::after {
+}
