@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Bilibili视频观看状态标记
 // @description    基于收藏夹内容, 自动标记Bilibili视频的观看状态(已看/未看)
-// @version        1.0.0
+// @version        1.0.1
 // @author         Yiero
 // @match          https://*.bilibili.com/*
 // @icon           https://www.bilibili.com/favicon.ico
@@ -769,6 +769,21 @@ class BindUpdatePageButton {
       ".list-header-filter__btn"
     );
   }
+  /**
+   * 首页刷新按钮
+   */
+  static indexRefresh() {
+    return Promise.any([
+      this.base(
+        ".feed-roll-btn",
+        ".feed-roll-btn"
+      ),
+      this.base(
+        ".palette-button-wrap",
+        ".flexible-roll-btn"
+      )
+    ]);
+  }
 }
 const dynamicItemParser = (container) => {
   const referenceContainer = container.querySelector(
@@ -975,6 +990,7 @@ const indexVideoCardParser = (container) => {
   }, { isAd: true });
 };
 const handleIndexPage = async () => {
+  await sleep(500);
   baseVideoSignLoader({
     container: ".vui_carousel__slides",
     item: ".vui_carousel__slide"
@@ -983,6 +999,7 @@ const handleIndexPage = async () => {
     container: ".recommended-container_floor-aside > .container",
     item: ".bili-feed-card"
   }, indexVideoCardParser);
+  BindUpdatePageButton.indexRefresh();
 };
 const indexChildTypeBannerCardParser = (container) => baseParser(container, {
   tagContainer: ".banner-carousel__item",
@@ -1114,7 +1131,7 @@ async function freshListenerPushState(callback, delayPerSecond = 1) {
     return originalReplaceState.apply(this, arguments);
   };
 }
-const updatePage = () => {
+const updatePage = async () => {
   document.querySelectorAll(".watch-mark").forEach((item) => {
     item.classList.remove(
       "watch-mark",
@@ -1131,6 +1148,7 @@ const updatePage = () => {
   videoSignProcessingQueue.reset();
   ObserverList.reset();
   document.querySelectorAll("[data-bind-observer]").forEach((item) => item.dataset.bindObserver = "");
+  await sleep(200);
   const videoSignHandler = getVideoSignHandler();
   videoSignHandler && videoSignHandler();
 };

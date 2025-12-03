@@ -10,11 +10,12 @@ import {
 } from './module/videoSignProcessingQueue/videoSignProcessingQueue.ts';
 import { ObserverList } from './module/videoSignHandler/handles/base.ts';
 import { cacheWatchedSessionStore } from './store/cacheWatchedSessionStore.ts';
+import { sleep } from 'radash';
 
 /**
  * 刷新页面
  */
-const updatePage = () => {
+const updatePage = async () => {
 	// 重置标记
 	document.querySelectorAll<HTMLElement>( '.watch-mark' )
 		.forEach( item => {
@@ -35,6 +36,7 @@ const updatePage = () => {
 	document.querySelectorAll<HTMLElement>( '[data-bind-observer]' )
 		.forEach( item => item.dataset.bindObserver = '' );
 	
+	await sleep( 200 );
 	// 执行视频标记处理
 	const videoSignHandler = getVideoSignHandler();
 	console.log( 'videoSignHandler', videoSignHandler );

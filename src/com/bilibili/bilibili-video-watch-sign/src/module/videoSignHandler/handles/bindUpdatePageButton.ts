@@ -90,4 +90,20 @@ export class BindUpdatePageButton {
 			'.list-header-filter__btn',
 		);
 	}
+	
+	/**
+	 * 首页刷新按钮
+	 */
+	static indexRefresh() {
+		return Promise.any([
+			this.base(
+				'.feed-roll-btn',
+				'.feed-roll-btn',
+			),
+			this.base(
+				'.palette-button-wrap',
+				'.flexible-roll-btn',
+			),
+		]) ;
+	}
 }

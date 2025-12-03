@@ -5,6 +5,8 @@
  * @file FILE_DESCRIPTION
  * */
 import { baseParser, baseVideoSignLoader } from './base.ts';
+import { BindUpdatePageButton } from './bindUpdatePageButton.ts';
+import { sleep } from 'radash';
 
 // 首页 Banner 卡片解析
 const indexBannerCardParser = (
@@ -28,6 +30,8 @@ const indexVideoCardParser = (
 };
 
 export const handleIndexPage = async () => {
+	await sleep( 500 );
+	
 	baseVideoSignLoader( {
 		container: '.vui_carousel__slides',
 		item: '.vui_carousel__slide',
@@ -37,4 +41,6 @@ export const handleIndexPage = async () => {
 		container: '.recommended-container_floor-aside > .container',
 		item: '.bili-feed-card',
 	}, indexVideoCardParser );
+	
+	BindUpdatePageButton.indexRefresh();
 };
