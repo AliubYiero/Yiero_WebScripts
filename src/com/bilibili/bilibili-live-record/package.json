@@ -1,0 +1,36 @@
+{
+	"name": "tampermonkey-scripts",
+	"private": true,
+	"version": "0.1.0",
+	"type": "module",
+	"scripts": {
+		"build": "tsc && vite build --mode production",
+		"dev:base": "tsc && vite build --mode development --watch",
+		"dev:sync": "tsc && vite build --mode sync --watch",
+		"dev:test": "tsc && vite build --mode test --watch",
+		"test": "vitest",
+		"coverage": "vitest run --coverage"
+	},
+	"devDependencies": {
+		"@rollup/plugin-replace": "^6.0.2",
+		"@types/node": "^22.10.2",
+		"@types/yamljs": "^0.2.34",
+		"@vitest/coverage-v8": "^2.1.8",
+		"@yiero/vite-plugin-scriptcat-backup": "^1.0.2",
+		"@yiero/vite-plugin-scriptcat-extract-grant": "^1.0.4",
+		"@yiero/vite-plugin-scriptcat-meta-banner": "^1.1.1",
+		"@yiero/vite-plugin-scriptcat-require-self": "^1.0.4",
+		"@yiero/vite-plugin-scriptcat-script-push": "^1.1.0",
+		"jsdom": "^24.0.0",
+		"rollup": "^4.53.3",
+		"terser": "^5.37.0",
+		"vite": "^5.1.4",
+		"vite-plugin-raw": "^1.0.3",
+		"vitest": "^2.1.8",
+		"yamljs": "^0.3.0"
+	},
+	"dependencies": {
+		"@yiero/gmlib": "^0.1.12",
+		"lit": "^3.3.2"
+	}
+}
