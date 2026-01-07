@@ -10,6 +10,13 @@
 | ------------------------------------------------------------ | ---------------------------------- | -------- | ------ | -------- |
 | [三角洲数据帝自动计算背包容器性价比](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/orzice/package-capacity-calculate/backup/package-capacity-calculate.user.js) | 三角洲数据帝自动计算背包容器性价比 | 前台脚本 | v0.1.0 | 2026-1-7 |
 
+### bilibili.com
+
+| 脚本名称                                                                                                                                                                       | 脚本用途                           | 脚本类型 | 版本号 | 最后更新     |
+|----------------------------------------------------------------------------------------------------------------------------------------------------------------------------| ---------------------------------- | -------- | ------ |----------|
+| [Mr.Quin 录播抓取程序](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/quin-live-record-video-collect/backup/quin-live-record-video-collect.user.js) | Mr.Quin 录播抓取程序 | 前台脚本 | v0.1.0 | 2026-1-7 |
+
+
 
 
 ## 目录结构
