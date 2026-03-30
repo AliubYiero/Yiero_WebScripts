@@ -1,0 +1,42 @@
+/* 让弹幕文本和发送者分开 */
+.chat-item.danmaku-item:not(.superChat-card-detail) {
+	display: flex !important;
+	flex-flow: column !important;
+	/* gap: 4px; */
+	width: inherit !important;
+	margin: 4px 0 !important;
+	
+	/* 粉丝勋章右对齐 */
+	& .danmaku-item-left {
+		display: flex !important;
+		width: 100% !important;
+		align-items: center;
+		gap: 5px;
+		white-space: nowrap;
+	}
+	
+	& .fans-medal-item-target.fans-medal-item-ctnr {
+		margin-left: auto !important;
+		order: 99 !important;
+	}
+	
+	/* 给弹幕文本添加上标记, 方便识别 */
+	& > .danmaku-item-right {
+		padding-left: .5em;
+		border-left: 4px solid #dfe2e5;
+		width: 96%;
+	}
+	
+	& .danmaku-time {
+		float: none !important;
+		align-self: flex-end;
+	}
+}
+
+/* 给普通弹幕添加边框, 方便识别 */
+.chat-item.danmaku-item:not(.superChat-card-detail):not(.chat-colorful-bubble) {
+	background: #F1F2F3;
+	border-radius: 5px;
+	flex: 1;
+	align-items: flex-start !important;
+}

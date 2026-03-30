@@ -1,0 +1,30 @@
+# Bilibili直播评论样式修改
+
+## 概述
+
+修改Bilibili直播间的评论样式弹幕, 使其按固定格式显示. 即上面是用户信息, 下面是弹幕.
+
+## 功能特性
+
+- 修改直播间弹幕显示样式, 用户信息在上, 弹幕内容在下
+
+> **before**
+>
+> ![image-20260330165605492](./iamges_README/image-20260330165605492.png)
+>
+> **after**
+>
+> ![image-20260330165624175](./iamges_README/image-20260330165624175.png)
+
+## 使用方法
+
+安装网页拓展 [脚本猫](https://scriptcat.org/zh-CN), 点击脚本详情页面的 **安装脚本** 按钮.
+
+## 许可证
+
+[GPL-3](https://www.gnu.org/licenses/gpl-3.0.zh-cn.html)
+
+## 技术支持
+
+如有问题或建议，请联系：
+- 邮箱: aluibyiero@qq.com
