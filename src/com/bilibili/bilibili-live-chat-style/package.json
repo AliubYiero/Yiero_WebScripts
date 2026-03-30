@@ -30,6 +30,6 @@
 		"yamljs": "^0.3.0"
 	},
 	"dependencies": {
-		"@yiero/gmlib": "^0.1.12"
+		"@yiero/gmlib": "^0.3.1"
 	}
 }

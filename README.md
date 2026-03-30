@@ -10,6 +10,7 @@
 | [Bilibili视频观看状态标记](https://scriptcat.org/zh-CN/script-show-page/4793) | 通过收藏夹, 获取当前视频的观看状态 (已看 / 未看), 并在视频卡片处标记 | 前台脚本 | v1.0.2 | 2025-12-03 |
 | [Bilibili直播时间点标记](https://scriptcat.org/zh-CN/script-show-page/5070) | 在Bilibili直播中快速标记时间点, 方便查阅                     | 前台脚本 | v1.0.2 | 2026-1-6   |
 | [Bilibili投稿合集排序辅助](https://scriptcat.org/zh-CN/script-show-page/5085) | 支持按投稿的发布时间排序(升序/降序), 不再只能使用默认的按投稿标题排序 | 前台脚本 | v1.0.0 | 2026-1-9   |
+| [Bilibili直播评论样式修改](https://scriptcat.org/zh-CN/script-show-page/5757) | 修改Bilibili直播间的评论样式弹幕                             | 前台脚本 | v0.1.1 | 2026-3-30  |
 
 
 
