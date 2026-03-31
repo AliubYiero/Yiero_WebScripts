@@ -11,6 +11,7 @@
 | [Bilibili直播时间点标记](https://scriptcat.org/zh-CN/script-show-page/5070) | 在Bilibili直播中快速标记时间点, 方便查阅                     | 前台脚本 | v1.0.2 | 2026-1-6   |
 | [Bilibili投稿合集排序辅助](https://scriptcat.org/zh-CN/script-show-page/5085) | 支持按投稿的发布时间排序(升序/降序), 不再只能使用默认的按投稿标题排序 | 前台脚本 | v1.0.0 | 2026-1-9   |
 | [Bilibili直播评论样式修改](https://scriptcat.org/zh-CN/script-show-page/5757) | 修改Bilibili直播间的评论样式弹幕                             | 前台脚本 | v0.1.1 | 2026-3-30  |
+| [Bilibili独轮车](https://scriptcat.org/zh-CN/script-show-page/5519) | 用于B站直播间的弹幕自动发送脚本                              | 前台脚本 | v1.0.0 | 2026-2-27  |
 
 
 
