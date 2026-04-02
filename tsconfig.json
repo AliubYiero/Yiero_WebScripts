@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "lib": ["ES2022"],
+        "noEmit": true,
+        "types": ["Node"],
+        "rootDir": "script",
+        "module": "commonjs",
+        "skipLibCheck": true,
+        "isolatedModules": true,
+        "resolveJsonModule": true,
+        "useDefineForClassFields": true,
+        "allowImportingTsExtensions": true
+    },
+    "include": ["script"]
+}

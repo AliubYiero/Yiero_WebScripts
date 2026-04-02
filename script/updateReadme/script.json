@@ -1,0 +1,114 @@
+{
+	"bilibili.com": {
+		"bilibili-live-chat-style": {
+			"name": "Bilibili直播评论样式修改",
+			"description": "修改Bilibili直播间的评论样式弹幕, 使其按固定格式显示. 即上面是用户信息, 下面是弹幕.",
+			"version": "0.1.1",
+			"private": false,
+			"lastUpdate": 1774875237481.1992,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/bilibili-live-chat-style.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-chat-style/backup/bilibili-live-chat-style.user.js",
+			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/5757",
+			"downloadUrlFromGreasyFork": ""
+		},
+		"bilibili-live-record": {
+			"name": "Bilibili直播时间点标记",
+			"description": "在Bilibili直播中标记时间, 方便用户查阅",
+			"version": "1.0.2",
+			"private": false,
+			"lastUpdate": 1767713726904.7322,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/bilibili-live-record.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-record/backup/bilibili-live-record.user.js",
+			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/5070",
+			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/561637"
+		},
+		"bilibili-live-repeat-danmaku-block": {
+			"name": "Bilibili直播弹幕刷屏屏蔽",
+			"description": "用于B站直播间的弹幕净化脚本. 屏蔽独轮车, 屏蔽重复弹幕, 屏蔽刷屏用户.",
+			"version": "1.0.3",
+			"private": false,
+			"lastUpdate": 1775121504351.9363,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/bilibili-live-repeat-danmaku-block.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-repeat-danmaku-block/backup/bilibili-live-repeat-danmaku-block.user.js",
+			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/5772",
+			"downloadUrlFromGreasyFork": ""
+		},
+		"bilibili-live-speaker": {
+			"name": "Bilibili独轮车",
+			"description": "Bilibili独轮车, 按照指定间隔发布弹幕",
+			"version": "1.0.0",
+			"private": false,
+			"lastUpdate": 1772719579647.4014,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/bilibili-live-speaker.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-speaker/backup/bilibili-live-speaker.user.js",
+			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/5519",
+			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/568495"
+		},
+		"bilibili-upload-section-sort": {
+			"name": "Bilibili投稿合集排序辅助",
+			"description": "支持按投稿的发布时间排序(升序/降序), 不再只能使用默认的按投稿标题排序.",
+			"version": "1.0.0",
+			"private": false,
+			"lastUpdate": 1767888810872.3745,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/bilibili-upload-section-sort.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-upload-section-sort/backup/bilibili-upload-section-sort.user.js",
+			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/5085",
+			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/561930"
+		},
+		"bilibili-video-auto-add-favorites": {
+			"name": "BiliBili自动添加视频收藏",
+			"description": "进入视频页面后, 自动添加视频到收藏夹中.",
+			"version": "0.6.2",
+			"private": false,
+			"lastUpdate": 1764575821909.1382,
+			"scriptType": "web",
+			"userScriptFilepath": "dist/BiliBili自动添加视频收藏.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-auto-add-favorites/dist/BiliBili自动添加视频收藏.js",
+			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/1603",
+			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/489644"
+		},
+		"bilibili-video-watch-sign": {
+			"name": "Bilibili视频观看状态标记",
+			"description": "基于收藏夹内容, 自动标记Bilibili视频的观看状态(已看/未看)",
+			"version": "1.0.2",
+			"private": false,
+			"lastUpdate": 1764766424550.0884,
+			"scriptType": "web",
+			"userScriptFilepath": "dist/Bilibili视频观看状态标记.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-watch-sign/backup/bilibili-video-watch-sign.user.js",
+			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/4793",
+			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/557782"
+		},
+		"quin-live-record-video-collect": {
+			"name": "Mr.Quin 录播抓取程序",
+			"description": "Mr.Quin 录播抓取, 并生成日志",
+			"version": "0.1.1",
+			"private": true,
+			"lastUpdate": 1774963020816.9185,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/quin-live-record-video-collect.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/quin-live-record-video-collect/backup/quin-live-record-video-collect.user.js",
+			"downloadUrlFromScripCat": "",
+			"downloadUrlFromGreasyFork": ""
+		}
+	},
+	"orzice.com": {
+		"package-capacity-calculate": {
+			"name": "三角洲数据帝自动计算背包容器性价比",
+			"description": "三角洲数据帝自动计算背包容器性价比",
+			"version": "0.1.0",
+			"private": true,
+			"lastUpdate": 1767714765106.7075,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/package-capacity-calculate.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/orzice/package-capacity-calculate/backup/package-capacity-calculate.user.js",
+			"downloadUrlFromScripCat": "",
+			"downloadUrlFromGreasyFork": ""
+		}
+	}
+}

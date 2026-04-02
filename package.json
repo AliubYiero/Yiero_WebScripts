@@ -1,0 +1,17 @@
+{
+	"name": "yiero_web_scripts",
+	"version": "1.0.0",
+	"description": "",
+	"scripts": {
+		"update:readme": "npx tsx script/updateReadme/updateReadme.ts"
+	},
+	"main": "script/updateReadme/updateReadme.ts",
+	"keywords": [],
+	"author": "Yiero",
+	"license": "LGPL-3.0-or-later",
+	"devDependencies": {
+		"@types/node": "^25.5.0",
+		"tsx": "^4.21.0",
+		"typescript": "^6.0.2"
+	}
+}
