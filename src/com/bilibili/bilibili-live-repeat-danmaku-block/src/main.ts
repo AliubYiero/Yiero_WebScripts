@@ -209,9 +209,10 @@ function handleVideoDanmakuMutation( records: MutationRecord[] ) {
  * 添加隐藏样式
  */
 function addHideStyle() {
+	// 提升优先级到 (0,5,0), 防止被页面中的 !important 覆盖
 	GM_addStyle( `
-		.bili-danmaku-x-dm.hide,
-		.chat-item.danmaku-item.hide {
+		.bili-danmaku-x-dm.bili-danmaku-x-dm.bili-danmaku-x-dm.bili-danmaku-x-dm.hide,
+		.chat-item.chat-item.chat-item.danmaku-item.hide {
 			display: none !important;
 		}
 	` );

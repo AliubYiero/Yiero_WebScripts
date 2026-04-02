@@ -3,7 +3,7 @@ import { ScriptCatUserScript } from '../types/UserScript';
 const UserScript: ScriptCatUserScript = [
 	[ 'name', 'Bilibili直播隐藏重复弹幕' ],
 	[ 'description', 'Bilibili直播隐藏重复弹幕.' ],
-	[ 'version', '1.0.0' ],
+	[ 'version', '1.0.1' ],
 	[ 'author', 'Yiero' ],
 	[ 'match', 'https://live.bilibili.com/*' ],
 	[ 'require', '' ],
