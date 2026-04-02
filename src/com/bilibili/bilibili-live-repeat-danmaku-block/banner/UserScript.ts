@@ -1,8 +1,8 @@
 import { ScriptCatUserScript } from '../types/UserScript';
 
 const UserScript: ScriptCatUserScript = [
-	[ 'name', 'Bilibili直播隐藏重复弹幕' ],
-	[ 'description', 'Bilibili直播隐藏重复弹幕.' ],
+	[ 'name', 'Bilibili直播弹幕刷屏屏蔽' ],
+	[ 'description', '用于B站直播间的弹幕净化脚本. 屏蔽独轮车, 屏蔽重复弹幕, 屏蔽刷屏用户.' ],
 	[ 'version', '1.0.1' ],
 	[ 'author', 'Yiero' ],
 	[ 'match', 'https://live.bilibili.com/*' ],
