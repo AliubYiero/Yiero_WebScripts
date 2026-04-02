@@ -100,6 +100,7 @@ export default defineConfig( ( env ) => {
 		build: {
 			// 不清空打包目录
 			emptyOutDir: false,
+			target: 'esnext',
 			lib: {
 				entry: `src/${ getEntryFileName() }`,
 				name: projectName,

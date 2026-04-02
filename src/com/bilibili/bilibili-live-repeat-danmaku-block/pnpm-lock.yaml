@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.1.12
-        version: 0.1.23
+        specifier: ^0.3.1
+        version: 0.3.1
     devDependencies:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
@@ -429,9 +429,6 @@ packages:
   '@types/node@22.19.3':
     resolution: {integrity: sha512-1N9SBnWYOJTrNZCdh/yJE+t910Y128BoyY+zBLWhL3r0TYzlTmFdXrPwHL9DyFZmlEXNQQolTZh3KHV31QDhyA==}
 
-  '@types/tampermonkey@5.0.5':
-    resolution: {integrity: sha512-ZWitwJH4T/jcQiynhc3I5DNiwlsDzVTKPXg6A8ltTw3SDuf0b00bNRSV0Z/yldnhhBi9e8g8vY/X3LVSQcaCKQ==}
-
   '@types/yamljs@0.2.34':
     resolution: {integrity: sha512-gJvfRlv9ErxdOv7ux7UsJVePtX54NAvQyd8ncoiFqK8G5aeHIfQfGH2fbruvjAQ9657HwAaO54waS+Dsk2QTUQ==}
 
@@ -473,8 +470,8 @@ packages:
   '@vitest/utils@2.1.9':
     resolution: {integrity: sha512-v0psaMSkNJ3A2NMrUEHFRzJtDPFn+/VWZ5WxImB21T9fjucJRmS7xCS3ppEnARb9y11OAzaD+P2Ps+b+BGX5iQ==}
 
-  '@yiero/gmlib@0.1.23':
-    resolution: {integrity: sha512-05v/lIPVfLEr4rwQbvOK4FtYteZiCV+b/1VVNOKPs0mwhc3t2buAiCRuEVsHudx3IhVsbx6LVVyqZtRjIQSV9w==}
+  '@yiero/gmlib@0.3.1':
+    resolution: {integrity: sha512-3/7lKhFOvXweCq7qhv+b372/xrEHqe6xcizcKhRA71DSBAvMDnM/VWvT891Fgzib5cPH1zuRv5Xa7oyenhk/Ow==}
 
   '@yiero/vite-plugin-scriptcat-backup@1.0.2':
     resolution: {integrity: sha512-D5skY1rpTJIeOEuc29s87GINMhXw4/IakT/9rPS9i5Bjz4iSQxI05PRKunkIzOiJf8AQX+17vbV8QmnI0cwXkA==}
@@ -1368,8 +1365,6 @@ snapshots:
     dependencies:
       undici-types: 6.21.0
 
-  '@types/tampermonkey@5.0.5': {}
-
   '@types/yamljs@0.2.34': {}
 
   '@vitest/coverage-v8@2.1.9(vitest@2.1.9(@types/node@22.19.3)(jsdom@24.1.3)(terser@5.44.1))':
@@ -1430,9 +1425,7 @@ snapshots:
       loupe: 3.2.1
       tinyrainbow: 1.2.0
 
-  '@yiero/gmlib@0.1.23':
-    dependencies:
-      '@types/tampermonkey': 5.0.5
+  '@yiero/gmlib@0.3.1': {}
 
   '@yiero/vite-plugin-scriptcat-backup@1.0.2': {}
 
