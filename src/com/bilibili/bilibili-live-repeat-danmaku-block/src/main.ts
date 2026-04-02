@@ -31,8 +31,8 @@ const bannedDanmakuSet = new Set<string>();
 const bannedVideoDanmakuSet = new Set<string>();
 /** 已禁言用户集合 */
 const bannedUserSet = new Set<string>();
-/** 临时屏蔽弹幕集合（禁言用户发送的弹幕） */
-const tempBannedDanmakuSet = new Set<string>();
+/** 临时屏蔽弹幕集合（禁言用户发送的弹幕），key为弹幕文本，value为时间戳 */
+const tempBannedDanmakuMap = new Map<string, number>();
 
 /** 用户弹幕发送时间记录 */
 const userDanmakuTimeMap = new Map<string, number[]>();
@@ -112,7 +112,7 @@ function checkSpamUser( element: HTMLElement, data: DanmakuDataset ) {
 	if ( bannedUserSet.has( uname ) ) {
 		hideElement( element, '隐藏禁言用户弹幕', uname, danmaku );
 		if ( !bannedVideoDanmakuSet.has( danmaku ) ) {
-			tempBannedDanmakuSet.add( danmaku );
+			tempBannedDanmakuMap.set( danmaku, Date.now() );
 		}
 		return;
 	}
@@ -139,7 +139,7 @@ function checkSpamUser( element: HTMLElement, data: DanmakuDataset ) {
 		bannedUserSet.add( uname );
 		hideElement( element, '当前用户刷屏, 已屏蔽', uname, danmaku );
 		if ( !bannedVideoDanmakuSet.has( danmaku ) ) {
-			tempBannedDanmakuSet.add( danmaku );
+			tempBannedDanmakuMap.set( danmaku, Date.now() );
 		}
 	}
 	else {
@@ -187,11 +187,19 @@ function handleVideoDanmakuMutation( records: MutationRecord[] ) {
 		seenDanmaku.add( danmaku );
 		
 		// 临时屏蔽弹幕（禁言用户发送的）
-		if ( tempBannedDanmakuSet.has( danmaku ) ) {
+		if ( tempBannedDanmakuMap.has( danmaku ) ) {
 			target.classList.add( 'hide' );
 			logHiddenVideoDanmaku('隐藏禁言用户直播弹幕', danmaku)
-			tempBannedDanmakuSet.delete( danmaku );
+			tempBannedDanmakuMap.delete( danmaku );
 			continue;
+		}
+		
+		// 清理超过1分钟的临时屏蔽弹幕
+		const now = Date.now();
+		for ( const [ key, timestamp ] of tempBannedDanmakuMap ) {
+			if ( now - timestamp > 60000 ) {
+				tempBannedDanmakuMap.delete( key );
+			}
 		}
 		
 		// 重复直播弹幕
