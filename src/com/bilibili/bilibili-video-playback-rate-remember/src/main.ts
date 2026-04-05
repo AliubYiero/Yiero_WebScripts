@@ -7,7 +7,11 @@ import { stepStore, syncStore } from './store/configStore.ts';
 import {
 	showPlaybackRateStyle,
 } from './module/showPlaybackRateStyle/showPlaybackRateStyle.ts';
-import { addHotkey, reduceHotkey } from './store/hotkeyConfigStore.ts';
+import {
+	addHotkey,
+	reduceHotkey,
+	toggleHotkey,
+} from './store/hotkeyConfigStore.ts';
 
 
 /**
@@ -25,26 +29,41 @@ const main = async () => {
 		: new PlaybackRate( videoElement, stepStore.get() );
 	
 	
-	// 快捷键减少倍速
-	const handlePlaybackChange = ( type: 'add' | 'reduce' ) => {
-		const playbackRateValue = type === 'add'
-			? playbackRate.add()
-			: playbackRate.reduce();
+	let timer: number;
+	const handlePlaybackChange = ( type: 'add' | 'reduce' | 'toggle' ) => {
+		let playbackRateValue: number = 1.0;
+		switch ( type ) {
+			case 'add':
+				playbackRateValue = playbackRate.add();
+				break;
+			case 'reduce':
+				playbackRateValue = playbackRate.reduce();
+				break;
+			case 'toggle':
+				playbackRateValue = playbackRate.toggle();
+				break;
+		}
+		timer && window.clearTimeout( timer );
+		
 		videoContainer.dataset.playbackRate = String( playbackRateValue );
 		videoContainer.classList.add( 'show-message' );
 		timer = window.setTimeout( () => {
-			window.clearTimeout( timer );
 			videoContainer.classList.remove( 'show-message' );
 		}, 3000 );
 	};
-	let timer: number;
+	
+	// 快捷键减少倍速
 	onKeydown( () => {
-		handlePlaybackChange('reduce')
+		handlePlaybackChange( 'reduce' );
 	}, reduceHotkey );
 	// 快捷键增加倍速
 	onKeydown( () => {
-		handlePlaybackChange('add')
+		handlePlaybackChange( 'add' );
 	}, addHotkey );
+	// 快捷键快捷切换倍速
+	onKeydown( () => {
+		handlePlaybackChange( 'toggle' );
+	}, toggleHotkey );
 };
 
 main().catch( error => {

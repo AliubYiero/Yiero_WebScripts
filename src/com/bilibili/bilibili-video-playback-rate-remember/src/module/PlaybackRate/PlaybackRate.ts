@@ -1,11 +1,15 @@
-import { playbackRateStore } from '../../store/playbackRateStore.ts';
+import {
+	playbackRateStore,
+	togglePlaybackRateStore,
+} from '../../store/playbackRateStore.ts';
 
 interface PlaybackRateBase {
 	reduce: () => number;
 	add: () => number;
+	toggle: () => number;
 }
 
-export class PlaybackRateSync implements PlaybackRateBase{
+export class PlaybackRateSync implements PlaybackRateBase {
 	constructor(
 		private video: HTMLVideoElement,
 		private step: number = 0.25,
@@ -25,6 +29,18 @@ export class PlaybackRateSync implements PlaybackRateBase{
 	 */
 	add() {
 		return this.apply( playbackRateStore.get() + this.step );
+	}
+	
+	/**
+	 * 快速重置视频倍速, 如果不是 1.0 则重置到, 否则则重置到上次的记忆倍速
+	 */
+	toggle() {
+		const currentPlaybackRate = playbackRateStore.get();
+		const willTogglePlaybackRate = currentPlaybackRate !== 1
+			? 1
+			: togglePlaybackRateStore.get();
+		togglePlaybackRateStore.set( currentPlaybackRate );
+		return this.apply( willTogglePlaybackRate );
 	}
 	
 	/**
@@ -51,13 +67,14 @@ export class PlaybackRateSync implements PlaybackRateBase{
 	private apply( playbackRate: number ) {
 		const currentPlaybackRate = Math.max( 0.1, playbackRate );
 		playbackRateStore.set( currentPlaybackRate );
-		return currentPlaybackRate
+		return currentPlaybackRate;
 	}
 }
 
 
-export class PlaybackRate implements PlaybackRateBase{
+export class PlaybackRate implements PlaybackRateBase {
 	private playbackRate: number = 1.0;
+	private togglePlaybackRate: number = 1.0;
 	
 	constructor(
 		private video: HTMLVideoElement,
@@ -89,11 +106,24 @@ export class PlaybackRate implements PlaybackRateBase{
 	}
 	
 	/**
+	 * 快速重置视频倍速, 如果不是 1.0 则重置到, 否则则重置到上次的记忆倍速
+	 */
+	toggle() {
+		const currentPlaybackRate = this.playbackRate;
+		const willTogglePlaybackRate = currentPlaybackRate !== 1
+			? 1
+			: this.togglePlaybackRate;
+		this.togglePlaybackRate = currentPlaybackRate;
+		return this.apply( willTogglePlaybackRate );
+	}
+	
+	/**
 	 * 初始化
 	 */
 	private init() {
 		this.playbackRate = playbackRateStore.get();
 		this.video.playbackRate = this.playbackRate;
+		this.togglePlaybackRate = this.playbackRate;
 	}
 	
 	/**
@@ -103,6 +133,6 @@ export class PlaybackRate implements PlaybackRateBase{
 		this.playbackRate = Math.max( 0.1, playbackRate );
 		this.video.playbackRate = this.playbackRate;
 		playbackRateStore.set( this.playbackRate );
-		return this.playbackRate
+		return this.playbackRate;
 	}
 }

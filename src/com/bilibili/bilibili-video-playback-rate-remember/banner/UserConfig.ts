@@ -36,7 +36,7 @@ export const UserConfig: ScriptCatUserConfig = {
 			description: '',
 			type: 'select',
 			values: keyboardKeyList as unknown as unknown[],
-			default: 'X'
+			default: 'C'
 		},
 		addCtrl:{
 			title: 'Ctrl',
@@ -61,7 +61,7 @@ export const UserConfig: ScriptCatUserConfig = {
 			description: '',
 			type: 'select',
 			values: keyboardKeyList as unknown as unknown[],
-			default: 'Z'
+			default: 'X'
 		},
 		reduceCtrl:{
 			title: 'Ctrl',
@@ -78,6 +78,31 @@ export const UserConfig: ScriptCatUserConfig = {
 		reduceAlt:{
 			title: 'Alt',
 			description: '减少倍速键位, 启用 Alt',
+			type: 'checkbox',
+			default: false
+		},
+		toggleKey: {
+			title: '重置倍速键位',
+			description: '',
+			type: 'select',
+			values: keyboardKeyList as unknown as unknown[],
+			default: 'Z'
+		},
+		toggleCtrl:{
+			title: 'Ctrl',
+			description: '重置倍速键位, 启用 Ctrl',
+			type: 'checkbox',
+			default: false
+		},
+		toggleShift:{
+			title: 'Shift',
+			description: '重置倍速键位, 启用 Shift',
+			type: 'checkbox',
+			default: false
+		},
+		toggleAlt:{
+			title: 'Alt',
+			description: '重置倍速键位, 启用 Alt',
 			type: 'checkbox',
 			default: false
 		},
