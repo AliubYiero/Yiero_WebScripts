@@ -10,4 +10,5 @@
 	padding: 8px;
 	color: white;
 	background: #00000066;
+	z-index: 99;
 }
