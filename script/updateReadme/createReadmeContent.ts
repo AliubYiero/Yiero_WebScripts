@@ -38,8 +38,11 @@ const createScriptListContent = ( scriptInfo: ScriptInfo ) => {
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |` );
 		
-		for ( let scriptProjectName in scriptDetailMap ) {
-			const scriptDetail = scriptDetailMap[ scriptProjectName ];
+		// 按 lastUpdate 降序排序脚本
+		const sortedScripts = Object.entries( scriptDetailMap )
+			.sort( ( [, a], [, b] ) => b.lastUpdate - a.lastUpdate );
+		
+		for ( const [scriptProjectName, scriptDetail] of sortedScripts ) {
 			const scriptType = {
 				web: '前台脚本',
 				background: '后台脚本',
