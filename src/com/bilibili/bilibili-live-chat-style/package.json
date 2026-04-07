@@ -16,11 +16,11 @@
 		"@types/node": "^22.10.2",
 		"@types/yamljs": "^0.2.34",
 		"@vitest/coverage-v8": "^2.1.8",
-		"@yiero/vite-plugin-scriptcat-backup": "^1.0.2",
+		"@yiero/vite-plugin-scriptcat-backup": "^1.1.0",
 		"@yiero/vite-plugin-scriptcat-extract-grant": "^1.0.4",
 		"@yiero/vite-plugin-scriptcat-meta-banner": "^1.1.1",
 		"@yiero/vite-plugin-scriptcat-require-self": "^1.0.4",
-		"@yiero/vite-plugin-scriptcat-script-push": "^1.1.0",
+		"@yiero/vite-plugin-scriptcat-script-push": "^1.1.1",
 		"jsdom": "^24.0.0",
 		"rollup": "^4.53.3",
 		"terser": "^5.37.0",
@@ -30,6 +30,6 @@
 		"yamljs": "^0.3.0"
 	},
 	"dependencies": {
-		"@yiero/gmlib": "^0.3.1"
+		"@yiero/gmlib": "^0.3.2"
 	}
 }

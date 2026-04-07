@@ -6,7 +6,7 @@ export const UserConfig: ScriptCatUserConfig = {
 			title: '弹幕字体大小',
 			description: '弹幕字体大小',
 			type: 'number',
-			default: 12,
+			default: 16,
 			min: 12
 		}
 	}
