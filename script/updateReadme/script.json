@@ -3,9 +3,9 @@
 		"bilibili-live-chat-style": {
 			"name": "Bilibili直播评论样式修改",
 			"description": "修改Bilibili直播间的评论样式弹幕, 使其按固定格式显示. 即上面是用户信息, 下面是弹幕.",
-			"version": "1.0.0",
+			"version": "1.0.1",
 			"private": false,
-			"lastUpdate": 1775579441980.3872,
+			"lastUpdate": 1775580313022.6182,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/bilibili-live-chat-style.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-chat-style/backup/bilibili-live-chat-style.user.js",
