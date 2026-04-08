@@ -58,3 +58,9 @@
 > | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 > | --- | --- | --- | --- | --- | --- | --- | --- |
 > | 永恒轮回兑换码监听 | 监听永恒轮回直播间发放的兑换码, 发送桌面通知并且记录兑换码 | 前台脚本 | 0.1.0 | 2026-04-08 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/live/laplace/eternal_return-live-redeem-code-listener/backup/eternal_return-live-redeem-code-listener.user.js) |  |  |
+
+
+### cangku.moe
+| 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 仓库跳转下载链接 | 在标签栏添加 跳转下载 按钮, 点击后可快速跳转至下载链接区域 | 前台脚本 | 1.0.0 | 2026-04-08 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/moe/cangku/cangku-download-link-jumper/backup/cangku-download-link-jumper.user.js) |  | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/513816) |

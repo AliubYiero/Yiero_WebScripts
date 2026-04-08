@@ -207,5 +207,20 @@
 			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/2819",
 			"downloadUrlFromGreasyFork": ""
 		}
+	},
+	"cangku.moe": {
+		"cangku-download-link-jumper": {
+			"name": "仓库跳转下载链接",
+			"description": "在标签栏添加 跳转下载 按钮, 点击后可快速跳转至下载链接区域",
+			"version": "1.0.0",
+			"private": true,
+			"archive": false,
+			"lastUpdate": 1775648440917.7544,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/cangku-download-link-jumper.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/moe/cangku/cangku-download-link-jumper/backup/cangku-download-link-jumper.user.js",
+			"downloadUrlFromScripCat": "",
+			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/513816"
+		}
 	}
 }
