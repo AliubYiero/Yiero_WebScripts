@@ -6,12 +6,13 @@
 			"version": "0.1.0",
 			"private": true,
 			"archive": true,
-			"lastUpdate": 1775635758354.3354,
+			"lastUpdate": 1753631481993.0276,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/get-song-info.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/cn/minamini/get-song-info/backup/get-song-info.user.js",
 			"downloadUrlFromScripCat": "",
-			"downloadUrlFromGreasyFork": ""
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": false
 		}
 	},
 	"bilibili.com": {
@@ -26,7 +27,8 @@
 			"userScriptFilepath": "backup/bilibili-live-chat-style.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-chat-style/backup/bilibili-live-chat-style.user.js",
 			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/5757",
-			"downloadUrlFromGreasyFork": ""
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": true
 		},
 		"bilibili-live-record": {
 			"name": "Bilibili直播时间点标记",
@@ -39,7 +41,8 @@
 			"userScriptFilepath": "backup/bilibili-live-record.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-record/backup/bilibili-live-record.user.js",
 			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/5070",
-			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/561637"
+			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/561637",
+			"autoUpdate": true
 		},
 		"bilibili-live-repeat-danmaku-block": {
 			"name": "Bilibili直播弹幕刷屏屏蔽",
@@ -52,7 +55,8 @@
 			"userScriptFilepath": "backup/bilibili-live-repeat-danmaku-block.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-repeat-danmaku-block/backup/bilibili-live-repeat-danmaku-block.user.js",
 			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/5772",
-			"downloadUrlFromGreasyFork": ""
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": true
 		},
 		"bilibili-live-speaker": {
 			"name": "Bilibili独轮车",
@@ -65,7 +69,8 @@
 			"userScriptFilepath": "backup/bilibili-live-speaker.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-speaker/backup/bilibili-live-speaker.user.js",
 			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/5519",
-			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/568495"
+			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/568495",
+			"autoUpdate": true
 		},
 		"bilibili-upload-section-sort": {
 			"name": "Bilibili投稿合集排序辅助",
@@ -78,7 +83,8 @@
 			"userScriptFilepath": "backup/bilibili-upload-section-sort.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-upload-section-sort/backup/bilibili-upload-section-sort.user.js",
 			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/5085",
-			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/561930"
+			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/561930",
+			"autoUpdate": true
 		},
 		"bilibili-video-auto-add-favorites": {
 			"name": "BiliBili自动添加视频收藏",
@@ -91,7 +97,8 @@
 			"userScriptFilepath": "dist/BiliBili自动添加视频收藏.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-auto-add-favorites/dist/BiliBili自动添加视频收藏.js",
 			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/1603",
-			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/489644"
+			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/489644",
+			"autoUpdate": true
 		},
 		"bilibili-video-playback-rate-remember": {
 			"name": "Bilibili视频倍速记忆",
@@ -104,7 +111,8 @@
 			"userScriptFilepath": "backup/bilibili-video-playback-rate-remember.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-playback-rate-remember/backup/bilibili-video-playback-rate-remember.user.js",
 			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/5800",
-			"downloadUrlFromGreasyFork": ""
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": true
 		},
 		"bilibili-video-watch-sign": {
 			"name": "Bilibili视频观看状态标记",
@@ -117,7 +125,8 @@
 			"userScriptFilepath": "dist/Bilibili视频观看状态标记.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-watch-sign/backup/bilibili-video-watch-sign.user.js",
 			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/4793",
-			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/557782"
+			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/557782",
+			"autoUpdate": true
 		},
 		"quin-live-record-video-collect": {
 			"name": "Mr.Quin 录播抓取程序",
@@ -130,7 +139,8 @@
 			"userScriptFilepath": "backup/quin-live-record-video-collect.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/quin-live-record-video-collect/backup/quin-live-record-video-collect.user.js",
 			"downloadUrlFromScripCat": "",
-			"downloadUrlFromGreasyFork": ""
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": true
 		}
 	},
 	"orzice.com": {
@@ -145,7 +155,8 @@
 			"userScriptFilepath": "backup/package-capacity-calculate.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/orzice/package-capacity-calculate/backup/package-capacity-calculate.user.js",
 			"downloadUrlFromScripCat": "",
-			"downloadUrlFromGreasyFork": ""
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": true
 		}
 	},
 	"qidian.com": {
@@ -160,7 +171,8 @@
 			"userScriptFilepath": "backup/auto-scroll.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qidian/auto-scroll/backup/auto-scroll.user.js",
 			"downloadUrlFromScripCat": "",
-			"downloadUrlFromGreasyFork": ""
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": true
 		}
 	},
 	"dak.gg": {
@@ -170,12 +182,13 @@
 			"version": "0.4.6",
 			"private": true,
 			"archive": true,
-			"lastUpdate": 1775639743621.1816,
+			"lastUpdate": 1734355649320.5662,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/dakgg-data-collecter.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/gg/dak/dakgg-data-collecter/backup/dakgg-data-collecter.user.js",
 			"downloadUrlFromScripCat": "",
-			"downloadUrlFromGreasyFork": ""
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": false
 		}
 	},
 	"laplace.live": {
@@ -185,12 +198,13 @@
 			"version": "0.1.0",
 			"private": true,
 			"archive": true,
-			"lastUpdate": 1775640736338.2825,
+			"lastUpdate": 1751105399261.3706,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/eternal_return-live-redeem-code-listener.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/live/laplace/eternal_return-live-redeem-code-listener/backup/eternal_return-live-redeem-code-listener.user.js",
 			"downloadUrlFromScripCat": "",
-			"downloadUrlFromGreasyFork": ""
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": false
 		}
 	},
 	"mikannani.me": {
@@ -205,7 +219,8 @@
 			"userScriptFilepath": "backup/animation-magnet-download.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/me/mikannani/animation-magnet-download/backup/animation-magnet-download.user.js",
 			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/2819",
-			"downloadUrlFromGreasyFork": ""
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": true
 		}
 	},
 	"cangku.moe": {
@@ -215,12 +230,13 @@
 			"version": "1.0.0",
 			"private": true,
 			"archive": false,
-			"lastUpdate": 1775648440917.7544,
+			"lastUpdate": 1734280870453.9685,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/cangku-download-link-jumper.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/moe/cangku/cangku-download-link-jumper/backup/cangku-download-link-jumper.user.js",
 			"downloadUrlFromScripCat": "",
-			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/513816"
+			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/513816",
+			"autoUpdate": false
 		}
 	}
 }

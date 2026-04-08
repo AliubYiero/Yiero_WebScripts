@@ -20,6 +20,7 @@ export interface ScriptDetail {
 	downloadUrlFromGithub: string;   // Github 安装源
 	downloadUrlFromScripCat: string;   // ScriptCat 安装源
 	downloadUrlFromGreasyFork: string;   // GreasyFork 安装源
+	autoUpdate: boolean;        // 是否启用自动更新
 }
 
 // Record<脚本域名 (二级域名.顶级域名), Record<脚本项目名称, ScriptDetail>>
@@ -190,6 +191,7 @@ class ScriptFileSystem {
 				downloadUrlFromGithub: existingDetail?.downloadUrlFromGithub || '',
 				downloadUrlFromScripCat: existingDetail?.downloadUrlFromScripCat ?? '',
 				downloadUrlFromGreasyFork: existingDetail?.downloadUrlFromGreasyFork ?? '',
+				autoUpdate: existingDetail?.autoUpdate ?? true,
 			};
 		}
 
@@ -209,6 +211,7 @@ class ScriptFileSystem {
 				downloadUrlFromGithub: existingDetail?.downloadUrlFromGithub || '',
 				downloadUrlFromScripCat: existingDetail?.downloadUrlFromScripCat ?? '',
 				downloadUrlFromGreasyFork: existingDetail?.downloadUrlFromGreasyFork ?? '',
+				autoUpdate: existingDetail?.autoUpdate ?? true,
 			};
 		} catch (error) {
 			console.error(`[错误] 读取脚本失败 ${userJsPath}:`, error);
@@ -305,22 +308,31 @@ class ScriptFileSystem {
 				const userScriptFilepath = existingDetail?.userScriptFilepath || newDetail.userScriptFilepath;
 
 				if (existingDetail) {
-					// 已有脚本：保留 private、achieve、userScriptFilepath、downloadUrlFromScripCat、downloadUrlFromGreasyFork
-					mergedScriptInfo[domain][scriptProjectName] = {
-						...newDetail,
-						private: existingDetail.private ?? false,
-						archive: existingDetail.archive ?? false,
-						userScriptFilepath: userScriptFilepath,
-						downloadUrlFromScripCat: existingDetail.downloadUrlFromScripCat ?? '',
-						downloadUrlFromGreasyFork: existingDetail.downloadUrlFromGreasyFork ?? '',
-						downloadUrlFromGithub: existingDetail.downloadUrlFromGithub || this.generateGithubUrl(domain, scriptProjectName, userScriptFilepath),
-					};
+					// 检查 autoUpdate 标志
+					if (existingDetail.autoUpdate === false) {
+						// autoUpdate 为 false，完全保留旧数据，不更新
+						mergedScriptInfo[domain][scriptProjectName] = existingDetail;
+					} else {
+						// autoUpdate 为 true 或未设置，执行正常更新
+						// 已有脚本：保留 private、archive、autoUpdate、userScriptFilepath、downloadUrlFromScripCat、downloadUrlFromGreasyFork
+						mergedScriptInfo[domain][scriptProjectName] = {
+							...newDetail,
+							private: existingDetail.private ?? false,
+							archive: existingDetail.archive ?? false,
+							autoUpdate: existingDetail.autoUpdate ?? true,
+							userScriptFilepath: userScriptFilepath,
+							downloadUrlFromScripCat: existingDetail.downloadUrlFromScripCat ?? '',
+							downloadUrlFromGreasyFork: existingDetail.downloadUrlFromGreasyFork ?? '',
+							downloadUrlFromGithub: existingDetail.downloadUrlFromGithub || this.generateGithubUrl(domain, scriptProjectName, userScriptFilepath),
+						};
+					}
 				} else {
 					// 新脚本：设置默认值
 					mergedScriptInfo[domain][scriptProjectName] = {
 						...newDetail,
 						private: false,
 						archive: false,
+						autoUpdate: true,
 						userScriptFilepath: userScriptFilepath,
 						downloadUrlFromScripCat: '',
 						downloadUrlFromGreasyFork: '',
