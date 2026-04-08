@@ -4,6 +4,12 @@
 
 ## 脚本列表
 
+### global
+| 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 健康浏览网页 | 限制网页访问时间 | 前台脚本 | 1.0.0 | 2024-05-20 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/.Global/limit-web-view-time/backup/limit-web-view-time.user.js) |  |  |
+
+
 ### bilibili.com
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |

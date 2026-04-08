@@ -1,4 +1,20 @@
 {
+	"global": {
+		"limit-web-view-time": {
+			"name": "健康浏览网页",
+			"description": "限制网页访问时间",
+			"version": "1.0.0",
+			"private": false,
+			"archive": false,
+			"lastUpdate": 1716194100000,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/limit-web-view-time.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/.Global/limit-web-view-time/backup/limit-web-view-time.user.js",
+			"downloadUrlFromScripCat": "",
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": false
+		}
+	},
 	"minamini.cn": {
 		"get-song-info": {
 			"name": "获取歌单信息",
