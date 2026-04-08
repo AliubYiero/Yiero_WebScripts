@@ -14,7 +14,7 @@
 >
 >
 > | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
-| --- | --- | --- | --- | --- | --- | --- | --- |
+> | --- | --- | --- | --- | --- | --- | --- | --- |
 > | 获取歌单信息 | 自动从页面表格中提取歌曲名称和歌手名称 | 前台脚本 | 0.1.0 | 2026-04-08 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/cn/minamini/get-song-info/backup/get-song-info.user.js) |  |  |
 
 
@@ -24,7 +24,7 @@
 >
 >
 > | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
-| --- | --- | --- | --- | --- | --- | --- | --- |
+> | --- | --- | --- | --- | --- | --- | --- | --- |
 > | Mr.Quin 录播抓取程序 | Mr.Quin 录播抓取, 并生成日志 | 前台脚本 | 0.1.1 | 2026-03-31 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/quin-live-record-video-collect/backup/quin-live-record-video-collect.user.js) |  |  |
 
 
@@ -46,5 +46,5 @@
 >
 >
 > | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
-| --- | --- | --- | --- | --- | --- | --- | --- |
+> | --- | --- | --- | --- | --- | --- | --- | --- |
 > | 自动提取永恒轮回对局数据 | (已失效不维护) 自动提取永恒轮回(Eternal Return)游戏的比赛数据 | 前台脚本 | 0.4.6 | 2026-04-08 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/gg/dak/dakgg-data-collecter/backup/dakgg-data-collecter.user.js) |  |  |

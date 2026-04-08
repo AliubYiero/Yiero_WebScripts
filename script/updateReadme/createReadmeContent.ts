@@ -51,9 +51,10 @@ const createScriptTableRow = ( scriptDetail: ScriptDetail ): string => {
 /**
  * 创建脚本表格头
  */
-const createScriptTableHeader = (): string => {
-	return `| 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
-| --- | --- | --- | --- | --- | --- | --- | --- |`;
+const createScriptTableHeader = ( isQuote: boolean = false ): string => {
+	const quote = isQuote ? '> ' : ''
+	return `${quote}| 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
+${quote}| --- | --- | --- | --- | --- | --- | --- | --- |`;
 };
 
 /**
@@ -66,11 +67,11 @@ const createScriptListContent = ( scriptInfo: ScriptInfo ) => {
 		
 		// 按 lastUpdate 降序排序脚本
 		const sortedScripts = Object.entries( scriptDetailMap )
-			.sort( ( [, a], [, b] ) => b.lastUpdate - a.lastUpdate );
+			.sort( ( [ , a ], [ , b ] ) => b.lastUpdate - a.lastUpdate );
 		
 		// 分离普通脚本和归档脚本
-		const normalScripts = sortedScripts.filter( ([, detail]) => !detail.archive );
-		const archivedScripts = sortedScripts.filter( ([, detail]) => detail.archive );
+		const normalScripts = sortedScripts.filter( ( [ , detail ] ) => !detail.archive );
+		const archivedScripts = sortedScripts.filter( ( [ , detail ] ) => detail.archive );
 		
 		// 添加域名标题
 		scriptList.push( `### ${ domain }` );
@@ -78,7 +79,7 @@ const createScriptListContent = ( scriptInfo: ScriptInfo ) => {
 		// 生成普通脚本表格
 		if ( normalScripts.length > 0 ) {
 			scriptList.push( createScriptTableHeader() );
-			for ( const [, scriptDetail] of normalScripts ) {
+			for ( const [ , scriptDetail ] of normalScripts ) {
 				scriptList.push( createScriptTableRow( scriptDetail ) );
 			}
 		}
@@ -86,8 +87,8 @@ const createScriptListContent = ( scriptInfo: ScriptInfo ) => {
 		// 生成归档脚本表格（引用块格式）
 		if ( archivedScripts.length > 0 ) {
 			scriptList.push( '\n> **归档脚本**\n>' );
-			scriptList.push( '>\n> ' + createScriptTableHeader() );
-			for ( const [, scriptDetail] of archivedScripts ) {
+			scriptList.push( '>\n' + createScriptTableHeader(true) );
+			for ( const [ , scriptDetail ] of archivedScripts ) {
 				scriptList.push( '> ' + createScriptTableRow( scriptDetail ) );
 			}
 		}
