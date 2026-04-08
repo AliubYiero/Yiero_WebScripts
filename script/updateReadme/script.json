@@ -268,5 +268,21 @@
 			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/513816",
 			"autoUpdate": false
 		}
+	},
+	"weread.qq": {
+		"wechat-reader-auto-scroll": {
+			"name": "微信读书自动阅读助手",
+			"description": "微信读书自动滚动, 自动翻页.",
+			"version": "1.0.0",
+			"private": false,
+			"archive": true,
+			"lastUpdate": 1711888920000,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/wechat-reader-auto-scroll.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/qq/weread/wechat-reader-auto-scroll/backup/wechat-reader-auto-scroll.user.js",
+			"downloadUrlFromScripCat": "",
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": false
+		}
 	}
 }

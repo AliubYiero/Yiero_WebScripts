@@ -29,6 +29,16 @@
 | 蜜柑计划批量复制磁链 | 蜜柑计划批量复制磁链, 并保存为 md 文件. | 前台脚本 | 1.1.0 | 2026-04-08 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/me/mikannani/animation-magnet-download/backup/animation-magnet-download.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/2819) |  |
 
 
+### weread.qq
+
+> **归档脚本**
+>
+>
+> | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
+> | --- | --- | --- | --- | --- | --- | --- | --- |
+> | 微信读书自动阅读助手 | 微信读书自动滚动, 自动翻页. | 前台脚本 | 1.0.0 | 2024-03-31 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/qq/weread/wechat-reader-auto-scroll/backup/wechat-reader-auto-scroll.user.js) |  |  |
+
+
 ## 目录结构
 
 本脚本库的所有项目都储存在 `/src` 目录下, 目录的文件格式以 `@match` 捕获的域名为目录, 一共有两种存储方式:
