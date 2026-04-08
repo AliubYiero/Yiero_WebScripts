@@ -177,5 +177,20 @@
 			"downloadUrlFromScripCat": "",
 			"downloadUrlFromGreasyFork": ""
 		}
+	},
+	"laplace.live": {
+		"eternal_return-live-redeem-code-listener": {
+			"name": "永恒轮回兑换码监听",
+			"description": "监听永恒轮回直播间发放的兑换码, 发送桌面通知并且记录兑换码",
+			"version": "0.1.0",
+			"private": true,
+			"archive": true,
+			"lastUpdate": 1775640736338.2825,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/eternal_return-live-redeem-code-listener.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/live/laplace/eternal_return-live-redeem-code-listener/backup/eternal_return-live-redeem-code-listener.user.js",
+			"downloadUrlFromScripCat": "",
+			"downloadUrlFromGreasyFork": ""
+		}
 	}
 }

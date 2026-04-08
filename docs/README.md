@@ -48,3 +48,13 @@
 > | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 > | --- | --- | --- | --- | --- | --- | --- | --- |
 > | 自动提取永恒轮回对局数据 | (已失效不维护) 自动提取永恒轮回(Eternal Return)游戏的比赛数据 | 前台脚本 | 0.4.6 | 2026-04-08 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/gg/dak/dakgg-data-collecter/backup/dakgg-data-collecter.user.js) |  |  |
+
+
+### laplace.live
+
+> **归档脚本**
+>
+>
+> | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
+> | --- | --- | --- | --- | --- | --- | --- | --- |
+> | 永恒轮回兑换码监听 | 监听永恒轮回直播间发放的兑换码, 发送桌面通知并且记录兑换码 | 前台脚本 | 0.1.0 | 2026-04-08 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/live/laplace/eternal_return-live-redeem-code-listener/backup/eternal_return-live-redeem-code-listener.user.js) |  |  |
