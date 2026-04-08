@@ -192,5 +192,20 @@
 			"downloadUrlFromScripCat": "",
 			"downloadUrlFromGreasyFork": ""
 		}
+	},
+	"mikannani.me": {
+		"animation-magnet-download": {
+			"name": "蜜柑计划批量复制磁链",
+			"description": "蜜柑计划批量复制磁链, 并保存为 md 文件.",
+			"version": "1.1.0",
+			"private": false,
+			"archive": false,
+			"lastUpdate": 1775646782230.3032,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/animation-magnet-download.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/me/mikannani/animation-magnet-download/backup/animation-magnet-download.user.js",
+			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/2819",
+			"downloadUrlFromGreasyFork": ""
+		}
 	}
 }
