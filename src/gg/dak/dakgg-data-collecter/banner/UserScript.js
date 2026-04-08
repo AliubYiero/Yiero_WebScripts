@@ -1,0 +1,20 @@
+const UserScript = [
+	[ 'name', '自动提取永恒轮回对局数据' ],
+	[ 'description', '(已失效不维护) 自动提取永恒轮回(Eternal Return)游戏的比赛数据' ],
+	[ 'author', 'Yiero' ],
+	[ 'version', '0.4.6' ],
+	[ 'grant', 'GM_setClipboard' ],
+	[ 'grant', 'GM_getValue' ],
+	[ 'grant', 'GM_addStyle' ],
+	[ 'run-at', 'document-body' ],
+	[ 'match', 'https://dak.gg/er/players/*' ],
+	[ 'require', '' ],
+	[ 'resource', '' ],
+	[ 'icon', '' ],
+	[ 'run-at', '' ],
+	[ 'connect', '' ],
+	[ 'tag', '' ],
+	[ 'license', 'GPL-3' ],
+	[ 'namespace', 'https://github.com/AliubYiero/Yiero_WebScripts' ],
+];
+export { UserScript };

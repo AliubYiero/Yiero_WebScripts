@@ -162,5 +162,20 @@
 			"downloadUrlFromScripCat": "",
 			"downloadUrlFromGreasyFork": ""
 		}
+	},
+	"dak.gg": {
+		"dakgg-data-collecter": {
+			"name": "自动提取永恒轮回对局数据",
+			"description": "(已失效不维护) 自动提取永恒轮回(Eternal Return)游戏的比赛数据",
+			"version": "0.4.6",
+			"private": true,
+			"archive": true,
+			"lastUpdate": 1775639743621.1816,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/dakgg-data-collecter.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/gg/dak/dakgg-data-collecter/backup/dakgg-data-collecter.user.js",
+			"downloadUrlFromScripCat": "",
+			"downloadUrlFromGreasyFork": ""
+		}
 	}
 }

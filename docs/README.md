@@ -38,3 +38,13 @@
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | 小说自动滚动 | 自动滚动脚本. 通过快捷键 PageDown 控制页面平滑滚动, 通过快捷键 PageUp 暂停滚动. | 前台脚本 | 0.1.0 | 2026-04-07 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qidian/auto-scroll/backup/auto-scroll.user.js) |  |  |
+
+
+### dak.gg
+
+> **归档脚本**
+>
+>
+> | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+> | 自动提取永恒轮回对局数据 | (已失效不维护) 自动提取永恒轮回(Eternal Return)游戏的比赛数据 | 前台脚本 | 0.4.6 | 2026-04-08 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/gg/dak/dakgg-data-collecter/backup/dakgg-data-collecter.user.js) |  |  |
