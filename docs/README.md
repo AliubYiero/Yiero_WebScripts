@@ -4,6 +4,13 @@
 
 ## 脚本列表
 
+### minamini.cn
+
+| 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 获取歌单信息 | 自动从页面表格中提取歌曲名称和歌手名称 | 前台脚本 | 0.1.0 | 2026-04-08 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/cn/minamini/get-song-info/backup/get-song-info.user.js) |  |  |
+
+
 ### bilibili.com
 
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |

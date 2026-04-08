@@ -1,4 +1,18 @@
 {
+	"minamini.cn": {
+		"get-song-info": {
+			"name": "获取歌单信息",
+			"description": "自动从页面表格中提取歌曲名称和歌手名称",
+			"version": "0.1.0",
+			"private": true,
+			"lastUpdate": 1775635758354.3354,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/get-song-info.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/cn/minamini/get-song-info/backup/get-song-info.user.js",
+			"downloadUrlFromScripCat": "",
+			"downloadUrlFromGreasyFork": ""
+		}
+	},
 	"bilibili.com": {
 		"bilibili-live-chat-style": {
 			"name": "Bilibili直播评论样式修改",
