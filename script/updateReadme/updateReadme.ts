@@ -13,6 +13,7 @@ export interface ScriptDetail {
 	description: string;   // 脚本描述
 	version: string;    // 最新版本号
 	private: boolean;    // 是否私有
+	archive: boolean;    // 是否归档
 	lastUpdate: number; // 最后的更新时间
 	scriptType: 'web' | 'background' | 'crontab';  // 脚本类型
 	userScriptFilepath: string;     // 用户脚本路径
@@ -23,14 +24,6 @@ export interface ScriptDetail {
 
 // Record<脚本域名 (二级域名.顶级域名), Record<脚本项目名称, ScriptDetail>>
 export type ScriptInfo = Record<string, Record<string, ScriptDetail>>
-
-/**
- * 更新结果
- */
-interface UpdateResult {
-	publicChanged: boolean;  // 公有脚本数据是否变化
-	privateChanged: boolean; // 私有脚本数据是否变化
-}
 
 
 /**
@@ -190,6 +183,7 @@ class ScriptFileSystem {
 				description: '',
 				version: '0.0.0',
 				private: existingDetail?.private ?? false,
+				archive: existingDetail?.archive ?? false,
 				lastUpdate: Date.now(),
 				scriptType: 'web',
 				userScriptFilepath: userScriptFilepath,
@@ -208,6 +202,7 @@ class ScriptFileSystem {
 				description: metadata.description,
 				version: metadata.version,
 				private: existingDetail?.private ?? false,
+				archive: existingDetail?.archive ?? false,
 				lastUpdate: stats.mtimeMs,
 				scriptType: metadata.scriptType,
 				userScriptFilepath: userScriptFilepath,
@@ -282,10 +277,9 @@ class ScriptFileSystem {
 
 	/**
 	 * 将脚本信息写入 script.json
-	 * 合并策略：保留已有脚本的 private、userScriptFilepath、downloadUrlFromScripCat、downloadUrlFromGreasyFork
-	 * @returns 公有和私有脚本数据是否发生变化
+	 * 合并策略：保留已有脚本的 private、achieve、userScriptFilepath、downloadUrlFromScripCat、downloadUrlFromGreasyFork
 	 */
-	write(scriptInfo: ScriptInfo): UpdateResult {
+	write(scriptInfo: ScriptInfo): void {
 		// 读取现有的 script.json
 		let existingScriptInfo: ScriptInfo = {};
 		if (fs.existsSync(this.scriptJsonPath)) {
@@ -311,10 +305,11 @@ class ScriptFileSystem {
 				const userScriptFilepath = existingDetail?.userScriptFilepath || newDetail.userScriptFilepath;
 
 				if (existingDetail) {
-					// 已有脚本：保留 private、userScriptFilepath、downloadUrlFromScripCat、downloadUrlFromGreasyFork
+					// 已有脚本：保留 private、achieve、userScriptFilepath、downloadUrlFromScripCat、downloadUrlFromGreasyFork
 					mergedScriptInfo[domain][scriptProjectName] = {
 						...newDetail,
 						private: existingDetail.private ?? false,
+						archive: existingDetail.archive ?? false,
 						userScriptFilepath: userScriptFilepath,
 						downloadUrlFromScripCat: existingDetail.downloadUrlFromScripCat ?? '',
 						downloadUrlFromGreasyFork: existingDetail.downloadUrlFromGreasyFork ?? '',
@@ -325,6 +320,7 @@ class ScriptFileSystem {
 					mergedScriptInfo[domain][scriptProjectName] = {
 						...newDetail,
 						private: false,
+						archive: false,
 						userScriptFilepath: userScriptFilepath,
 						downloadUrlFromScripCat: '',
 						downloadUrlFromGreasyFork: '',
@@ -334,61 +330,9 @@ class ScriptFileSystem {
 			}
 		}
 
-		// 分别检测公有和私有脚本数据是否发生变化
-		const publicChanged = this.isPrivacyDataChanged(mergedScriptInfo, existingScriptInfo, false);
-		const privateChanged = this.isPrivacyDataChanged(mergedScriptInfo, existingScriptInfo, true);
-
-		// 只有有变化时才写入文件
-		if (publicChanged || privateChanged) {
-			fs.writeFileSync(this.scriptJsonPath, JSON.stringify(mergedScriptInfo, null, '\t'), 'utf8');
-			console.log(`[成功] 已更新 script.json`);
-		} else {
-			console.log('[信息] script.json 数据未变化，跳过更新');
-		}
-
-		return { publicChanged, privateChanged };
-	}
-
-	/**
-	 * 比较新旧数据是否发生变化
-	 * @param newData - 新数据
-	 * @param oldData - 旧数据
-	 * @returns 是否发生变化
-	 */
-	private isDataChanged(newData: ScriptInfo, oldData: ScriptInfo): boolean {
-		return JSON.stringify(newData) !== JSON.stringify(oldData);
-	}
-
-	/**
-	 * 按权限类型比较数据是否发生变化
-	 * @param newData - 新数据
-	 * @param oldData - 旧数据
-	 * @param isPrivate - 是否比较私有脚本
-	 * @returns 是否发生变化
-	 */
-	private isPrivacyDataChanged(
-		newData: ScriptInfo,
-		oldData: ScriptInfo,
-		isPrivate: boolean
-	): boolean {
-		const filterByPrivacy = (data: ScriptInfo): ScriptInfo => {
-			const filtered: ScriptInfo = {};
-			for (const domain in data) {
-				const scripts: Record<string, ScriptDetail> = {};
-				for (const scriptName in data[domain]) {
-					const detail = data[domain][scriptName];
-					if (detail.private === isPrivate) {
-						scripts[scriptName] = detail;
-					}
-				}
-				if (Object.keys(scripts).length > 0) {
-					filtered[domain] = scripts;
-				}
-			}
-			return filtered;
-		};
-
-		return JSON.stringify(filterByPrivacy(newData)) !== JSON.stringify(filterByPrivacy(oldData));
+		// 直接写入文件
+		fs.writeFileSync(this.scriptJsonPath, JSON.stringify(mergedScriptInfo, null, '\t'), 'utf8');
+		console.log(`[成功] 已更新 script.json`);
 	}
 
 	/**
@@ -503,9 +447,9 @@ function main(): void {
 
 	// 2. 写入 script.json
 	console.log('\n[步骤 2/3] 更新 script.json...');
-	const updateResult = scriptFileSystem.write(scriptInfo);
+	scriptFileSystem.write(scriptInfo);
 
-	// 3. 生成 README 文件（分别判断公有和私有脚本数据变化）
+	// 3. 生成 README 文件
 	console.log('\n[步骤 3/3] 生成 README 文件...');
 
 	// 重新读取 script.json 以获取完整数据（包含合并后的配置）
@@ -513,17 +457,8 @@ function main(): void {
 		fs.readFileSync(scriptJsonPath, 'utf8')
 	);
 
-	if (updateResult.publicChanged) {
-		ReadmeFileSystem.write(finalScriptInfo, false); // 公有脚本
-	} else {
-		console.log('[信息] 公有脚本数据未变化，跳过公有 README 生成');
-	}
-
-	if (updateResult.privateChanged) {
-		ReadmeFileSystem.write(finalScriptInfo, true);  // 私有脚本
-	} else {
-		console.log('[信息] 私有脚本数据未变化，跳过私有 README 生成');
-	}
+	ReadmeFileSystem.write(finalScriptInfo, false); // 公有脚本
+	ReadmeFileSystem.write(finalScriptInfo, true);  // 私有脚本
 
 	console.log('\n' + '='.repeat(50));
 	console.log('更新完成！');

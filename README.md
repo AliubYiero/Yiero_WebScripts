@@ -1,9 +1,10 @@
 # Yiero's Web Scripts
 
+> 版本号小于 1.0.0 的脚本为实验性脚本, 不保证更新, 不保证问题修复.
+
 ## 脚本列表
 
 ### bilibili.com
-
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | Bilibili直播评论样式修改 | 修改Bilibili直播间的评论样式弹幕, 使其按固定格式显示. 即上面是用户信息, 下面是弹幕. | 前台脚本 | 1.0.1 | 2026-04-08 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-chat-style/backup/bilibili-live-chat-style.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5757) |  |

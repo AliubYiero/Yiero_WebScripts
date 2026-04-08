@@ -1,4 +1,4 @@
-import { ScriptInfo } from './updateReadme';
+import { ScriptInfo, ScriptDetail } from './updateReadme';
 
 /**
  * 将时间戳转换为北京时间 yyyy-mm-dd 格式
@@ -25,6 +25,38 @@ function timestampToBeijingDate( timestamp: number, isSeconds: boolean = false )
 }
 
 /**
+ * 创建脚本表格行
+ */
+const createScriptTableRow = ( scriptDetail: ScriptDetail ): string => {
+	const scriptType = {
+		web: '前台脚本',
+		background: '后台脚本',
+		crontab: '定时脚本',
+	};
+	const downloadFromGithub = scriptDetail.downloadUrlFromGithub ? `[Github 源](${ scriptDetail.downloadUrlFromGithub })` : '';
+	const downloadFromScriptCat = scriptDetail.downloadUrlFromScripCat ? `[ScriptCat 源](${ scriptDetail.downloadUrlFromScripCat })` : '';
+	const downloadUrlFromGreasyFork = scriptDetail.downloadUrlFromGreasyFork ? `[GreasyFork 源](${ scriptDetail.downloadUrlFromGreasyFork })` : '';
+	return `| ${ [
+		scriptDetail.name,
+		scriptDetail.description,
+		scriptType[ scriptDetail.scriptType ] || 'unknown',
+		scriptDetail.version,
+		timestampToBeijingDate( scriptDetail.lastUpdate ),
+		downloadFromGithub,
+		downloadFromScriptCat,
+		downloadUrlFromGreasyFork,
+	].join( ' | ' ) } |`;
+};
+
+/**
+ * 创建脚本表格头
+ */
+const createScriptTableHeader = (): string => {
+	return `| 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
+| --- | --- | --- | --- | --- | --- | --- | --- |`;
+};
+
+/**
  * 创建 脚本列表内容
  */
 const createScriptListContent = ( scriptInfo: ScriptInfo ) => {
@@ -32,35 +64,32 @@ const createScriptListContent = ( scriptInfo: ScriptInfo ) => {
 	for ( let domain in scriptInfo ) {
 		const scriptDetailMap = scriptInfo[ domain ];
 		
-		// 下载源数量
-		scriptList.push( `### ${ domain }
-
-| 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
-| --- | --- | --- | --- | --- | --- | --- | --- |` );
-		
 		// 按 lastUpdate 降序排序脚本
 		const sortedScripts = Object.entries( scriptDetailMap )
 			.sort( ( [, a], [, b] ) => b.lastUpdate - a.lastUpdate );
 		
-		for ( const [scriptProjectName, scriptDetail] of sortedScripts ) {
-			const scriptType = {
-				web: '前台脚本',
-				background: '后台脚本',
-				crontab: '定时脚本',
-			};
-			const downloadFromGithub = scriptDetail.downloadUrlFromGithub ? `[Github 源](${ scriptDetail.downloadUrlFromGithub })` : '';
-			const downloadFromScriptCat = scriptDetail.downloadUrlFromScripCat ? `[ScriptCat 源](${ scriptDetail.downloadUrlFromScripCat })` : '';
-			const downloadUrlFromGreasyFork = scriptDetail.downloadUrlFromGreasyFork ? `[GreasyFork 源](${ scriptDetail.downloadUrlFromGreasyFork })` : '';
-			scriptList.push( `| ${ [
-				scriptDetail.name,
-				scriptDetail.description,
-				scriptType[ scriptDetail.scriptType ] || 'unknown',
-				scriptDetail.version,
-				timestampToBeijingDate( scriptDetail.lastUpdate ),
-				downloadFromGithub,
-				downloadFromScriptCat,
-				downloadUrlFromGreasyFork,
-			].join( ' | ' ) } |` );
+		// 分离普通脚本和归档脚本
+		const normalScripts = sortedScripts.filter( ([, detail]) => !detail.archive );
+		const archivedScripts = sortedScripts.filter( ([, detail]) => detail.archive );
+		
+		// 添加域名标题
+		scriptList.push( `### ${ domain }` );
+		
+		// 生成普通脚本表格
+		if ( normalScripts.length > 0 ) {
+			scriptList.push( createScriptTableHeader() );
+			for ( const [, scriptDetail] of normalScripts ) {
+				scriptList.push( createScriptTableRow( scriptDetail ) );
+			}
+		}
+		
+		// 生成归档脚本表格（引用块格式）
+		if ( archivedScripts.length > 0 ) {
+			scriptList.push( '\n> **归档脚本**\n>' );
+			scriptList.push( '>\n> ' + createScriptTableHeader() );
+			for ( const [, scriptDetail] of archivedScripts ) {
+				scriptList.push( '> ' + createScriptTableRow( scriptDetail ) );
+			}
 		}
 		
 		scriptList.push( '\n' );
@@ -79,6 +108,10 @@ const createPrivateReadmeContent = ( scriptInfo: ScriptInfo ) => {
 	return `# Yiero's Private Web Scripts
 
 > 也不是那么 Private, 不发布到脚本网站而已. 发现了就能用.
+>
+> ---
+>
+> 版本号小于 1.0.0 的脚本为实验性脚本, 不保证更新, 不保证问题修复.
 
 ${ createScriptListContent( scriptInfo ) }`;
 };
@@ -88,6 +121,8 @@ ${ createScriptListContent( scriptInfo ) }`;
  */
 const createPublicReadmeContent = ( scriptInfo: ScriptInfo ) => {
 	return `# Yiero's Web Scripts
+
+> 版本号小于 1.0.0 的脚本为实验性脚本, 不保证更新, 不保证问题修复.
 
 ${ createScriptListContent( scriptInfo ) }
 
