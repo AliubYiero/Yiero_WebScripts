@@ -5,6 +5,7 @@
  * */
 import * as fs from 'node:fs';
 import * as path from 'node:path';
+import { spawnSync } from 'node:child_process';
 import { createReadmeContent } from './createReadmeContent.ts';
 
 
@@ -25,6 +26,38 @@ export interface ScriptDetail {
 
 // Record<脚本域名 (二级域名.顶级域名), Record<脚本项目名称, ScriptDetail>>
 export type ScriptInfo = Record<string, Record<string, ScriptDetail>>
+
+
+/**
+ * 获取文件的最后更新时间
+ * 优先使用 git log 获取提交时间（秒级时间戳），失败则回退到文件修改时间
+ * @param filePath 文件绝对路径
+ * @returns 毫秒级时间戳
+ */
+function getLastUpdateTime(filePath: string): number {
+	try {
+		const result = spawnSync('git', [
+			'log', '-1',
+			'--format=%at',
+			filePath
+		], {
+			encoding: 'utf-8',
+			timeout: 5000
+		});
+
+		const output = result.stdout?.trim();
+
+		if (output && !isNaN(Number(output))) {
+			// git 返回秒级时间戳，转换为毫秒
+			return Number(output) * 1000;
+		}
+	} catch {
+		// git 命令失败，静默处理
+	}
+
+	// 降级：使用文件修改时间
+	return fs.statSync(filePath).mtimeMs;
+}
 
 
 /**
@@ -197,7 +230,6 @@ class ScriptFileSystem {
 
 		try {
 			const metadata = this.parseUserScriptMetadata(userJsPath);
-			const stats = fs.statSync(userJsPath);
 
 			return {
 				name: metadata.name,
@@ -205,7 +237,7 @@ class ScriptFileSystem {
 				version: metadata.version,
 				private: existingDetail?.private ?? false,
 				archive: existingDetail?.archive ?? false,
-				lastUpdate: stats.mtimeMs,
+				lastUpdate: getLastUpdateTime(userJsPath),
 				scriptType: metadata.scriptType,
 				userScriptFilepath: userScriptFilepath,
 				downloadUrlFromGithub: existingDetail?.downloadUrlFromGithub || '',
