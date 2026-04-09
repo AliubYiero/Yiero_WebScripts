@@ -22,6 +22,7 @@ export interface ScriptDetail {
 	downloadUrlFromScripCat: string;   // ScriptCat 安装源
 	downloadUrlFromGreasyFork: string;   // GreasyFork 安装源
 	autoUpdate: boolean;        // 是否启用自动更新
+	getLastUpdateWay: 'git' | 'file';  // 获取最后的更新时间的方式
 }
 
 // Record<脚本域名 (二级域名.顶级域名), Record<脚本项目名称, ScriptDetail>>
@@ -30,11 +31,17 @@ export type ScriptInfo = Record<string, Record<string, ScriptDetail>>
 
 /**
  * 获取文件的最后更新时间
- * 优先使用 git log 获取提交时间（秒级时间戳），失败则回退到文件修改时间
  * @param filePath 文件绝对路径
+ * @param getLastUpdateWay 获取更新时间的方式：'git' 优先使用 git log 获取提交时间，失败则回退到文件修改时间；'file' 直接使用文件修改时间
  * @returns 毫秒级时间戳
  */
-function getLastUpdateTime(filePath: string): number {
+function getLastUpdateTime(filePath: string, getLastUpdateWay: 'git' | 'file' = 'git'): number {
+	// 如果指定使用文件修改时间，直接返回
+	if (getLastUpdateWay === 'file') {
+		return fs.statSync(filePath).mtimeMs;
+	}
+
+	// git 方式：优先使用 git log 获取提交时间（秒级时间戳），失败则回退到文件修改时间
 	try {
 		const result = spawnSync('git', [
 			'log', '-1',
@@ -225,11 +232,13 @@ class ScriptFileSystem {
 				downloadUrlFromScripCat: existingDetail?.downloadUrlFromScripCat ?? '',
 				downloadUrlFromGreasyFork: existingDetail?.downloadUrlFromGreasyFork ?? '',
 				autoUpdate: existingDetail?.autoUpdate ?? true,
+				getLastUpdateWay: existingDetail?.getLastUpdateWay ?? 'git',
 			};
 		}
 
 		try {
 			const metadata = this.parseUserScriptMetadata(userJsPath);
+			const getLastUpdateWay = existingDetail?.getLastUpdateWay ?? 'git';
 
 			return {
 				name: metadata.name,
@@ -237,13 +246,14 @@ class ScriptFileSystem {
 				version: metadata.version,
 				private: existingDetail?.private ?? false,
 				archive: existingDetail?.archive ?? false,
-				lastUpdate: getLastUpdateTime(userJsPath),
+				lastUpdate: getLastUpdateTime(userJsPath, getLastUpdateWay),
 				scriptType: metadata.scriptType,
 				userScriptFilepath: userScriptFilepath,
 				downloadUrlFromGithub: existingDetail?.downloadUrlFromGithub || '',
 				downloadUrlFromScripCat: existingDetail?.downloadUrlFromScripCat ?? '',
 				downloadUrlFromGreasyFork: existingDetail?.downloadUrlFromGreasyFork ?? '',
 				autoUpdate: existingDetail?.autoUpdate ?? true,
+				getLastUpdateWay: getLastUpdateWay,
 			};
 		} catch (error) {
 			console.error(`[错误] 读取脚本失败 ${userJsPath}:`, error);
@@ -346,7 +356,7 @@ class ScriptFileSystem {
 						mergedScriptInfo[domain][scriptProjectName] = existingDetail;
 					} else {
 						// autoUpdate 为 true 或未设置，执行正常更新
-						// 已有脚本：保留 private、archive、autoUpdate、userScriptFilepath、downloadUrlFromScripCat、downloadUrlFromGreasyFork
+						// 已有脚本：保留 private、archive、autoUpdate、userScriptFilepath、downloadUrlFromScripCat、downloadUrlFromGreasyFork、getLastUpdateWay
 						mergedScriptInfo[domain][scriptProjectName] = {
 							...newDetail,
 							private: existingDetail.private ?? false,
@@ -356,6 +366,7 @@ class ScriptFileSystem {
 							downloadUrlFromScripCat: existingDetail.downloadUrlFromScripCat ?? '',
 							downloadUrlFromGreasyFork: existingDetail.downloadUrlFromGreasyFork ?? '',
 							downloadUrlFromGithub: existingDetail.downloadUrlFromGithub || this.generateGithubUrl(domain, scriptProjectName, userScriptFilepath),
+							getLastUpdateWay: existingDetail.getLastUpdateWay ?? 'git',
 						};
 					}
 				} else {
@@ -369,6 +380,7 @@ class ScriptFileSystem {
 						downloadUrlFromScripCat: '',
 						downloadUrlFromGreasyFork: '',
 						downloadUrlFromGithub: this.generateGithubUrl(domain, scriptProjectName, userScriptFilepath),
+						getLastUpdateWay: 'git',
 					};
 				}
 			}
