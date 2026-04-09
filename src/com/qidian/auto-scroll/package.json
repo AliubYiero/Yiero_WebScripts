@@ -22,7 +22,7 @@
 		"@yiero/vite-plugin-scriptcat-require-self": "^1.0.4",
 		"@yiero/vite-plugin-scriptcat-script-push": "^1.1.1",
 		"jsdom": "^24.0.0",
-		"rollup": "^4.53.3",
+		"rollup": "4.59.0",
 		"terser": "^5.37.0",
 		"vite": "^5.1.4",
 		"vite-plugin-raw": "^1.0.3",
@@ -30,7 +30,7 @@
 		"yamljs": "^0.3.0"
 	},
 	"dependencies": {
-		"@yiero/gmlib": "^0.3.2",
+		"@yiero/gmlib": "^0.3.5",
 		"radash": "^12.1.1"
 	}
 }

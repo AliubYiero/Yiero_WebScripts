@@ -1,36 +1,112 @@
-import { onKeydown } from '@yiero/gmlib';
+import { Message, onKeydownMultiple } from '@yiero/gmlib';
 import { scrollLengthStore } from './store/scrollLengthStore.ts';
 import { startScroll, stopScroll } from './module/Scroll/Scroll.ts';
 
+const SCROLL_COUNT_PER_SECOND = 60;
+
+enum ScrollStatus {
+	Scroll,
+	Stop
+}
+
+// 当前的滚动状态
+let currentStatus: ScrollStatus = ScrollStatus.Stop;
+
+/**
+ * 获取滚动参数
+ */
+const getScrollParams = () => {
+	const scrollLength = scrollLengthStore.get();
+	const scrollHeight = Math.round( scrollLength / SCROLL_COUNT_PER_SECOND );
+	const scrollTimePerCount = Math.round( 1000 / SCROLL_COUNT_PER_SECOND );
+	return { scrollHeight, scrollTimePerCount, scrollLength };
+};
+
+/**
+ * 切换滚动速度
+ */
+const adjustScrollSpeed = ( delta: number ) => {
+	scrollLengthStore.set( scrollLengthStore.get() + delta );
+	const {
+		scrollHeight,
+		scrollTimePerCount,
+		scrollLength,
+	} = getScrollParams();
+	if ( currentStatus === ScrollStatus.Scroll ) {
+		stopScroll();
+		startScroll( scrollHeight, scrollTimePerCount );
+	}
+	const action = delta > 0 ? '增加' : '降低';
+	Message.info( `${ action }滚动速度, 滚动速度为 ${ scrollLength } px/s`, { position: 'top-left' } );
+};
 
 /**
  * 主函数
  */
 const main = async () => {
-	// 获取滚动距离
-	const scrollCountPerSecond = 60;
-	const scrollHeight = Math.round( scrollLengthStore.get() / scrollCountPerSecond );
+	onKeydownMultiple( [
+		{
+			key: 'PageDown',
+			callback: ( e ) => {
+				e.preventDefault();
+				if ( currentStatus === ScrollStatus.Scroll ) {
+					return;
+				}
+				const {
+					scrollHeight,
+					scrollTimePerCount,
+					scrollLength,
+				} = getScrollParams();
+				startScroll( scrollHeight, scrollTimePerCount );
+				currentStatus = ScrollStatus.Scroll;
+				Message.info( `开启滚动, 滚动速度为 ${ scrollLength } px/s`, { position: 'top-left' } );
+			},
+		},
+		{
+			key: 'PageUp',
+			callback: ( e ) => {
+				e.preventDefault();
+				if ( currentStatus === ScrollStatus.Stop ) {
+					return;
+				}
+				stopScroll();
+				currentStatus = ScrollStatus.Stop;
+				Message.info( `关闭滚动`, { position: 'top-left' } );
+			},
+		},
+		{
+			key: 'PageUp',
+			shift: true,
+			callback: ( e ) => {
+				e.preventDefault();
+				adjustScrollSpeed( 1 );
+			},
+		},
+		{
+			key: 'PageDown',
+			shift: true,
+			callback: ( e ) => {
+				e.preventDefault();
+				adjustScrollSpeed( -1 );
+			},
+		},
+	] );
 	
-	onKeydown( ( e ) => {
-		e.preventDefault();
+	// 监听用户切换标签页, 暂停/继续滚动
+	document.addEventListener( 'visibilitychange', () => {
+		if ( currentStatus !== ScrollStatus.Scroll ) {
+			return;
+		}
 		
-		startScroll( scrollHeight, Math.round( 1000 / scrollCountPerSecond ) );
-	}, {
-		key: 'PageDown',
-	} );
-	onKeydown( ( e ) => {
-		e.preventDefault();
+		const {
+			scrollHeight,
+			scrollTimePerCount,
+		} = getScrollParams();
 		
-		stopScroll();
-	}, {
-		key: 'PageUp',
+		document.hidden
+			? stopScroll()       // 页面隐藏, 停止滚动
+			: startScroll( scrollHeight, scrollTimePerCount );       // 页面激活, 继续滚动
 	} );
-	
-	// const element = await elementWaiter( '.content [chapterindex]' );
-	// const scrollController = new ScrollController( element, 'div' );
-	// await scrollController.init();
 };
 
-main().catch( error => {
-	console.error( error );
-} );
+main().catch( console.error );
