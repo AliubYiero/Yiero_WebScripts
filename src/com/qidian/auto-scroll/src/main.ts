@@ -2,8 +2,6 @@ import { Message, onKeydownMultiple } from '@yiero/gmlib';
 import { scrollLengthStore } from './store/scrollLengthStore.ts';
 import { startScroll, stopScroll } from './module/Scroll/Scroll.ts';
 
-const SCROLL_COUNT_PER_SECOND = 60;
-
 enum ScrollStatus {
 	Scroll,
 	Stop
@@ -17,9 +15,7 @@ let currentStatus: ScrollStatus = ScrollStatus.Stop;
  */
 const getScrollParams = () => {
 	const scrollLength = scrollLengthStore.get();
-	const scrollHeight = Math.round( scrollLength / SCROLL_COUNT_PER_SECOND );
-	const scrollTimePerCount = Math.round( 1000 / SCROLL_COUNT_PER_SECOND );
-	return { scrollHeight, scrollTimePerCount, scrollLength };
+	return { scrollLength };
 };
 
 /**
@@ -27,14 +23,10 @@ const getScrollParams = () => {
  */
 const adjustScrollSpeed = ( delta: number ) => {
 	scrollLengthStore.set( scrollLengthStore.get() + delta );
-	const {
-		scrollHeight,
-		scrollTimePerCount,
-		scrollLength,
-	} = getScrollParams();
+	const { scrollLength } = getScrollParams();
 	if ( currentStatus === ScrollStatus.Scroll ) {
 		stopScroll();
-		startScroll( scrollHeight, scrollTimePerCount );
+		startScroll( scrollLength );
 	}
 	const action = delta > 0 ? '增加' : '降低';
 	Message.info( `${ action }滚动速度, 滚动速度为 ${ scrollLength } px/s`, { position: 'top-left' } );
@@ -52,12 +44,8 @@ const main = async () => {
 				if ( currentStatus === ScrollStatus.Scroll ) {
 					return;
 				}
-				const {
-					scrollHeight,
-					scrollTimePerCount,
-					scrollLength,
-				} = getScrollParams();
-				startScroll( scrollHeight, scrollTimePerCount );
+				const { scrollLength } = getScrollParams();
+				startScroll( scrollLength );
 				currentStatus = ScrollStatus.Scroll;
 				Message.info( `开启滚动, 滚动速度为 ${ scrollLength } px/s`, { position: 'top-left' } );
 			},
@@ -98,14 +86,11 @@ const main = async () => {
 			return;
 		}
 		
-		const {
-			scrollHeight,
-			scrollTimePerCount,
-		} = getScrollParams();
+		const { scrollLength } = getScrollParams();
 		
 		document.hidden
 			? stopScroll()       // 页面隐藏, 停止滚动
-			: startScroll( scrollHeight, scrollTimePerCount );       // 页面激活, 继续滚动
+			: startScroll( scrollLength );       // 页面激活, 继续滚动
 	} );
 };
 

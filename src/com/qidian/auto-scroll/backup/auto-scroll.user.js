@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           小说自动滚动
 // @description    自动滚动脚本. 通过快捷键 PageDown 控制页面平滑滚动, 通过快捷键 PageUp 暂停滚动.
-// @version        0.2.0
+// @version        0.3.0
 // @author         Yiero
 // @match          https://www.qidian.com/chapter/*
 // @match          http://192.168.5.136:1122/*
@@ -200,21 +200,21 @@
       messageEl.style.opacity = "1";
       messageEl.style.transform = "translateY(0)";
     });
-    const timer2 = setTimeout(() => {
+    const timer = setTimeout(() => {
       closeMessage(messageEl, messagePosition);
     }, messageDuration);
     messageEl.addEventListener("click", () => {
-      clearTimeout(timer2);
+      clearTimeout(timer);
       closeMessage(messageEl, messagePosition);
     });
     messageEl.addEventListener("keydown", (e) => {
       if ("Escape" === e.key) {
-        clearTimeout(timer2);
+        clearTimeout(timer);
         closeMessage(messageEl, messagePosition);
       }
     });
     const close = () => {
-      clearTimeout(timer2);
+      clearTimeout(timer);
       closeMessage(messageEl, messagePosition);
     };
     return {
@@ -311,40 +311,48 @@
     }
   }
   const scrollLengthStore = new GmStorage("\u6EDA\u52A8\u914D\u7F6E.scrollLength", 100);
-  let timer = 0;
-  const startScroll = (scrollHeight, scrollTimePerCount) => {
-    if (timer) {
+  let animationFrameId = 0;
+  let lastTimestamp = 0;
+  let scrollHeightPerMs = 0;
+  let scrollRemainder = 0;
+  const scroll = (timestamp) => {
+    const elapsed = timestamp - lastTimestamp;
+    lastTimestamp = timestamp;
+    const delta = scrollHeightPerMs * elapsed + scrollRemainder;
+    if (delta >= 1) {
+      window.scrollBy(0, Math.floor(delta));
+      scrollRemainder = delta - Math.floor(delta);
+    } else {
+      scrollRemainder = delta;
+    }
+    animationFrameId = requestAnimationFrame(scroll);
+  };
+  const startScroll = (scrollLengthPerSecond) => {
+    if (animationFrameId) {
       stopScroll();
     }
-    timer = window.setInterval(() => {
-      scrollBy({
-        top: scrollHeight,
-        behavior: "smooth"
-      });
-    }, scrollTimePerCount);
+    scrollHeightPerMs = scrollLengthPerSecond / 1e3;
+    scrollRemainder = 0;
+    lastTimestamp = performance.now();
+    animationFrameId = requestAnimationFrame(scroll);
   };
   const stopScroll = () => {
-    clearTimeout(timer);
-    timer = 0;
+    if (animationFrameId) {
+      cancelAnimationFrame(animationFrameId);
+      animationFrameId = 0;
+    }
   };
-  const SCROLL_COUNT_PER_SECOND = 60;
   let currentStatus = 1;
   const getScrollParams = () => {
     const scrollLength = scrollLengthStore.get();
-    const scrollHeight = Math.round(scrollLength / SCROLL_COUNT_PER_SECOND);
-    const scrollTimePerCount = Math.round(1e3 / SCROLL_COUNT_PER_SECOND);
-    return { scrollHeight, scrollTimePerCount, scrollLength };
+    return { scrollLength };
   };
   const adjustScrollSpeed = (delta) => {
     scrollLengthStore.set(scrollLengthStore.get() + delta);
-    const {
-      scrollHeight,
-      scrollTimePerCount,
-      scrollLength
-    } = getScrollParams();
+    const { scrollLength } = getScrollParams();
     if (currentStatus === 0) {
       stopScroll();
-      startScroll(scrollHeight, scrollTimePerCount);
+      startScroll(scrollLength);
     }
     const action = delta > 0 ? "\u589E\u52A0" : "\u964D\u4F4E";
     Message.info(`${action}\u6EDA\u52A8\u901F\u5EA6, \u6EDA\u52A8\u901F\u5EA6\u4E3A ${scrollLength} px/s`, { position: "top-left" });
@@ -358,12 +366,8 @@
           if (currentStatus === 0) {
             return;
           }
-          const {
-            scrollHeight,
-            scrollTimePerCount,
-            scrollLength
-          } = getScrollParams();
-          startScroll(scrollHeight, scrollTimePerCount);
+          const { scrollLength } = getScrollParams();
+          startScroll(scrollLength);
           currentStatus = 0;
           Message.info(`\u5F00\u542F\u6EDA\u52A8, \u6EDA\u52A8\u901F\u5EA6\u4E3A ${scrollLength} px/s`, { position: "top-left" });
         }
@@ -401,11 +405,8 @@
       if (currentStatus !== 0) {
         return;
       }
-      const {
-        scrollHeight,
-        scrollTimePerCount
-      } = getScrollParams();
-      document.hidden ? stopScroll() : startScroll(scrollHeight, scrollTimePerCount);
+      const { scrollLength } = getScrollParams();
+      document.hidden ? stopScroll() : startScroll(scrollLength);
     });
   };
   main().catch(console.error);

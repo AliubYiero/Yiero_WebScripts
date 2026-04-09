@@ -40,7 +40,7 @@
 ### qidian.com
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 小说自动滚动 | 自动滚动脚本. 通过快捷键 PageDown 控制页面平滑滚动, 通过快捷键 PageUp 暂停滚动. | 前台脚本 | 0.2.0 | 2026-04-10 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qidian/auto-scroll/backup/auto-scroll.user.js) |  |  |
+| 小说自动滚动 | 自动滚动脚本. 通过快捷键 PageDown 控制页面平滑滚动, 通过快捷键 PageUp 暂停滚动. | 前台脚本 | 0.3.0 | 2026-04-10 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qidian/auto-scroll/backup/auto-scroll.user.js) |  |  |
 
 
 ### dak.gg
