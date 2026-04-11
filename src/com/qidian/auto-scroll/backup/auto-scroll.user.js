@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           小说自动滚动
-// @description    自动滚动脚本. 通过快捷键 PageDown 控制页面平滑滚动, 通过快捷键 PageUp 暂停滚动.
-// @version        0.3.0
+// @description    自动滚动脚本. 通过快捷键 Space 开启/关闭页面滚动, 通过快捷键 Shift+PageUp/Shift+PageDown 增加/减少滚动速度.
+// @version        0.4.0
 // @author         Yiero
 // @match          https://www.qidian.com/chapter/*
 // @match          http://192.168.5.136:1122/*
@@ -29,6 +29,43 @@
 ==/UserConfig== */
 (function() {
   "use strict";
+  class GmStorage {
+    key;
+    defaultValue;
+    listenerId = 0;
+    constructor(key, defaultValue) {
+      this.key = key;
+      this.defaultValue = defaultValue;
+      this.key = key;
+      this.defaultValue = defaultValue;
+    }
+    get value() {
+      return this.get();
+    }
+    get() {
+      return GM_getValue(this.key, this.defaultValue);
+    }
+    set(value) {
+      return GM_setValue(this.key, value);
+    }
+    remove() {
+      GM_deleteValue(this.key);
+    }
+    updateListener(callback) {
+      this.removeListener();
+      this.listenerId = GM_addValueChangeListener(this.key, (key, oldValue, newValue, remote) => {
+        callback({
+          key,
+          oldValue,
+          newValue,
+          remote
+        });
+      });
+    }
+    removeListener() {
+      GM_removeValueChangeListener(this.listenerId);
+    }
+  }
   let messageContainer = null;
   const messageTypes = {
     success: {
@@ -273,43 +310,6 @@
       target.removeEventListener("keydown", handleKeydown, eventOptions);
     };
   }
-  class GmStorage {
-    key;
-    defaultValue;
-    listenerId = 0;
-    constructor(key, defaultValue) {
-      this.key = key;
-      this.defaultValue = defaultValue;
-      this.key = key;
-      this.defaultValue = defaultValue;
-    }
-    get value() {
-      return this.get();
-    }
-    get() {
-      return GM_getValue(this.key, this.defaultValue);
-    }
-    set(value) {
-      return GM_setValue(this.key, value);
-    }
-    remove() {
-      GM_deleteValue(this.key);
-    }
-    updateListener(callback) {
-      this.removeListener();
-      this.listenerId = GM_addValueChangeListener(this.key, (key, oldValue, newValue, remote) => {
-        callback({
-          key,
-          oldValue,
-          newValue,
-          remote
-        });
-      });
-    }
-    removeListener() {
-      GM_removeValueChangeListener(this.listenerId);
-    }
-  }
   const scrollLengthStore = new GmStorage("\u6EDA\u52A8\u914D\u7F6E.scrollLength", 100);
   let animationFrameId = 0;
   let lastTimestamp = 0;
@@ -360,16 +360,20 @@
   const main = async () => {
     onKeydownMultiple([
       {
-        key: "PageDown",
+        key: "Space",
         callback: (e) => {
           e.preventDefault();
           if (currentStatus === 0) {
-            return;
+            stopScroll();
+            currentStatus = 1;
+            Message.info(`\u5173\u95ED\u6EDA\u52A8`, { position: "top-left" });
           }
-          const { scrollLength } = getScrollParams();
-          startScroll(scrollLength);
-          currentStatus = 0;
-          Message.info(`\u5F00\u542F\u6EDA\u52A8, \u6EDA\u52A8\u901F\u5EA6\u4E3A ${scrollLength} px/s`, { position: "top-left" });
+          if (currentStatus === 1) {
+            const { scrollLength } = getScrollParams();
+            startScroll(scrollLength);
+            currentStatus = 0;
+            Message.info(`\u5F00\u542F\u6EDA\u52A8, \u6EDA\u52A8\u901F\u5EA6\u4E3A ${scrollLength} px/s`, { position: "top-left" });
+          }
         }
       },
       {
@@ -386,7 +390,6 @@
       },
       {
         key: "PageUp",
-        shift: true,
         callback: (e) => {
           e.preventDefault();
           adjustScrollSpeed(1);
@@ -394,7 +397,6 @@
       },
       {
         key: "PageDown",
-        shift: true,
         callback: (e) => {
           e.preventDefault();
           adjustScrollSpeed(-1);

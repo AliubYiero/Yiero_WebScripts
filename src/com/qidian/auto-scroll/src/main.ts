@@ -38,16 +38,23 @@ const adjustScrollSpeed = ( delta: number ) => {
 const main = async () => {
 	onKeydownMultiple( [
 		{
-			key: 'PageDown',
+			key: 'Space',
 			callback: ( e ) => {
 				e.preventDefault();
+				// 关闭滚动
 				if ( currentStatus === ScrollStatus.Scroll ) {
-					return;
+					stopScroll();
+					currentStatus = ScrollStatus.Stop;
+					Message.info( `关闭滚动`, { position: 'top-left' } );
 				}
-				const { scrollLength } = getScrollParams();
-				startScroll( scrollLength );
-				currentStatus = ScrollStatus.Scroll;
-				Message.info( `开启滚动, 滚动速度为 ${ scrollLength } px/s`, { position: 'top-left' } );
+				// 开启滚动
+				if ( currentStatus === ScrollStatus.Stop ) {
+					const { scrollLength } = getScrollParams();
+					startScroll( scrollLength );
+					currentStatus = ScrollStatus.Scroll;
+					Message.info( `开启滚动, 滚动速度为 ${ scrollLength } px/s`, { position: 'top-left' } );
+				}
+				
 			},
 		},
 		{
@@ -64,7 +71,6 @@ const main = async () => {
 		},
 		{
 			key: 'PageUp',
-			shift: true,
 			callback: ( e ) => {
 				e.preventDefault();
 				adjustScrollSpeed( 1 );
@@ -72,7 +78,6 @@ const main = async () => {
 		},
 		{
 			key: 'PageDown',
-			shift: true,
 			callback: ( e ) => {
 				e.preventDefault();
 				adjustScrollSpeed( -1 );
