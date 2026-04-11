@@ -52,7 +52,7 @@ const getTurnPageDelay = (): number => {
 	// 自适应: innerHeight / scrollLength
 	const scrollLength = scrollLengthStore.get();
 	const innerHeight = window.innerHeight;
-	return innerHeight / scrollLength;
+	return Number( ( innerHeight / scrollLength ).toFixed( 2 ) );
 };
 
 /** 计算新页面延时 (秒) */
@@ -63,7 +63,7 @@ const getNewPageDelay = (): number => {
 	// 自适应: innerHeight / scrollLength
 	const scrollLength = scrollLengthStore.get();
 	const innerHeight = window.innerHeight;
-	return innerHeight / scrollLength;
+	return Number( ( innerHeight / scrollLength ).toFixed( 2 ) );
 };
 
 /** 辅助函数：延时 */
@@ -147,7 +147,7 @@ const handleNextPage = () => {
 		} );
 	}
 	else {
-	const nextPageButton = document.querySelector<HTMLElement>( nextPageSelector.selector );
+		const nextPageButton = document.querySelector<HTMLElement>( nextPageSelector.selector );
 		nextPageButton && simulateClick( nextPageButton );
 	}
 };
@@ -170,14 +170,14 @@ const handleReachBottom = async (): Promise<void> => {
 	await sleep( TurnPageDelay * 1000 );
 	
 	// 触发翻页
-	handleNextPage()
+	handleNextPage();
 	
 	// 循环检测翻页是否成功，最多 5 秒
 	for ( let i = 0; i < MAX_CHECK_COUNT; i++ ) {
 		await sleep( CHECK_INTERVAL );
 		if ( document.documentElement.scrollHeight !== lastScrollHeight ) {
 			// 翻页成功
-			const newPageDelay = getNewPageDelay()
+			const newPageDelay = getNewPageDelay();
 			Message.info( `翻页成功, 准备滚动 (等待 ${ newPageDelay } 秒)`, { position: 'top-left' } );
 			await sleep( newPageDelay * 1000 );
 			turnPageStatus = TurnPageStatus.Normal;
@@ -198,6 +198,6 @@ export const initAutoTurnPage = (): void => {
 		setReachBottomCallback( handleReachBottom );
 	}
 	else {
-		setReachBottomCallback( null );
+		setReachBottomCallback( null )
 	}
-};
+}
