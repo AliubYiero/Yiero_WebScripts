@@ -203,10 +203,10 @@
 		"auto-scroll": {
 			"name": "小说自动滚动",
 			"description": "自动滚动脚本. 通过快捷键 Space 开启/关闭页面滚动, 通过快捷键 Shift+PageUp/Shift+PageDown 增加/减少滚动速度.",
-			"version": "0.4.0",
+			"version": "0.4.1",
 			"private": true,
 			"archive": false,
-			"lastUpdate": 1775909083203.0137,
+			"lastUpdate": 1775909786108.6245,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/auto-scroll.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qidian/auto-scroll/backup/auto-scroll.user.js",

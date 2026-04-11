@@ -38,15 +38,9 @@ const adjustScrollSpeed = ( delta: number ) => {
 const main = async () => {
 	onKeydownMultiple( [
 		{
-			key: 'Space',
+			key: ' ',
 			callback: ( e ) => {
 				e.preventDefault();
-				// 关闭滚动
-				if ( currentStatus === ScrollStatus.Scroll ) {
-					stopScroll();
-					currentStatus = ScrollStatus.Stop;
-					Message.info( `关闭滚动`, { position: 'top-left' } );
-				}
 				// 开启滚动
 				if ( currentStatus === ScrollStatus.Stop ) {
 					const { scrollLength } = getScrollParams();
@@ -54,23 +48,17 @@ const main = async () => {
 					currentStatus = ScrollStatus.Scroll;
 					Message.info( `开启滚动, 滚动速度为 ${ scrollLength } px/s`, { position: 'top-left' } );
 				}
-				
-			},
-		},
-		{
-			key: 'PageUp',
-			callback: ( e ) => {
-				e.preventDefault();
-				if ( currentStatus === ScrollStatus.Stop ) {
-					return;
+				// 关闭滚动
+				else if ( currentStatus === ScrollStatus.Scroll ) {
+					stopScroll();
+					currentStatus = ScrollStatus.Stop;
+					Message.info( `关闭滚动`, { position: 'top-left' } );
 				}
-				stopScroll();
-				currentStatus = ScrollStatus.Stop;
-				Message.info( `关闭滚动`, { position: 'top-left' } );
 			},
 		},
 		{
 			key: 'PageUp',
+			shift: true,
 			callback: ( e ) => {
 				e.preventDefault();
 				adjustScrollSpeed( 1 );
@@ -78,25 +66,13 @@ const main = async () => {
 		},
 		{
 			key: 'PageDown',
+			shift: true,
 			callback: ( e ) => {
 				e.preventDefault();
 				adjustScrollSpeed( -1 );
 			},
 		},
 	] );
-	
-	// 监听用户切换标签页, 暂停/继续滚动
-	document.addEventListener( 'visibilitychange', () => {
-		if ( currentStatus !== ScrollStatus.Scroll ) {
-			return;
-		}
-		
-		const { scrollLength } = getScrollParams();
-		
-		document.hidden
-			? stopScroll()       // 页面隐藏, 停止滚动
-			: startScroll( scrollLength );       // 页面激活, 继续滚动
-	} );
 };
 
 main().catch( console.error );

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           小说自动滚动
 // @description    自动滚动脚本. 通过快捷键 Space 开启/关闭页面滚动, 通过快捷键 Shift+PageUp/Shift+PageDown 增加/减少滚动速度.
-// @version        0.4.0
+// @version        0.4.1
 // @author         Yiero
 // @match          https://www.qidian.com/chapter/*
 // @match          http://192.168.5.136:1122/*
@@ -360,36 +360,24 @@
   const main = async () => {
     onKeydownMultiple([
       {
-        key: "Space",
+        key: " ",
         callback: (e) => {
           e.preventDefault();
-          if (currentStatus === 0) {
-            stopScroll();
-            currentStatus = 1;
-            Message.info(`\u5173\u95ED\u6EDA\u52A8`, { position: "top-left" });
-          }
           if (currentStatus === 1) {
             const { scrollLength } = getScrollParams();
             startScroll(scrollLength);
             currentStatus = 0;
             Message.info(`\u5F00\u542F\u6EDA\u52A8, \u6EDA\u52A8\u901F\u5EA6\u4E3A ${scrollLength} px/s`, { position: "top-left" });
+          } else if (currentStatus === 0) {
+            stopScroll();
+            currentStatus = 1;
+            Message.info(`\u5173\u95ED\u6EDA\u52A8`, { position: "top-left" });
           }
         }
       },
       {
         key: "PageUp",
-        callback: (e) => {
-          e.preventDefault();
-          if (currentStatus === 1) {
-            return;
-          }
-          stopScroll();
-          currentStatus = 1;
-          Message.info(`\u5173\u95ED\u6EDA\u52A8`, { position: "top-left" });
-        }
-      },
-      {
-        key: "PageUp",
+        shift: true,
         callback: (e) => {
           e.preventDefault();
           adjustScrollSpeed(1);
@@ -397,19 +385,13 @@
       },
       {
         key: "PageDown",
+        shift: true,
         callback: (e) => {
           e.preventDefault();
           adjustScrollSpeed(-1);
         }
       }
     ]);
-    document.addEventListener("visibilitychange", () => {
-      if (currentStatus !== 0) {
-        return;
-      }
-      const { scrollLength } = getScrollParams();
-      document.hidden ? stopScroll() : startScroll(scrollLength);
-    });
   };
   main().catch(console.error);
 })();
