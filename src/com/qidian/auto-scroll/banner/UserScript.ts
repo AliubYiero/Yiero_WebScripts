@@ -2,8 +2,8 @@ import { ScriptCatUserScript } from '../types/UserScript';
 
 const UserScript: ScriptCatUserScript = [
 	[ 'name', '小说自动滚动' ],
-	[ 'description', '自动滚动脚本. 通过快捷键 Space 开启/关闭页面滚动, 通过快捷键 Shift+PageUp/Shift+PageDown 增加/减少滚动速度. ' ],
-	[ 'version', '0.4.1' ],
+	[ 'description', '自动滚动脚本. Space 开启/关闭滚动, 长按 Space 临时暂停, Shift+PageUp/PageDown 调节速度.' ],
+	[ 'version', '0.5.0' ],
 	[ 'author', 'Yiero' ],
 	[ 'match', 'https://www.qidian.com/chapter/*' ],
 	[ 'match', 'http://192.168.5.136:1122/*' ],

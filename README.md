@@ -23,6 +23,12 @@
 | BiliBili自动添加视频收藏 | 进入视频页面后, 自动添加视频到收藏夹中. | 前台脚本 | 0.6.2 | 2025-12-01 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-auto-add-favorites/dist/BiliBili自动添加视频收藏.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/1603) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/489644) |
 
 
+### qidian.com
+| 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 小说自动滚动 | 自动滚动脚本. Space 开启/关闭滚动, 长按 Space 临时暂停, Shift+PageUp/PageDown 调节速度. | 前台脚本 | 0.5.0 | 2026-04-11 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qidian/auto-scroll/backup/auto-scroll.user.js) |  |  |
+
+
 ### mikannani.me
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |

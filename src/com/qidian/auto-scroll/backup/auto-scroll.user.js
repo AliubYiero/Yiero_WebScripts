@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           小说自动滚动
-// @description    自动滚动脚本. 通过快捷键 Space 开启/关闭页面滚动, 通过快捷键 Shift+PageUp/Shift+PageDown 增加/减少滚动速度.
-// @version        0.4.1
+// @description    自动滚动脚本. Space 开启/关闭滚动, 长按 Space 临时暂停, Shift+PageUp/PageDown 调节速度.
+// @version        0.5.0
 // @author         Yiero
 // @match          https://www.qidian.com/chapter/*
 // @match          http://192.168.5.136:1122/*
@@ -26,6 +26,11 @@
         type: number
         min: 0
         default: 100
+    focusMode:
+        title: '专注模式    (开启: 焦点不在页面上即暂停滚动; 关闭: 页面切换(不可见)时才暂停滚动)'
+        description: 专注模式
+        type: checkbox
+        default: false
 ==/UserConfig== */
 (function() {
   "use strict";
@@ -310,6 +315,50 @@
       target.removeEventListener("keydown", handleKeydown, eventOptions);
     };
   }
+  function onKeyup(callback, options) {
+    const { target = window, once = false, capture = false, passive = false, key, ctrl = false, alt = false, shift = false, meta = false } = options || {};
+    const eventOptions = {
+      capture,
+      passive
+    };
+    const hasShortcutFilter = void 0 !== key || ctrl || alt || shift || meta;
+    let wrappedCallback;
+    wrappedCallback = once ? (event) => {
+      if (hasShortcutFilter) {
+        if (void 0 !== key) {
+          const eventKey = event.key;
+          const expectedKey = key;
+          const isMatch = 1 === eventKey.length && 1 === expectedKey.length ? eventKey.toLowerCase() === expectedKey.toLowerCase() : eventKey === expectedKey;
+          if (!isMatch) return;
+        }
+        if (event.ctrlKey !== ctrl) return;
+        if (event.altKey !== alt) return;
+        if (event.shiftKey !== shift) return;
+        if (event.metaKey !== meta) return;
+      }
+      callback(event);
+      target.removeEventListener("keyup", wrappedCallback, eventOptions);
+    } : (event) => {
+      if (hasShortcutFilter) {
+        if (void 0 !== key) {
+          const eventKey = event.key;
+          const expectedKey = key;
+          const isMatch = 1 === eventKey.length && 1 === expectedKey.length ? eventKey.toLowerCase() === expectedKey.toLowerCase() : eventKey === expectedKey;
+          if (!isMatch) return;
+        }
+        if (event.ctrlKey !== ctrl) return;
+        if (event.altKey !== alt) return;
+        if (event.shiftKey !== shift) return;
+        if (event.metaKey !== meta) return;
+      }
+      callback(event);
+    };
+    target.addEventListener("keyup", wrappedCallback, eventOptions);
+    return () => {
+      target.removeEventListener("keyup", wrappedCallback, eventOptions);
+    };
+  }
+  const focusModeStore = new GmStorage("\u6EDA\u52A8\u914D\u7F6E.focusMode", false);
   const scrollLengthStore = new GmStorage("\u6EDA\u52A8\u914D\u7F6E.scrollLength", 100);
   let animationFrameId = 0;
   let lastTimestamp = 0;
@@ -343,13 +392,35 @@
     }
   };
   let currentStatus = 1;
-  const getScrollParams = () => {
-    const scrollLength = scrollLengthStore.get();
-    return { scrollLength };
+  const getScrollLength = () => scrollLengthStore.get();
+  const isScrolling = () => currentStatus === 0;
+  const isPaused = () => currentStatus === 2;
+  const isStopped = () => currentStatus === 1;
+  const startScrolling = () => {
+    const scrollLength = getScrollLength();
+    startScroll(scrollLength);
+    currentStatus = 0;
+    Message.info(`\u5F00\u542F\u6EDA\u52A8, \u6EDA\u52A8\u901F\u5EA6\u4E3A ${scrollLength} px/s`, { position: "top-left" });
+  };
+  const stopScrolling = () => {
+    stopScroll();
+    currentStatus = 1;
+    Message.info(`\u5173\u95ED\u6EDA\u52A8`, { position: "top-left" });
+  };
+  const pauseScrolling = () => {
+    stopScroll();
+    currentStatus = 2;
+    Message.info(`\u4E34\u65F6\u6682\u505C\u6EDA\u52A8`, { position: "top-left" });
+  };
+  const resumeScrolling = () => {
+    const scrollLength = getScrollLength();
+    startScroll(scrollLength);
+    currentStatus = 0;
+    Message.info(`\u6062\u590D\u6EDA\u52A8, \u6EDA\u52A8\u901F\u5EA6\u4E3A ${scrollLength} px/s`, { position: "top-left" });
   };
   const adjustScrollSpeed = (delta) => {
     scrollLengthStore.set(scrollLengthStore.get() + delta);
-    const { scrollLength } = getScrollParams();
+    const scrollLength = getScrollLength();
     if (currentStatus === 0) {
       stopScroll();
       startScroll(scrollLength);
@@ -357,24 +428,27 @@
     const action = delta > 0 ? "\u589E\u52A0" : "\u964D\u4F4E";
     Message.info(`${action}\u6EDA\u52A8\u901F\u5EA6, \u6EDA\u52A8\u901F\u5EA6\u4E3A ${scrollLength} px/s`, { position: "top-left" });
   };
-  const main = async () => {
+  const setupKeyboardHandlers = () => {
     onKeydownMultiple([
+      // 空格开启/关闭滚动, 长按空格临时暂停滚动
       {
         key: " ",
         callback: (e) => {
           e.preventDefault();
-          if (currentStatus === 1) {
-            const { scrollLength } = getScrollParams();
-            startScroll(scrollLength);
-            currentStatus = 0;
-            Message.info(`\u5F00\u542F\u6EDA\u52A8, \u6EDA\u52A8\u901F\u5EA6\u4E3A ${scrollLength} px/s`, { position: "top-left" });
-          } else if (currentStatus === 0) {
-            stopScroll();
-            currentStatus = 1;
-            Message.info(`\u5173\u95ED\u6EDA\u52A8`, { position: "top-left" });
+          if (e.repeat) {
+            if (!isPaused()) {
+              pauseScrolling();
+            }
+            return;
+          }
+          if (isStopped()) {
+            startScrolling();
+          } else if (isScrolling()) {
+            stopScrolling();
           }
         }
       },
+      // Shift+PageUp 增加滚动速度
       {
         key: "PageUp",
         shift: true,
@@ -383,6 +457,7 @@
           adjustScrollSpeed(1);
         }
       },
+      // Shift+PageDown 减少滚动速度
       {
         key: "PageDown",
         shift: true,
@@ -392,6 +467,38 @@
         }
       }
     ]);
+    onKeyup(() => {
+      if (isPaused()) {
+        resumeScrolling();
+      }
+    }, { key: " " });
+  };
+  const setupVisibilityHandlers = () => {
+    const inFocusMode = focusModeStore.get();
+    if (inFocusMode) {
+      window.addEventListener("focus", () => {
+        if (isPaused()) {
+          resumeScrolling();
+        }
+      });
+      window.addEventListener("blur", () => {
+        if (isScrolling()) {
+          pauseScrolling();
+        }
+      });
+    } else {
+      document.addEventListener("visibilitychange", () => {
+        if (document.hidden && isScrolling()) {
+          pauseScrolling();
+        } else if (!document.hidden && isPaused()) {
+          resumeScrolling();
+        }
+      });
+    }
+  };
+  const main = async () => {
+    setupKeyboardHandlers();
+    setupVisibilityHandlers();
   };
   main().catch(console.error);
 })();

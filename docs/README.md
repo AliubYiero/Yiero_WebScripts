@@ -37,12 +37,6 @@
 | 三角洲数据帝自动计算背包容器性价比 | 三角洲数据帝自动计算背包容器性价比 | 前台脚本 | 0.1.0 | 2026-01-07 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/orzice/package-capacity-calculate/backup/package-capacity-calculate.user.js) |  |  |
 
 
-### qidian.com
-| 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| 小说自动滚动 | 自动滚动脚本. 通过快捷键 Space 开启/关闭页面滚动, 通过快捷键 Shift+PageUp/Shift+PageDown 增加/减少滚动速度. | 前台脚本 | 0.4.1 | 2026-04-11 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qidian/auto-scroll/backup/auto-scroll.user.js) |  |  |
-
-
 ### dak.gg
 
 > **归档脚本**
