@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.3.9
-        version: 0.3.9
+        specifier: ^0.4.1
+        version: 0.4.1
       radash:
         specifier: ^12.1.1
         version: 12.1.1
@@ -633,8 +633,8 @@ packages:
   '@vitest/utils@2.1.9':
     resolution: {integrity: sha512-v0psaMSkNJ3A2NMrUEHFRzJtDPFn+/VWZ5WxImB21T9fjucJRmS7xCS3ppEnARb9y11OAzaD+P2Ps+b+BGX5iQ==}
 
-  '@yiero/gmlib@0.3.9':
-    resolution: {integrity: sha512-vE1PaZGndE0s+/Q06PdWOKqIuWlICFiLKh2kNG/F1ZLF0vTxhuEKDN5F7jRATfpM/4n5koUvAP8thfiogoIo6w==}
+  '@yiero/gmlib@0.4.1':
+    resolution: {integrity: sha512-wHUP94+a8la7ZP2Hjwq3mP7TPbdZKbu8pDYYIuTWLdCPhtUbt1VLtb6Sp1XtJQ0HLnVDo6KjeimqadBe5zxK2g==}
 
   '@yiero/vite-plugin-scriptcat-backup@1.1.0':
     resolution: {integrity: sha512-HP0t1DizRAncMBm/ZUCo2IVdI6sZr8Tz+c1++XunnS+gAXW7ItcaIEbfmXI4eRiXCNekgeK1Lw66aHgFY00q0w==}
@@ -1744,7 +1744,7 @@ snapshots:
       loupe: 3.2.1
       tinyrainbow: 1.2.0
 
-  '@yiero/gmlib@0.3.9': {}
+  '@yiero/gmlib@0.4.1': {}
 
   '@yiero/vite-plugin-scriptcat-backup@1.1.0':
     dependencies:

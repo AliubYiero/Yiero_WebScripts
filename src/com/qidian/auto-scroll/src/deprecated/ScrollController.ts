@@ -1,4 +1,4 @@
-import { scrollLengthStore } from './store/scrollLengthStore.ts';
+import { scrollLengthStore } from '../store/ConfigStore.ts';
 import { sleep } from 'radash';
 
 export class ScrollController {

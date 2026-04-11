@@ -1,5 +1,4 @@
 import { onKeydownMultiple, onKeyup } from '@yiero/gmlib';
-import { focusModeStore } from '../store/focusModeStore.ts';
 import {
 	adjustScrollSpeed,
 	isPaused,
@@ -10,6 +9,7 @@ import {
 	startScrolling,
 	stopScrolling,
 } from './scrollStateManager.ts';
+import { focusModeStore } from '../store/ConfigStore.ts';
 
 /** 设置键盘事件处理 */
 export const setupKeyboardHandlers = (): void => {
@@ -67,7 +67,7 @@ export const setupKeyboardHandlers = (): void => {
 /** 设置可见性/焦点事件处理 */
 export const setupVisibilityHandlers = (): void => {
 	const inFocusMode = focusModeStore.get();
-
+ 
 	if ( inFocusMode ) {
 		// 焦点模式: 监听窗口焦点变化
 		window.addEventListener( 'focus', () => {
