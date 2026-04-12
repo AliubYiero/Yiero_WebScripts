@@ -71,6 +71,3 @@
 #rank-list-vm:not(:hover), #rank-list-ctnr-box:not(:hover) {
 	height: 32px !important;
 }
-.danmaku-item-right, .user-name, .fans-medal-content {
-	filter: blur(4px);
-}
