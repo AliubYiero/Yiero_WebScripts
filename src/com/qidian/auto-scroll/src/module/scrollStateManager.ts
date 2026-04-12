@@ -1,4 +1,4 @@
-import { Message, simulateClick, simulateKeyboard } from '@yiero/gmlib';
+import { Message } from '@yiero/gmlib';
 import {
 	newPageDelayStore,
 	newPageDelayValueStore,
@@ -8,10 +8,15 @@ import {
 	turnPageDelayValueStore,
 } from '../store/ConfigStore.ts';
 import {
+	clearRuntimeState,
+	saveRuntimeState,
+} from '../store/RuntimeStateStore.ts';
+import {
 	setReachBottomCallback,
 	startScroll,
 	stopScroll,
 } from './scrollController.ts';
+import { turnPage } from './pageTurner.ts';
 
 /** 滚动状态枚举 */
 export enum ScrollStatus {
@@ -56,7 +61,7 @@ const getTurnPageDelay = (): number => {
 };
 
 /** 计算新页面延时 (秒) */
-const getNewPageDelay = (): number => {
+export const getNewPageDelay = (): number => {
 	if ( newPageDelayStore.get() === '固定值' ) {
 		return newPageDelayValueStore.get();
 	}
@@ -95,6 +100,8 @@ export const stopScrolling = (): void => {
 	currentStatus = ScrollStatus.Stop;
 	// 重置翻页状态，取消翻页流程
 	turnPageStatus = TurnPageStatus.Normal;
+	// 清除持久化状态，防止干扰下次阅读
+	clearRuntimeState();
 	Message.info( `关闭滚动`, { position: 'top-left' } );
 };
 
@@ -127,31 +134,6 @@ export const adjustScrollSpeed = ( delta: number ): void => {
 	Message.info( `${ action }滚动速度, 滚动速度为 ${ scrollLength } px/s`, { position: 'top-left' } );
 };
 
-/**
- * 翻页
- */
-const nextPageMapper = {
-	'www.qidian.com': {
-		selector: '.nav-btn-group .nav-btn:last-child',
-	},
-};
-const nextPageSelector = Object.entries( nextPageMapper )
-	.find( ( [ host ] ) => window.location.host === host )
-	?.[ 1 ];
-const handleNextPage = () => {
-	if ( !nextPageSelector ) {
-		simulateKeyboard( {
-			key: 'ArrowRight',
-			bubbles: true,
-			cancelable: true,
-		} );
-	}
-	else {
-		const nextPageButton = document.querySelector<HTMLElement>( nextPageSelector.selector );
-		nextPageButton && simulateClick( nextPageButton );
-	}
-};
-
 /** 处理触底事件（自动翻页模式） */
 const handleReachBottom = async (): Promise<void> => {
 	if ( turnPageStatus !== TurnPageStatus.Normal ) {
@@ -169,8 +151,11 @@ const handleReachBottom = async (): Promise<void> => {
 	// 等待翻页延时
 	await sleep( TurnPageDelay * 1000 );
 	
+	// 保存运行时状态，用于页面跳转后自动恢复
+	saveRuntimeState( true );
+	
 	// 触发翻页
-	handleNextPage();
+	turnPage();
 	
 	// 循环检测翻页是否成功，最多 5 秒
 	for ( let i = 0; i < MAX_CHECK_COUNT; i++ ) {
