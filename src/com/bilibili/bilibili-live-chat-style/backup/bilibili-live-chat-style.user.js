@@ -1,9 +1,10 @@
 // ==UserScript==
 // @name           Bilibili直播评论样式修改
-// @description    修改Bilibili直播间的评论样式弹幕, 使其按固定格式显示. 即上面是用户信息, 下面是弹幕.
-// @version        1.0.1
+// @description    修改Bilibili直播间的评论样式弹幕显示样式, 使其按卡片式固定格式显示. 即上面是用户信息, 下面是弹幕.\n优化弹幕框顶部的房间观众和大航海显示, 不再固定显示.
+// @version        1.0.2
 // @author         Yiero
 // @match          https://live.bilibili.com/*
+// @icon           https://www.bilibili.com/favicon.ico
 // @tag            bilibili
 // @tag            live
 // @tag            style
@@ -95,6 +96,14 @@
 .wealth-medal-ctnr {
 	order: -1;
 }
+
+/* \u623F\u95F4\u89C2\u4F17\u548C\u5927\u822A\u6D77\u699C\u5355\u4E0D\u518D\u56FA\u5B9A\u5728\u5F39\u5E55\u6846\u4E0A, \u53EA\u6709\u9F20\u6807\u6D6E\u52A8\u5230\u4E0A\u9762\u624D\u663E\u793A */
+#rank-list-vm:not(:hover), #rank-list-ctnr-box:not(:hover) {
+	height: 32px !important;
+}
+.danmaku-item-right, .user-name, .fans-medal-content {
+	filter: blur(4px);
+}
 `;
   let styleElement = null;
   const addStyle = (fontSize) => {
@@ -110,10 +119,8 @@
   class GmStorage {
     key;
     defaultValue;
-    listenerId = 0;
+    listenerId = null;
     constructor(key, defaultValue) {
-      this.key = key;
-      this.defaultValue = defaultValue;
       this.key = key;
       this.defaultValue = defaultValue;
     }
@@ -124,7 +131,7 @@
       return GM_getValue(this.key, this.defaultValue);
     }
     set(value) {
-      return GM_setValue(this.key, value);
+      GM_setValue(this.key, value);
     }
     remove() {
       GM_deleteValue(this.key);
@@ -141,7 +148,10 @@
       });
     }
     removeListener() {
-      GM_removeValueChangeListener(this.listenerId);
+      if (null !== this.listenerId) {
+        GM_removeValueChangeListener(this.listenerId);
+        this.listenerId = null;
+      }
     }
   }
   const danmakuFontSizeStore = new GmStorage("\u914D\u7F6E.danmakuFontSize", 16);
@@ -149,7 +159,7 @@
     const fontSize = danmakuFontSizeStore.get();
     addStyle(fontSize);
     danmakuFontSizeStore.updateListener(({ newValue }) => {
-      addStyle(newValue);
+      newValue && addStyle(newValue);
     });
   };
   main().catch((error) => {

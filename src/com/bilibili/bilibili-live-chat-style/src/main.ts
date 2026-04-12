@@ -10,7 +10,7 @@ const main = async () => {
 	// 添加样式
 	addStyle( fontSize );
 	danmakuFontSizeStore.updateListener( ( { newValue } ) => {
-		addStyle( newValue );
+		newValue && addStyle( newValue );
 	} );
 };
 

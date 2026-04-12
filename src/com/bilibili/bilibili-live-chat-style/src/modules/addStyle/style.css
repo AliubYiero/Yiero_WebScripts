@@ -66,3 +66,11 @@
 .wealth-medal-ctnr {
 	order: -1;
 }
+
+/* 房间观众和大航海榜单不再固定在弹幕框上, 只有鼠标浮动到上面才显示 */
+#rank-list-vm:not(:hover), #rank-list-ctnr-box:not(:hover) {
+	height: 32px !important;
+}
+.danmaku-item-right, .user-name, .fans-medal-content {
+	filter: blur(4px);
+}
