@@ -26,4 +26,4 @@ export {
 	addKeyStore,
 	reduceKeyStore,
 	toggleKeyStore,
-}
+};

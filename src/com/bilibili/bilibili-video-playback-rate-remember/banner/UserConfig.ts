@@ -8,11 +8,11 @@ export const keyboardKeyList = [
 	'CapsLock', 'NumLock', 'ScrollLock', 'Pause',
 	'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
 	'Shift', 'Control', 'Alt', 'Meta',
-	'`', '-', '=', '[', ']', '\\', ';', "'", ',', '.', '/',
+	'`', '-', '=', '[', ']', '\\', ';', '\'', ',', '.', '/',
 	'~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+', '{', '}', '|', ':', '"', '<', '>', '?',
 	'Numpad0', 'Numpad1', 'Numpad2', 'Numpad3', 'Numpad4', 'Numpad5', 'Numpad6', 'Numpad7', 'Numpad8', 'Numpad9',
-	'NumpadMultiply', 'NumpadAdd', 'NumpadSubtract', 'NumpadDecimal', 'NumpadDivide', 'NumpadEnter'
-] as const
+	'NumpadMultiply', 'NumpadAdd', 'NumpadSubtract', 'NumpadDecimal', 'NumpadDivide', 'NumpadEnter',
+] as const;
 
 export const UserConfig: ScriptCatUserConfig = {
 	'倍速配置': {
@@ -36,26 +36,26 @@ export const UserConfig: ScriptCatUserConfig = {
 			description: '',
 			type: 'select',
 			bind: '$keyboardList',
-			default: 'C'
+			default: 'C',
 		},
 		reduceKey: {
 			title: '减少倍速键位',
 			description: '',
 			type: 'select',
 			bind: '$keyboardList',
-			default: 'X'
+			default: 'X',
 		},
 		toggleKey: {
 			title: '重置倍速键位',
 			description: '',
 			type: 'select',
 			bind: '$keyboardList',
-			default: 'Z'
+			default: 'Z',
 		},
 		empty: {
 			title: '空占位',
 			description: '无作用空占位',
 			type: 'checkbox',
-		}
+		},
 	},
 };
