@@ -50,6 +50,11 @@
 	padding: 5px 5px 5px 10px;
 }
 
+/* 取消表情弹幕的左边距 */
+.danmaku-item-right.emoticon.bulge {
+	margin-left: 0 !important;
+}
+
 /* 给没有荣耀等级的用户添加一个占位 */
 .danmaku-item-left:not(:has(.wealth-medal-ctnr))::before {
 	content: '';

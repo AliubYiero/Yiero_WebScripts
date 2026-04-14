@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name           Bilibili直播评论样式修改
-// @description    修改Bilibili直播间的评论样式弹幕显示样式, 使其按卡片式固定格式显示. 即上面是用户信息, 下面是弹幕.\n优化弹幕框顶部的房间观众和大航海显示, 不再固定显示.
-// @version        1.0.3
+// @description    修改Bilibili直播间的评论样式弹幕显示样式, 使其按卡片式固定格式显示. 即上面是用户信息, 下面是弹幕.  优化弹幕框顶部的房间观众和大航海显示, 不再固定显示.
+// @version        1.0.4
 // @author         Yiero
 // @match          https://live.bilibili.com/*
 // @icon           https://www.bilibili.com/favicon.ico
+// @run-at         document-body
 // @tag            bilibili
 // @tag            live
 // @tag            style
@@ -80,6 +81,11 @@
 	padding: 5px 5px 5px 10px;
 }
 
+/* \u53D6\u6D88\u8868\u60C5\u5F39\u5E55\u7684\u5DE6\u8FB9\u8DDD */
+.danmaku-item-right.emoticon.bulge {
+	margin-left: 0 !important;
+}
+
 /* \u7ED9\u6CA1\u6709\u8363\u8000\u7B49\u7EA7\u7684\u7528\u6237\u6DFB\u52A0\u4E00\u4E2A\u5360\u4F4D */
 .danmaku-item-left:not(:has(.wealth-medal-ctnr))::before {
 	content: '';
@@ -112,6 +118,7 @@
       rawStyle + `.danmaku-item-right {font-size: ${fontSize}px; line-height: ${fontSize + 8}px !important;`
     );
     styleElement = GM_addStyle(style);
+    styleElement.classList.add("bilibili-live-chat-style");
   };
   class GmStorage {
     key;

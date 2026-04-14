@@ -14,4 +14,5 @@ export const addStyle = ( fontSize: number ) => {
 		// 添加弹幕字号
 		+ `.danmaku-item-right {font-size: ${ fontSize }px; line-height: ${ fontSize + 8 }px !important;`;
 	styleElement = GM_addStyle( style );
+	styleElement.classList.add('bilibili-live-chat-style')
 };
