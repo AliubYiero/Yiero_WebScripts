@@ -154,7 +154,7 @@
 		"bilibili-video-playback-rate-remember": {
 			"name": "Bilibili视频倍速记忆",
 			"description": "自动记忆视频播放倍速设置，并提供快捷键快速调整播放速度。",
-			"version": "1.1.0",
+			"version": "1.2.0",
 			"private": false,
 			"archive": false,
 			"lastUpdate": 1775382836000,

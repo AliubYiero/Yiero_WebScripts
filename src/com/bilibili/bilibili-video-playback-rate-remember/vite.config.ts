@@ -138,6 +138,7 @@ export default defineConfig( ( env ) => {
 						match: /\.(css|html)$/,
 					} ),
 					// banner
+					// @ts-ignore 
 					metaBannerPlugin( {
 						userScript: UserScript,
 						userConfig: UserConfig,

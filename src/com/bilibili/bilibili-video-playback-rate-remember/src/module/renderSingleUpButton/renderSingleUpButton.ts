@@ -1,14 +1,6 @@
 import { elementWaiter, gmMenuCommand } from '@yiero/gmlib';
-import { singleUpListStore } from './store/playbackRateStore.ts';
-
-/**
- * 从 URL 获取 uid
- */
-const getUpUidFromUrl = ( url: string ) => {
-	const [ uid ] = new URL( url ).pathname.match( /\d+/ ) || [];
-	if ( !uid ) return void 0;
-	return Number( uid );
-};
+import { singleUpListStore } from '../../store/playbackRateStore.ts';
+import { getUpUidFromUrl } from '../../utils';
 
 /**
  * 渲染添加独立名单

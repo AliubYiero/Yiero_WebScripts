@@ -25,20 +25,20 @@ importers:
         specifier: ^2.1.8
         version: 2.1.9(vitest@2.1.9(@types/node@22.19.3)(jsdom@24.1.3)(terser@5.44.1))
       '@yiero/vite-plugin-scriptcat-backup':
-        specifier: ^1.0.2
-        version: 1.0.2
+        specifier: ^1.1.0
+        version: 1.1.0
       '@yiero/vite-plugin-scriptcat-extract-grant':
         specifier: ^1.0.4
         version: 1.0.4
       '@yiero/vite-plugin-scriptcat-meta-banner':
-        specifier: ^1.1.1
-        version: 1.1.1
+        specifier: ^1.1.2
+        version: 1.1.2
       '@yiero/vite-plugin-scriptcat-require-self':
         specifier: ^1.0.4
         version: 1.0.4
       '@yiero/vite-plugin-scriptcat-script-push':
-        specifier: ^1.1.0
-        version: 1.1.0
+        specifier: ^1.1.1
+        version: 1.1.1
       jsdom:
         specifier: ^24.0.0
         version: 24.1.3
@@ -477,20 +477,20 @@ packages:
   '@yiero/gmlib@0.4.3':
     resolution: {integrity: sha512-KGOwocQhL7MfdRHWMaIF3+SWHTW83397RLUFzGCDMnTVzjdja0liLd0qglCvF1lsN1EXsm/INvin3hOZu6CTdA==}
 
-  '@yiero/vite-plugin-scriptcat-backup@1.0.2':
-    resolution: {integrity: sha512-D5skY1rpTJIeOEuc29s87GINMhXw4/IakT/9rPS9i5Bjz4iSQxI05PRKunkIzOiJf8AQX+17vbV8QmnI0cwXkA==}
+  '@yiero/vite-plugin-scriptcat-backup@1.1.0':
+    resolution: {integrity: sha512-HP0t1DizRAncMBm/ZUCo2IVdI6sZr8Tz+c1++XunnS+gAXW7ItcaIEbfmXI4eRiXCNekgeK1Lw66aHgFY00q0w==}
 
   '@yiero/vite-plugin-scriptcat-extract-grant@1.0.4':
     resolution: {integrity: sha512-JGxpS8taIE2Bsn7FKJHLiuc7mOGjpaXbZUYjO3dfQjurZI6Fm0pHzXB0vwLPX3hKQqmrf6LbZqd/RKRkNlv/Iw==}
 
-  '@yiero/vite-plugin-scriptcat-meta-banner@1.1.1':
-    resolution: {integrity: sha512-/WveInKiNkDyJktTgEf8MP2bhFfrE1pFmDQKc8hEF5fl1FrciJhYeC5E0faGbUmf+ZveYdWsGkmBewIUnY+gVQ==}
+  '@yiero/vite-plugin-scriptcat-meta-banner@1.1.2':
+    resolution: {integrity: sha512-8v8kgTouwmn0g9mq2CjV78uOBejRmSP1XFRHGFos6pyvHeN+Zx+Ggx6qxTIagF4JJNt+nHAbApq4tBuvvh/laQ==}
 
   '@yiero/vite-plugin-scriptcat-require-self@1.0.4':
     resolution: {integrity: sha512-5zGZQzbYunKoPDThLe20By+P9Yk7yBWotf9qSeSw51q6w7p+Ou+mLyppJ9qJhnmIp91PstawrivtR0bUZjjBmg==}
 
-  '@yiero/vite-plugin-scriptcat-script-push@1.1.0':
-    resolution: {integrity: sha512-bRTzIGlHVwXK1o8+zSXlhG/pP+zY/2z3FQPKIRzacwHuEwZkzVxqZeZz1BTUSmVeugss4hbYJvlfZSkLTCtIug==}
+  '@yiero/vite-plugin-scriptcat-script-push@1.1.1':
+    resolution: {integrity: sha512-Y+W/SurmpKlTbr/XjF/nkmu+BEqoq0B8CB5IlY0fRjwa3M8AkASush93di+GT6MMMQvdJZ2hK/76s2bC6veZEQ==}
 
   acorn@8.15.0:
     resolution: {integrity: sha512-NZyJarBfL7nWwIq+FDL6Zp/yHEhePMNnnJ0y3qfieCrmNvYct8uvtiV41UvlSe6apAfk0fY1FbWx+NwfmpvtTg==}
@@ -654,6 +654,9 @@ packages:
   expect-type@1.3.0:
     resolution: {integrity: sha512-knvyeauYhqjOYvQ66MznSMs83wmHrCycNEN6Ao+2AeYEfxUIkuiVxdEa1qlGEPK+We3n0THiDciYSsCcgW/DoA==}
     engines: {node: '>=12.0.0'}
+
+  fflate@0.8.2:
+    resolution: {integrity: sha512-cPJU47OaAoCbg0pBvzsgpTPhmhqI5eJjh/JIu8tPj5q+T7iLvW/JAYUqmE7KOB4R1ZyEhzBaIQpQpardBF5z8A==}
 
   foreground-child@3.3.1:
     resolution: {integrity: sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw==}
@@ -1440,17 +1443,19 @@ snapshots:
 
   '@yiero/gmlib@0.4.3': {}
 
-  '@yiero/vite-plugin-scriptcat-backup@1.0.2': {}
+  '@yiero/vite-plugin-scriptcat-backup@1.1.0':
+    dependencies:
+      fflate: 0.8.2
 
   '@yiero/vite-plugin-scriptcat-extract-grant@1.0.4': {}
 
-  '@yiero/vite-plugin-scriptcat-meta-banner@1.1.1':
+  '@yiero/vite-plugin-scriptcat-meta-banner@1.1.2':
     dependencies:
       yamljs: 0.3.0
 
   '@yiero/vite-plugin-scriptcat-require-self@1.0.4': {}
 
-  '@yiero/vite-plugin-scriptcat-script-push@1.1.0':
+  '@yiero/vite-plugin-scriptcat-script-push@1.1.1':
     dependencies:
       ws: 8.18.3
     transitivePeerDependencies:
@@ -1613,6 +1618,8 @@ snapshots:
       '@types/estree': 1.0.8
 
   expect-type@1.3.0: {}
+
+  fflate@0.8.2: {}
 
   foreground-child@3.3.1:
     dependencies:

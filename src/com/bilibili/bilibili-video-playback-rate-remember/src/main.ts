@@ -1,20 +1,21 @@
 import { elementWaiter, onKeydownMultiple } from '@yiero/gmlib';
 import {
-	PlaybackRate, PlaybackRateBase, PlaybackRateSingle,
+	PlaybackRateBase,
+	PlaybackRateLocal,
+	PlaybackRateSingle,
 	PlaybackRateSync,
-} from './module/PlaybackRate/PlaybackRate.ts';
-import { stepStore, syncStore } from './store/configStore.ts';
-import {
+	renderSingleUpButton,
 	showPlaybackRateStyle,
-} from './module/showPlaybackRateStyle/showPlaybackRateStyle.ts';
+} from './module';
 import {
 	addHotkey,
+	initKeyboardListStore,
 	reduceHotkey,
+	singleUpListStore,
+	stepStore,
+	syncStore,
 	toggleHotkey,
-} from './store/hotkeyConfigStore.ts';
-import { initKeyboardListStore } from './store/initKeyboardListStore.ts';
-import { renderSingleUpButton } from './renderSingleUpButton.ts';
-import { singleUpListStore } from './store/playbackRateStore.ts';
+} from './store';
 
 
 /**
@@ -23,35 +24,43 @@ import { singleUpListStore } from './store/playbackRateStore.ts';
 const main = async () => {
 	// 初始化快捷键选择列表
 	initKeyboardListStore();
-	
+
 	// 添加倍速切换展示样式
 	showPlaybackRateStyle();
-	
+
 	// 渲染独立UP添加/删除按钮
 	const uidList = await renderSingleUpButton();
-	
+
 	// 设置配速切换
 	const videoElement = await elementWaiter<HTMLVideoElement>( '.bpx-player-video-wrap video' );
-	const videoContainer = document.querySelector<HTMLElement>( '.bpx-player-video-wrap' )!;
-	
+	const videoContainer = document.querySelector<HTMLElement>( '.bpx-player-video-wrap' );
+	if ( !videoContainer ) {
+		throw new Error( 'Video container not found: .bpx-player-video-wrap' );
+	}
+
 	const inSingleList = uidList.some( uid => singleUpListStore.includes( uid ) );
-	
-	let playbackRate: PlaybackRateBase = new PlaybackRate( videoElement, stepStore.value );
+
+	let playbackRate: PlaybackRateBase = new PlaybackRateLocal( videoElement, stepStore.value );
 	if ( syncStore.value ) {
 		playbackRate = new PlaybackRateSync( videoElement, stepStore.value );
 	}
 	if ( inSingleList ) {
 		playbackRate = new PlaybackRateSingle( videoElement, stepStore.value );
 	}
+
+	// 监听单UP列表变化，动态切换策略
 	singleUpListStore.updateListener( () => {
+		// 清理旧实例的资源
+		playbackRate.destroy?.();
+
 		if ( uidList.some( uid => singleUpListStore.includes( uid ) ) ) {
 			playbackRate = new PlaybackRateSingle( videoElement, stepStore.value );
 		}
-		else if ( syncStore.value) {
+		else if ( syncStore.value ) {
 			playbackRate = new PlaybackRateSync( videoElement, stepStore.value );
 		}
 		else {
-			playbackRate = new PlaybackRate( videoElement, stepStore.value );
+			playbackRate = new PlaybackRateLocal( videoElement, stepStore.value );
 		}
 	} );
 	
