@@ -57,7 +57,7 @@ export class PlaybackRateSync implements PlaybackRateBase {
 	 */
 	private listen() {
 		playbackRateStore.updateListener( ( { newValue } ) => {
-			this.video.playbackRate = Math.max( 0.1, newValue );
+			newValue && (this.video.playbackRate = Math.max( 0.1, newValue ));
 		} );
 	}
 	

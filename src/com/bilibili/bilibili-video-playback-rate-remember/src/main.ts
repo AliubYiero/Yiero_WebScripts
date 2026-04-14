@@ -12,12 +12,16 @@ import {
 	reduceHotkey,
 	toggleHotkey,
 } from './store/hotkeyConfigStore.ts';
+import { initKeyboardListStore } from './store/initKeyboardListStore.ts';
 
 
 /**
  * 主函数
  */
 const main = async () => {
+	// 初始化快捷键选择列表
+	initKeyboardListStore()
+	
 	// 添加倍速切换展示样式
 	showPlaybackRateStyle();
 	

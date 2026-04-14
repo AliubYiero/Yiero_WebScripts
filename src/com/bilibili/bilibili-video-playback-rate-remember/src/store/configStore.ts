@@ -1,12 +1,29 @@
-import { GmStorage } from '@yiero/gmlib';
+import { createUserConfigStorage } from '@yiero/gmlib';
+import { UserConfig } from '../../banner/UserConfig.ts';
 
-/**
- * 倍速跳转步长
- */
-export const stepStore = new GmStorage<number>( '倍速配置.step', 0.25 );
+interface PlaybackRateStore {
+	// 倍速配置
+	stepStore: number,
+	syncStore: boolean,
+	// 快捷键配置
+	addKeyStore: string;
+	reduceKeyStore: string;
+	toggleKeyStore: string;
+}
+
+const {
+	stepStore,
+	syncStore,
+	addKeyStore,
+	reduceKeyStore,
+	toggleKeyStore,
+} = createUserConfigStorage<PlaybackRateStore>( UserConfig );
 
 
-/**
- * 页面同步设置
- */
-export const syncStore = new GmStorage<boolean>( '倍速配置.sync', false );
+export {
+	stepStore,
+	syncStore,
+	addKeyStore,
+	reduceKeyStore,
+	toggleKeyStore,
+}

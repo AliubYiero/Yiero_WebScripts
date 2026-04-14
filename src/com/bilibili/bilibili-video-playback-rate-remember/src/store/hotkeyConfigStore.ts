@@ -1,41 +1,21 @@
-import { GmStorage } from '@yiero/gmlib';
+import { addKeyStore, reduceKeyStore, toggleKeyStore } from './configStore.ts';
 
-const addKeyStore = new GmStorage<string>( '快捷键配置.addKey', 'C' );
-const addCtrlStore = new GmStorage<boolean>( '快捷键配置.addCtrl', false );
-const addShiftStore = new GmStorage<boolean>( '快捷键配置.addShift', false );
-const addAltStore = new GmStorage<boolean>( '快捷键配置.addAlt', false );
-export const addHotkey = {
-	key: addKeyStore.get(),
-	ctrl: addCtrlStore.get(),
-	shift: addShiftStore.get(),
-	alt: addAltStore.get(),
+
+const parseHotkey = ( hotkey: string ) => {
+	const hotkeyList = hotkey.split( '+' );
+	return {
+		key: hotkeyList[ hotkeyList.length - 1 ],
+		ctrl: hotkeyList.includes( 'Ctrl' ),
+		shift: hotkeyList.includes( 'Shift' ),
+		alt: hotkeyList.includes( 'Alt' ),
+	};
 };
 
-
-const reduceKeyStore = new GmStorage<string>( '快捷键配置.reduceKey', 'X' );
-const reduceCtrlStore = new GmStorage<boolean>( '快捷键配置.reduceCtrl', false );
-const reduceShiftStore = new GmStorage<boolean>( '快捷键配置.reduceShift', false );
-const reduceAltStore = new GmStorage<boolean>( '快捷键配置.reduceAlt', false );
-export const reduceHotkey = {
-	key: reduceKeyStore.get(),
-	ctrl: reduceCtrlStore.get(),
-	shift: reduceShiftStore.get(),
-	alt: reduceAltStore.get(),
-};
-
-
-const toggleKeyStore = new GmStorage<string>( '快捷键配置.toggleKey', 'Z' );
-const toggleCtrlStore = new GmStorage<boolean>( '快捷键配置.toggleCtrl', false );
-const toggleShiftStore = new GmStorage<boolean>( '快捷键配置.toggleShift', false );
-const toggleAltStore = new GmStorage<boolean>( '快捷键配置.toggleAlt', false );
-export const toggleHotkey = {
-	key: toggleKeyStore.get(),
-	ctrl: toggleCtrlStore.get(),
-	shift: toggleShiftStore.get(),
-	alt: toggleAltStore.get(),
-};
-
-/**
+export const addHotkey = parseHotkey( addKeyStore.get() );
+export const reduceHotkey = parseHotkey( reduceKeyStore.get() );
+export const toggleHotkey = parseHotkey( toggleKeyStore.get() );
+ 
+ /**
  * v1.0.0 -> v1.1.0 的热键设置不一致, 提供迁移判断
  */
 function migrationHotkey() {
@@ -48,4 +28,5 @@ function migrationHotkey() {
 		addKeyStore.set( 'C' );
 	}
 }
-migrationHotkey()
+
+migrationHotkey();

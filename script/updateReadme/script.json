@@ -52,7 +52,7 @@
 			"version": "1.0.4",
 			"private": false,
 			"archive": false,
-			"lastUpdate": 1775988562000,
+			"lastUpdate": 1776155338000,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/bilibili-live-chat-style.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-chat-style/backup/bilibili-live-chat-style.user.js",

@@ -19,7 +19,7 @@ export interface UserConfigItem {
 	/** 列表选择器的候选 (select 和 mult-select 可用) */
 	values?: unknown[];
 	/** 动态显示绑定的values,值是以$开头的key,value需要是一个数组 (select 和 mult-select 可用) */
-	bind?: unknown[];
+	bind?: string;
 	/** 最小输入值 (text 和 number 可用) */
 	min?: number;
 	/** 最大输入值 (text 和 number 可用) */

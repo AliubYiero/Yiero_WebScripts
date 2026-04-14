@@ -35,76 +35,27 @@ export const UserConfig: ScriptCatUserConfig = {
 			title: '增加倍速键位',
 			description: '',
 			type: 'select',
-			values: keyboardKeyList as unknown as unknown[],
+			bind: '$keyboardList',
 			default: 'C'
-		},
-		addCtrl:{
-			title: 'Ctrl',
-			description: '增加倍速键位, 启用 Ctrl',
-			type: 'checkbox',
-			default: false
-		},
-		addShift:{
-			title: 'Shift',
-			description: '增加倍速键位, 启用 Shift',
-			type: 'checkbox',
-			default: false
-		},
-		addAlt:{
-			title: 'Alt',
-			description: '增加倍速键位, 启用 Alt',
-			type: 'checkbox',
-			default: false
 		},
 		reduceKey: {
 			title: '减少倍速键位',
 			description: '',
 			type: 'select',
-			values: keyboardKeyList as unknown as unknown[],
+			bind: '$keyboardList',
 			default: 'X'
-		},
-		reduceCtrl:{
-			title: 'Ctrl',
-			description: '减少倍速键位, 启用 Ctrl',
-			type: 'checkbox',
-			default: false
-		},
-		reduceShift:{
-			title: 'Shift',
-			description: '减少倍速键位, 启用 Shift',
-			type: 'checkbox',
-			default: false
-		},
-		reduceAlt:{
-			title: 'Alt',
-			description: '减少倍速键位, 启用 Alt',
-			type: 'checkbox',
-			default: false
 		},
 		toggleKey: {
 			title: '重置倍速键位',
 			description: '',
 			type: 'select',
-			values: keyboardKeyList as unknown as unknown[],
+			bind: '$keyboardList',
 			default: 'Z'
 		},
-		toggleCtrl:{
-			title: 'Ctrl',
-			description: '重置倍速键位, 启用 Ctrl',
+		empty: {
+			title: '空占位',
+			description: '无作用空占位',
 			type: 'checkbox',
-			default: false
-		},
-		toggleShift:{
-			title: 'Shift',
-			description: '重置倍速键位, 启用 Shift',
-			type: 'checkbox',
-			default: false
-		},
-		toggleAlt:{
-			title: 'Alt',
-			description: '重置倍速键位, 启用 Alt',
-			type: 'checkbox',
-			default: false
-		},
+		}
 	},
 };
