@@ -28,6 +28,24 @@ export interface ScriptDetail {
 // Record<脚本域名 (二级域名.顶级域名), Record<脚本项目名称, ScriptDetail>>
 export type ScriptInfo = Record<string, Record<string, ScriptDetail>>
 
+/**
+ * 特殊入口配置
+ * 用于配置以 . 开头的特殊目录，这些目录会被当作独立的域名处理
+ */
+interface SpecialEntryConfig {
+	entry: string;    // 目录名，如 ".Global"、".Crontab"
+	domain: string;   // 对应的域名，如 "global"、"crontab"
+}
+
+/**
+ * 特殊入口配置列表
+ * 这些目录会被当作独立的域名处理，而不是被跳过
+ */
+const SPECIAL_ENTRY_CONFIGS: SpecialEntryConfig[] = [
+	{ entry: '.Global', domain: 'global' },
+	{ entry: '.Crontab', domain: 'crontab' },
+];
+
 
 /**
  * 获取文件的最后更新时间
@@ -35,7 +53,7 @@ export type ScriptInfo = Record<string, Record<string, ScriptDetail>>
  * @param getLastUpdateWay 获取更新时间的方式：'git' 优先使用 git log 获取提交时间，失败则回退到文件修改时间；'file' 直接使用文件修改时间
  * @returns 毫秒级时间戳
  */
-function getLastUpdateTime(filePath: string, getLastUpdateWay: 'git' | 'file' = 'git'): number {
+function getLastUpdateTime(filePath: string, getLastUpdateWay: 'git' | 'file' = 'file'): number {
 	// 如果指定使用文件修改时间，直接返回
 	if (getLastUpdateWay === 'file') {
 		return fs.statSync(filePath).mtimeMs;
@@ -87,8 +105,8 @@ class ScriptFileSystem {
 	read(existingScriptInfo?: ScriptInfo): ScriptInfo {
 		const scriptInfo: ScriptInfo = {};
 
-		// 1. 读取 .Global 文件夹下的脚本
-		this.readGlobalScripts(scriptInfo, existingScriptInfo);
+		// 1. 读取特殊入口目录下的脚本（.Global、.Crontab 等）
+		this.readSpecialEntryScripts(scriptInfo, existingScriptInfo);
 
 		// 2. 读取顶级域名下的脚本
 		this.readTopLevelDomainScripts(scriptInfo, existingScriptInfo);
@@ -97,33 +115,35 @@ class ScriptFileSystem {
 	}
 
 	/**
-	 * 读取 .Global 文件夹下的脚本
+	 * 读取特殊入口目录下的脚本（.Global、.Crontab 等）
 	 */
-	private readGlobalScripts(scriptInfo: ScriptInfo, existingScriptInfo?: ScriptInfo): void {
-		const globalPath = path.join(this.srcPath, '.Global');
-		
-		if (!fs.existsSync(globalPath)) {
-			return;
-		}
+	private readSpecialEntryScripts(scriptInfo: ScriptInfo, existingScriptInfo?: ScriptInfo): void {
+		for (const config of SPECIAL_ENTRY_CONFIGS) {
+			const entryPath = path.join(this.srcPath, config.entry);
 
-		const domain = 'global';
-		scriptInfo[domain] = {};
+			if (!fs.existsSync(entryPath)) {
+				continue;
+			}
 
-		const entries = fs.readdirSync(globalPath, { withFileTypes: true });
-		for (const entry of entries) {
-			if (entry.isDirectory()) {
-				const scriptProjectName = entry.name;
-				const existingDetail = existingScriptInfo?.[domain]?.[scriptProjectName];
-				const scriptDetail = this.readScriptDetail(globalPath, scriptProjectName, existingDetail);
-				if (scriptDetail) {
-					scriptInfo[domain][scriptProjectName] = scriptDetail;
+			const domain = config.domain;
+			scriptInfo[domain] = {};
+
+			const entries = fs.readdirSync(entryPath, { withFileTypes: true });
+			for (const entry of entries) {
+				if (entry.isDirectory() && !entry.name.startsWith('.')) {
+					const scriptProjectName = entry.name;
+					const existingDetail = existingScriptInfo?.[domain]?.[scriptProjectName];
+					const scriptDetail = this.readScriptDetail(entryPath, scriptProjectName, existingDetail);
+					if (scriptDetail) {
+						scriptInfo[domain][scriptProjectName] = scriptDetail;
+					}
 				}
 			}
-		}
 
-		// 如果没有任何脚本，删除该域名
-		if (Object.keys(scriptInfo[domain]).length === 0) {
-			delete scriptInfo[domain];
+			// 如果该域名下没有任何脚本，删除该域名
+			if (Object.keys(scriptInfo[domain]).length === 0) {
+				delete scriptInfo[domain];
+			}
 		}
 	}
 
@@ -136,10 +156,13 @@ class ScriptFileSystem {
 		}
 
 		const entries = fs.readdirSync(this.srcPath, { withFileTypes: true });
-		
+
+		// 获取所有特殊入口的目录名集合
+		const specialEntryNames = new Set(SPECIAL_ENTRY_CONFIGS.map(config => config.entry));
+
 		for (const entry of entries) {
-			// 跳过以 . 开头的目录和 .Global 目录
-			if (!entry.isDirectory() || entry.name.startsWith('.') || entry.name === '.Global') {
+			// 跳过以 . 开头的目录和特殊入口目录
+			if (!entry.isDirectory() || entry.name.startsWith('.') || specialEntryNames.has(entry.name)) {
 				continue;
 			}
 
@@ -182,6 +205,11 @@ class ScriptFileSystem {
 			// 读取二级域名下的所有脚本项目
 			const scriptEntries = fs.readdirSync(secondLevelPath, { withFileTypes: true });
 			for (const scriptEntry of scriptEntries) {
+				// 跳过以 . 开头的目录
+				if (!scriptEntry.isDirectory() || scriptEntry.name.startsWith('.')) {
+					continue;
+				}
+				
 				if (scriptEntry.isDirectory()) {
 					const scriptProjectName = scriptEntry.name;
 					const existingDetail = existingScriptInfo?.[domain]?.[scriptProjectName];
@@ -232,13 +260,13 @@ class ScriptFileSystem {
 				downloadUrlFromScripCat: existingDetail?.downloadUrlFromScripCat ?? '',
 				downloadUrlFromGreasyFork: existingDetail?.downloadUrlFromGreasyFork ?? '',
 				autoUpdate: existingDetail?.autoUpdate ?? true,
-				getLastUpdateWay: existingDetail?.getLastUpdateWay ?? 'git',
+				getLastUpdateWay: existingDetail?.getLastUpdateWay ?? 'file',
 			};
 		}
 
 		try {
 			const metadata = this.parseUserScriptMetadata(userJsPath);
-			const getLastUpdateWay = existingDetail?.getLastUpdateWay ?? 'git';
+			const getLastUpdateWay = existingDetail?.getLastUpdateWay ?? 'file';
 
 			return {
 				name: metadata.name,
@@ -400,8 +428,10 @@ class ScriptFileSystem {
 	private generateGithubUrl(domain: string, scriptProjectName: string, userScriptFilepath: string): string {
 		let relativePath: string;
 
-		if (domain === 'global') {
-			relativePath = `.Global/${scriptProjectName}`;
+		// 查找是否为特殊入口配置的域名
+		const specialConfig = SPECIAL_ENTRY_CONFIGS.find(config => config.domain === domain);
+		if (specialConfig) {
+			relativePath = `${specialConfig.entry}/${scriptProjectName}`;
 		} else {
 			// 将 domain (如 bilibili.com) 转换为路径 (com/bilibili)
 			const parts = domain.split('.');

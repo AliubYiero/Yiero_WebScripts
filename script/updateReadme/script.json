@@ -52,7 +52,7 @@
 			"version": "1.0.3",
 			"private": false,
 			"archive": false,
-			"lastUpdate": 1775980088000,
+			"lastUpdate": 1775988562000,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/bilibili-live-chat-style.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-chat-style/backup/bilibili-live-chat-style.user.js",
@@ -60,6 +60,21 @@
 			"downloadUrlFromGreasyFork": "",
 			"autoUpdate": true,
 			"getLastUpdateWay": "git"
+		},
+		"bilibili-live-danmaku-send-time-show": {
+			"name": "Bilibili 直播弹幕发送时间显示",
+			"description": "在评论框直播弹幕的最后, 显示弹幕发送的时间",
+			"version": "1.0.0",
+			"private": false,
+			"archive": false,
+			"lastUpdate": 1776151918908.9927,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/bilibili-live-danmaku-send-time-show.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-danmaku-send-time-show/backup/bilibili-live-danmaku-send-time-show.user.js",
+			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/2621",
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": true,
+			"getLastUpdateWay": "file"
 		},
 		"bilibili-live-record": {
 			"name": "Bilibili直播时间点标记",
