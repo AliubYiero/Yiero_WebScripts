@@ -1,5 +1,20 @@
 {
 	"global": {
+		"global-css-import": {
+			"name": "全局CSS导入",
+			"description": "将自定义的 CSS 导入进页面中, 实现易用可控的页面样式控制.",
+			"version": "1.1.0",
+			"private": false,
+			"archive": false,
+			"lastUpdate": 1776225550548.486,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/global-css-import.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/.Global/global-css-import/backup/global-css-import.user.js",
+			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/1626",
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": true,
+			"getLastUpdateWay": "file"
+		},
 		"limit-web-view-time": {
 			"name": "健康浏览网页",
 			"description": "限制网页访问时间",
@@ -157,7 +172,7 @@
 			"version": "1.2.0",
 			"private": false,
 			"archive": false,
-			"lastUpdate": 1775382836000,
+			"lastUpdate": 1776166495000,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/bilibili-video-playback-rate-remember.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-playback-rate-remember/backup/bilibili-video-playback-rate-remember.user.js",

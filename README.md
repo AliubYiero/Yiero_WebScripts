@@ -7,15 +7,16 @@
 ### global
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| 全局CSS导入 | 将自定义的 CSS 导入进页面中, 实现易用可控的页面样式控制. | 前台脚本 | 1.1.0 | 2026-04-15 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/.Global/global-css-import/backup/global-css-import.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/1626) |  |
 | 健康浏览网页 | 限制网页访问时间 | 前台脚本 | 1.0.0 | 2024-05-20 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/.Global/limit-web-view-time/backup/limit-web-view-time.user.js) |  |  |
 
 
 ### bilibili.com
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| Bilibili视频倍速记忆 | 自动记忆视频播放倍速设置，并提供快捷键快速调整播放速度。 | 前台脚本 | 1.2.0 | 2026-04-14 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-playback-rate-remember/backup/bilibili-video-playback-rate-remember.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5800) |  |
 | Bilibili直播评论样式修改 | 修改Bilibili直播间的评论样式弹幕显示样式, 使其按卡片式固定格式显示. 即上面是用户信息, 下面是弹幕.  优化弹幕框顶部的房间观众和大航海显示, 不再固定显示. | 前台脚本 | 1.0.4 | 2026-04-14 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-chat-style/backup/bilibili-live-chat-style.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5757) |  |
 | Bilibili 直播弹幕发送时间显示 | 在评论框直播弹幕的最后, 显示弹幕发送的时间 | 前台脚本 | 1.0.0 | 2026-04-14 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-danmaku-send-time-show/backup/bilibili-live-danmaku-send-time-show.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/2621) |  |
-| Bilibili视频倍速记忆 | 自动记忆视频播放倍速设置，并提供快捷键快速调整播放速度。 | 前台脚本 | 1.2.0 | 2026-04-05 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-playback-rate-remember/backup/bilibili-video-playback-rate-remember.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5800) |  |
 | Bilibili直播弹幕刷屏屏蔽 | 用于B站直播间的弹幕净化脚本. 屏蔽独轮车, 屏蔽重复弹幕, 屏蔽刷屏用户. | 前台脚本 | 1.0.3 | 2026-04-02 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-repeat-danmaku-block/backup/bilibili-live-repeat-danmaku-block.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5772) |  |
 | Bilibili独轮车 | Bilibili独轮车, 按照指定间隔发布弹幕 | 前台脚本 | 1.0.0 | 2026-03-31 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-speaker/backup/bilibili-live-speaker.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5519) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/568495) |
 | Bilibili投稿合集排序辅助 | 支持按投稿的发布时间排序(升序/降序), 不再只能使用默认的按投稿标题排序. | 前台脚本 | 1.0.0 | 2026-01-09 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-upload-section-sort/backup/bilibili-upload-section-sort.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5085) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/561930) |

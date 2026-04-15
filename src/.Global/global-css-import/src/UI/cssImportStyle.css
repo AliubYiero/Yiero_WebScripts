@@ -1,0 +1,184 @@
+/* 容器 */
+.css-dialog-container {
+	width: 50vw;
+	height: 50vh;
+	
+	border: none;
+	background-color: transparent;
+	overflow: hidden;
+	
+	display: none;
+}
+.css-dialog-container[open] {
+	display: block;
+}
+.css-dialog {
+	width: 100%;
+	height: 100%;
+	border: 1px solid #333;
+	background-color: #f7d6bb;
+	color: #413747;
+	box-shadow: #ffffff 0 0 10px;
+	border-radius: 10px;
+	
+	overflow: auto;
+	font-size: 16px;
+	box-sizing: border-box;
+	scrollbar-width: thin;
+	padding: 24px;
+	
+	display: flex;
+	flex-flow: column;
+	gap: 24px;
+	align-items: center;
+	flex-basis: 100%;
+}
+
+/* 头部 */
+.dialog-header-container {
+	display: flex;
+	flex-flow: column;
+	align-items: center;
+	gap: 4px;
+}
+
+.dialog-header-title {
+	font-size: 26px;
+}
+
+.dialog-header-title, .dialog-tip {
+	margin: 0;
+	padding: 0;
+}
+
+.dialog-tip {
+	color: grey;
+	font-size: 12px;
+}
+
+/* 编辑框 */
+.dialog-edit-container {
+	flex: 1;
+	width: 100%;
+	min-width: 150px;
+	min-height: 150px;
+	box-sizing: border-box;
+	scrollbar-width: thin;
+	overflow: hidden;
+	
+}
+
+.hightlight-code-container {
+	height: 100%;
+	padding: 0;
+	margin: 0;
+	box-sizing: border-box;
+}
+
+.hightlight-code {
+	font-size: 14px;
+	padding: 10px;
+	box-sizing: border-box;
+	display: block;
+	width: 100%;
+	height: 100%;
+}
+
+
+pre, pre.hightlight-code-container {
+	border: none;
+	background-color: transparent;
+}
+
+.hightlight-code.hightlight-code {
+	background-color: #f7d6bb;
+	color: #413747;
+	border: 1px solid #333;
+	border-radius: 5px;
+	outline: none;
+}
+
+/* 快捷添加输入框 */
+.dialog-quick-add-container {
+	width: 100%;
+	border-radius: 5px;
+	border: #333 1px solid;
+	
+	font-size: 16px;
+	box-sizing: border-box;
+}
+
+.hightlight-code.hightlight-code:focus-visible,
+.dialog-quick-add-container:has(.dialog-quick-add-input:focus-visible ) {
+	border: #9b5f00 1px solid;
+}
+
+.dialog-quick-add-label {
+	display: flex;
+	gap: 8px;
+	
+}
+
+.dialog-quick-add-prefix {
+	padding: 5px 10px;
+	border-right: 1px solid #333;
+	background-color: #f3cbaa;
+	border-radius: 5px 0 0 5px;
+}
+
+.dialog-quick-add-input {
+	flex: 1;
+	
+	padding: 4px 10px;
+	outline: none;
+	
+	background-color: #f7d6bb;
+	color: #413747;
+	border-radius: 5px;
+	
+	border: none;
+	outline: none;
+}
+
+button.dialog-quick-add-submit-button {
+	border-radius: 0 5px 5px 0;
+}
+
+/* 底部 */
+.dialog-footer-container {
+	display: flex;
+	justify-content: center;
+	gap: 8px;
+}
+
+.dialog-button {
+	padding: 5px 10px;
+	border-radius: 5px;
+	border: none;
+	
+	transition: color, background-color, border 0.2s ease-in;
+}
+
+.dialog-cancel-button {
+	background-color: rgba(244, 244, 245, 0.75);
+	color: #909399;
+	border: #d3d4d6 1px solid;
+}
+
+.dialog-cancel-button:hover {
+	background-color: #909399;
+	color: #ffffff;
+	border: #909399 1px solid;
+}
+
+.dialog-save-button, .dialog-quick-add-submit-button {
+	background-color: rgba(236, 245, 255, 0.75);
+	color: #409eff;
+	border: #b3d8ff 1px solid;
+}
+
+.dialog-save-button:hover, .dialog-quick-add-submit-button:hover {
+	background-color: #409eff;
+	color: #ffffff;
+	border: #409eff 1px solid;
+}
