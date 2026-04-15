@@ -32,7 +32,7 @@ function getRoomId(): number | undefined
 ### 基础用法
 
 ```typescript
-import { getRoomId } from '@yiero/biliapi';
+import { getRoomId } from '@yiero/bilibili-api-lib';
 
 // 当前页面: https://live.bilibili.com/12345
 const roomId = getRoomId();
@@ -42,7 +42,7 @@ console.log(roomId); // 12345
 ### 结合 api_getRoomInfo 使用
 
 ```typescript
-import { getRoomId, api_getRoomInfo } from '@yiero/biliapi';
+import { getRoomId, api_getRoomInfo } from '@yiero/bilibili-api-lib';
 
 const roomId = getRoomId();
 if (roomId) {
@@ -59,7 +59,7 @@ if (roomId) {
 ### 错误处理
 
 ```typescript
-import { getRoomId } from '@yiero/biliapi';
+import { getRoomId } from '@yiero/bilibili-api-lib';
 
 const roomId = getRoomId();
 if (roomId === undefined) {

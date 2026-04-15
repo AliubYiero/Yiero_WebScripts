@@ -42,7 +42,7 @@ const videoList = await api_getUserUploadVideoList(123456, 1, 20);
 console.log(videoList.data.archives);
 
 // 获取直播间信息
-import { api_getRoomInfo } from '@yiero/biliapi';
+import { api_getRoomInfo } from '@yiero/bilibili-api-lib';
 const roomInfo = await api_getRoomInfo(12345);
 console.log(roomInfo.data.live_status);
 ```
@@ -71,6 +71,12 @@ console.log(roomInfo.data.live_status);
 | `api_getPlayerInfo` | 获取播放器元数据信息 | [文档](./docs/video/api_getPlayerInfo.md) |
 | `api_getSubtitleContent` | 获取字幕文件内容 | [文档](./docs/video/api_getSubtitleContent.md) |
 | `api_getUserUploadVideoList` | 获取用户投稿的视频列表 | [文档](./docs/video/api_getUserUploadVideoList.md) |
+
+### 用户模块 (User)
+
+| 函数 | 说明 | 文档 |
+|------|------|------|
+| `api_getUserCard` | 获取用户名片信息 | [文档](./docs/user/api_getUserCard.md) |
 
 ### 合集模块 (Season)
 
@@ -101,13 +107,16 @@ import type {
   IPlayerInfo,
   ISubtitleInfo,
   IUserUploadVideo,
-  
+
+  // 用户模块
+  IUserCard,
+
   // 合集模块
   ISeasonInfo,
   ISeasonSectionInfo,
   IEditSeasonBody,
   IEditSeasonSectionBody
-} from '@yiero/biliapi';
+} from '@yiero/bilibili-api-lib';
 ```
 
 
@@ -118,6 +127,7 @@ import type {
 | 核心工具 | [xhrRequest](./docs/xhrRequest/xhrRequest.md) |
 | 直播 | [api_getRoomInfo](./docs/live/api_getRoomInfo.md) · [getRoomId](./docs/live/getRoomId.md) |
 | 视频 | [api_getVideoInfo](./docs/video/api_getVideoInfo.md) · [api_getPlayerInfo](./docs/video/api_getPlayerInfo.md) · [api_getSubtitleContent](./docs/video/api_getSubtitleContent.md) · [api_getUserUploadVideoList](./docs/video/api_getUserUploadVideoList.md) |
+| 用户 | [api_getUserCard](./docs/user/api_getUserCard.md) |
 | 合集 | [api_getSeasonInfo](./docs/season/api_getSeasonInfo.md) · [api_getSeasonSectionInfo](./docs/season/api_getSeasonSectionInfo.md) · [api_editSeason](./docs/season/api_editSeason.md) · [api_editSeasonSection](./docs/season/api_editSeasonSection.md) |
 
 

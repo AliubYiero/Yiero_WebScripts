@@ -31,7 +31,7 @@ function api_getPlayerInfo(
 ## 使用示例
 
 ```typescript
-import { api_getPlayerInfo } from '@yiero/biliapi';
+import { api_getPlayerInfo } from '@yiero/bilibili-api-lib';
 
 // 获取播放器信息
 const response = await api_getPlayerInfo('BV1xx411c7mD', 123456789);

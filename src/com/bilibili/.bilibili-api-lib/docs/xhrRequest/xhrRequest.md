@@ -29,7 +29,7 @@ async function xhrRequest<T = any>(
 ### 使用示例
 
 ```typescript
-import { xhrRequest } from '@yiero/biliapi';
+import { xhrRequest } from '@yiero/bilibili-api-lib';
 
 // GET 请求
 const response = await xhrRequest('https://api.example.com/data', {
@@ -69,7 +69,7 @@ xhrRequest.get<T = any>(
 ### 使用示例
 
 ```typescript
-import { xhrRequest } from '@yiero/biliapi';
+import { xhrRequest } from '@yiero/bilibili-api-lib';
 
 const response = await xhrRequest.get('https://api.example.com/data', {
   params: { id: '123' }
@@ -101,7 +101,7 @@ xhrRequest.post<T = any>(
 ### 使用示例
 
 ```typescript
-import { xhrRequest } from '@yiero/biliapi';
+import { xhrRequest } from '@yiero/bilibili-api-lib';
 
 const response = await xhrRequest.post('https://api.example.com/submit', {
   body: { name: 'test', value: 123 }
@@ -133,7 +133,7 @@ xhrRequest.getWithCredentials<T = any>(
 ### 使用示例
 
 ```typescript
-import { xhrRequest } from '@yiero/biliapi';
+import { xhrRequest } from '@yiero/bilibili-api-lib';
 
 // 需要登录的接口
 const response = await xhrRequest.getWithCredentials('https://api.example.com/user/info');
@@ -164,7 +164,7 @@ xhrRequest.postWithCredentials<T = any>(
 ### 使用示例
 
 ```typescript
-import { xhrRequest } from '@yiero/biliapi';
+import { xhrRequest } from '@yiero/bilibili-api-lib';
 
 // 需要登录的 POST 接口
 const response = await xhrRequest.postWithCredentials('https://api.example.com/user/update', {

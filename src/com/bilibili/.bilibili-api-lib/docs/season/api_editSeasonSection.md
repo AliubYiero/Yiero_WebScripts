@@ -35,7 +35,7 @@ async function api_editSeasonSection(
 ## 使用示例
 
 ```typescript
-import { api_editSeasonSection } from '@yiero/biliapi';
+import { api_editSeasonSection } from '@yiero/bilibili-api-lib';
 
 const response = await api_editSeasonSection(
   {

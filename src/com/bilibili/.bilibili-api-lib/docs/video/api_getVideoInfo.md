@@ -29,7 +29,7 @@ function api_getVideoInfo(
 ## 使用示例
 
 ```typescript
-import { api_getVideoInfo } from '@yiero/biliapi';
+import { api_getVideoInfo } from '@yiero/bilibili-api-lib';
 
 // 使用 BV 号
 const response = await api_getVideoInfo('BV1xx411c7mD');

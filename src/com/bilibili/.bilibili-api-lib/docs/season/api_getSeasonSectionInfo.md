@@ -25,7 +25,7 @@ function api_getSeasonSectionInfo(sectionId: number): Promise<XhrResponse<ISeaso
 ## 使用示例
 
 ```typescript
-import { api_getSeasonSectionInfo } from '@yiero/biliapi';
+import { api_getSeasonSectionInfo } from '@yiero/bilibili-api-lib';
 
 const response = await api_getSeasonSectionInfo(789012);
 

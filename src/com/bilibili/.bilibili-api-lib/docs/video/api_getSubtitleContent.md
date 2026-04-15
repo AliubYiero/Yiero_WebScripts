@@ -25,7 +25,7 @@ async function api_getSubtitleContent(url: string): Promise<ISubtitleInfo>
 ## 使用示例
 
 ```typescript
-import { api_getSubtitleContent, api_getVideoInfo } from '@yiero/biliapi';
+import { api_getSubtitleContent, api_getVideoInfo } from '@yiero/bilibili-api-lib';
 
 // 先获取视频信息，得到字幕URL
 const videoInfo = await api_getVideoInfo('BV1xx411c7mD');

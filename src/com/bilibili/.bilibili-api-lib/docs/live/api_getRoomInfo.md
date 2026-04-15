@@ -25,7 +25,7 @@ function api_getRoomInfo(roomId: number): Promise<XhrResponse<IRoomInfo>>
 ## 使用示例
 
 ```typescript
-import { api_getRoomInfo } from '@yiero/biliapi';
+import { api_getRoomInfo } from '@yiero/bilibili-api-lib';
 
 const response = await api_getRoomInfo(12345);
 

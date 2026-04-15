@@ -31,7 +31,7 @@ function api_getUserUploadVideoList(
 ## 使用示例
 
 ```typescript
-import { api_getUserUploadVideoList } from '@yiero/biliapi';
+import { api_getUserUploadVideoList } from '@yiero/bilibili-api-lib';
 
 // 获取用户视频列表（第一页）
 const response = await api_getUserUploadVideoList(208259);

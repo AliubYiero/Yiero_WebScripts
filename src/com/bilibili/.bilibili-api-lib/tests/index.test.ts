@@ -23,6 +23,11 @@ describe('Module exports', () => {
     expect(season.api_editSeason).toBeDefined();
     expect(season.api_editSeasonSection).toBeDefined();
   });
+
+  test('user module exports', async () => {
+    const user = await import('../src/user');
+    expect(user.api_getUserCard).toBeDefined();
+  });
 });
 
 // 测试 xhrRequest 导出

@@ -29,7 +29,7 @@
 ## 快速开始
 
 ```typescript
-import { api_getVideoInfo, api_getRoomInfo } from '@yiero/biliapi';
+import { api_getVideoInfo, api_getRoomInfo } from '@yiero/bilibili-api-lib';
 
 // 获取视频信息
 const videoInfo = await api_getVideoInfo('BV1xx411c7mD');
@@ -58,5 +58,5 @@ interface XhrResponse<T> {
 所有接口类型都可以通过库导出使用：
 
 ```typescript
-import type { IVideoInfo, IRoomInfo, ISeasonInfo } from '@yiero/biliapi';
+import type { IVideoInfo, IRoomInfo, ISeasonInfo } from '@yiero/bilibili-api-lib';
 ```
