@@ -13,3 +13,4 @@ storybook-static
 !.vscode/extensions.json
 .idea
 .git
+coverage/*

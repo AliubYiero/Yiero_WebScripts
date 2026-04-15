@@ -9,7 +9,7 @@
 - 模块化设计，支持按需引入
 - 同时支持 ESM 和 CommonJS 格式
 - 基于 XHR 的请求封装，适用于浏览器环境
-- 提供直播、视频、合集等多个模块的 API 封装
+- 提供直播、视频、合集、用户等多个模块的 API 封装
 
 ## 技术栈
 
@@ -28,6 +28,7 @@ src/
 ├── live/                 # 直播模块
 │   ├── index.ts
 │   ├── api_getRoomInfo.ts
+│   ├── getRoomId.ts
 │   └── interfaces/
 ├── video/                # 视频模块
 │   ├── index.ts
@@ -43,6 +44,10 @@ src/
 │   ├── api_editSeason.ts
 │   ├── api_editSeasonSection.ts
 │   └── interface/
+├── user/                 # 用户模块
+│   ├── index.ts
+│   ├── api_getUserCard.ts
+│   └── interfaces/
 └── utils/                # 工具函数
     ├── Error.ts
     └── getCsrf.ts
@@ -85,6 +90,7 @@ pnpm publish
 - 目标模块: ESNext
 - 严格模式: 启用
 - 模块解析: bundler
+- 隔离模块: 启用 (`isolatedModules: true`)
 - 包含 DOM 类型定义
 
 ### 构建输出
@@ -129,17 +135,21 @@ pnpm test
 
 详细 API 文档位于 `docs/` 目录：
 - `docs/README.md` - 文档首页
+- `docs/函数开发指南.md` - 函数开发规范指南
 - `docs/video/` - 视频相关 API 文档
 - `docs/live/` - 直播相关 API 文档
 - `docs/season/` - 合集相关 API 文档
+- `docs/user/` - 用户相关 API 文档
 - `docs/xhrRequest/` - 请求工具文档
 
 ## 发布配置
 
 - 许可证: GPL-3.0
 - 包名: `@yiero/bilibili-api-lib`
+- 版本: 0.3.2
 - 公开访问: 启用 (`publishConfig.access: public`)
 - 发布文件: `dist/` 和 `LICENSE`
+- 代码仓库: https://github.com/AliubYiero/bilibili-api-lib.git
 
 ## 依赖说明
 
@@ -148,5 +158,6 @@ pnpm test
 **开发依赖**:
 - `@rslib/core` - 构建工具
 - `@biomejs/biome` - 代码检查与格式化
+- `@types/node` - Node.js 类型定义
 - `vitest` - 测试框架
 - `typescript` - TypeScript 编译器
