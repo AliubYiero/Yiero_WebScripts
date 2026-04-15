@@ -25,10 +25,10 @@ export class LocalStorage<T extends string> {
 	/**
 	 * 获取值。
 	 *
-	 * @returns The value stored in GM_getValue or the defaultValue if the key is not found.
+	 * @returns The value stored in localStorage or null if the key is not found.
 	 */
-	get(): T {
-		return localStorage.getItem( this.key ) as T;
+	get(): T | null {
+		return localStorage.getItem( this.key ) as T | null;
 	}
 	
 }

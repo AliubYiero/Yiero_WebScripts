@@ -1,6 +1,6 @@
 import { cssImportCreator } from './UI/cssImportCreator.ts';
 import { CssToPage } from './utils/loadCssToPage.ts';
-import { MenuManager } from './utils/MenuManager.ts';
+import { gmMenuCommand } from '@yiero/gmlib';
 
 const main = async () => {
 	// 创建 CSS 对话框
@@ -8,18 +8,22 @@ const main = async () => {
 	// 载入 CSS 到页面中
 	CssToPage.load();
 	
-	const menuManager = new MenuManager();
-	menuManager.registerMenuCommand( {
-		titleOn: '[On] 引入额外CSS',
-		onCallback: () => {
-			CssToPage.load();
-		},
-		titleOff: '[Off] 引入额外CSS',
-		offCallback: () => {
-			CssToPage.remove();
-		},
-		initialState: true,
-	} );
+	gmMenuCommand
+		.createToggle( {
+			active: {
+				title: '[On] 引入额外CSS',
+				onClick: () => {
+					CssToPage.remove();
+				},
+			},
+			inactive: {
+				title: '[Off] 引入额外CSS',
+				onClick: () => {
+					CssToPage.load();
+				},
+			},
+		} )
+		.render();
 };
 
 main().catch( console.error );

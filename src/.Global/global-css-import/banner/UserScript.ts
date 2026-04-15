@@ -3,7 +3,7 @@ import { ScriptCatUserScript } from '../types/UserScript';
 const UserScript: ScriptCatUserScript = [
 	[ 'name', '全局CSS导入' ],
 	[ 'description', '将自定义的 CSS 导入进页面中, 实现易用可控的页面样式控制. ' ],
-	[ 'version', '1.1.0' ],
+	[ 'version', '1.1.1' ],
 	[ 'author', 'Yiero' ],
 	[ 'match', 'https://*/*' ],
 	[ 'require', 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js' ],

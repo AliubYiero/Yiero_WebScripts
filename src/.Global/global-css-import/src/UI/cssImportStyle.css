@@ -2,6 +2,8 @@
 .css-dialog-container {
 	width: 50vw;
 	height: 50vh;
+	min-height: 350px;
+	min-width: 600px;
 	
 	border: none;
 	background-color: transparent;
@@ -68,14 +70,14 @@
 	
 }
 
-.hightlight-code-container {
+.highlight-code-container {
 	height: 100%;
 	padding: 0;
 	margin: 0;
 	box-sizing: border-box;
 }
 
-.hightlight-code {
+.highlight-code {
 	font-size: 14px;
 	padding: 10px;
 	box-sizing: border-box;
@@ -85,12 +87,12 @@
 }
 
 
-pre, pre.hightlight-code-container {
+pre, pre.highlight-code-container {
 	border: none;
 	background-color: transparent;
 }
 
-.hightlight-code.hightlight-code {
+.highlight-code.highlight-code {
 	background-color: #f7d6bb;
 	color: #413747;
 	border: 1px solid #333;
@@ -108,7 +110,7 @@ pre, pre.hightlight-code-container {
 	box-sizing: border-box;
 }
 
-.hightlight-code.hightlight-code:focus-visible,
+.highlight-code.highlight-code:focus-visible,
 .dialog-quick-add-container:has(.dialog-quick-add-input:focus-visible ) {
 	border: #9b5f00 1px solid;
 }

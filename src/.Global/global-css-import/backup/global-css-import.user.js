@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           全局CSS导入
 // @description    将自定义的 CSS 导入进页面中, 实现易用可控的页面样式控制.
-// @version        1.1.0
+// @version        1.1.1
 // @author         Yiero
 // @match          https://*/*
 // @require        https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js
@@ -11,9 +11,8 @@
 // @namespace      https://github.com/AliubYiero/Yiero_WebScripts
 // @grant          GM_addStyle
 // @grant          GM_getResourceText
-// @grant          GM_getValue
-// @grant          GM_registerMenuCommand
 // @grant          GM_unregisterMenuCommand
+// @grant          GM_registerMenuCommand
 // ==/UserScript==
 (function() {
   "use strict";
@@ -21,6 +20,8 @@
 .css-dialog-container {
 	width: 50vw;
 	height: 50vh;
+	min-height: 350px;
+	min-width: 600px;
 	
 	border: none;
 	background-color: transparent;
@@ -87,14 +88,14 @@
 	
 }
 
-.hightlight-code-container {
+.highlight-code-container {
 	height: 100%;
 	padding: 0;
 	margin: 0;
 	box-sizing: border-box;
 }
 
-.hightlight-code {
+.highlight-code {
 	font-size: 14px;
 	padding: 10px;
 	box-sizing: border-box;
@@ -104,12 +105,12 @@
 }
 
 
-pre, pre.hightlight-code-container {
+pre, pre.highlight-code-container {
 	border: none;
 	background-color: transparent;
 }
 
-.hightlight-code.hightlight-code {
+.highlight-code.highlight-code {
 	background-color: #f7d6bb;
 	color: #413747;
 	border: 1px solid #333;
@@ -127,7 +128,7 @@ pre, pre.hightlight-code-container {
 	box-sizing: border-box;
 }
 
-.hightlight-code.hightlight-code:focus-visible,
+.highlight-code.highlight-code:focus-visible,
 .dialog-quick-add-container:has(.dialog-quick-add-input:focus-visible ) {
 	border: #9b5f00 1px solid;
 }
@@ -224,7 +225,7 @@ button.dialog-quick-add-submit-button {
 	<script defer>
 		window.onload = () => {
 			const dialog = document.querySelector( 'dialog' );
-			const codeContainer = document.querySelector( '.hightlight-code' );
+			const codeContainer = document.querySelector( '.highlight-code' );
 			dialog.showModal();
 			hljs.highlightAll();
 			
@@ -270,8 +271,8 @@ button.dialog-quick-add-submit-button {
 		</header>
 		
 		<section class="dialog-edit-container">
-			<pre class="hightlight-code-container"><code
-				class="hightlight-code language-css"
+			<pre class="highlight-code-container"><code
+				class="highlight-code language-css"
 				contenteditable></code></pre>
 		</section>
 		
@@ -296,6 +297,45 @@ button.dialog-quick-add-submit-button {
 </body>
 </html>
 `;
+  const DANGEROUS_ATTRIBUTES = [
+    "onabort",
+    "onblur",
+    "onchange",
+    "onclick",
+    "ondblclick",
+    "onerror",
+    "onfocus",
+    "onkeydown",
+    "onkeypress",
+    "onkeyup",
+    "onload",
+    "onmousedown",
+    "onmousemove",
+    "onmouseout",
+    "onmouseover",
+    "onmouseup",
+    "onreset",
+    "onresize",
+    "onselect",
+    "onsubmit",
+    "onunload",
+    "oncontextmenu",
+    "oninput",
+    "oninvalid",
+    "ondrag",
+    "ondrop",
+    "onscroll"
+  ];
+  const sanitizeElement = (element) => {
+    DANGEROUS_ATTRIBUTES.forEach((attr) => {
+      if (element.hasAttribute(attr)) {
+        element.removeAttribute(attr);
+      }
+    });
+    Array.from(element.children).forEach((child) => {
+      sanitizeElement(child);
+    });
+  };
   const uiCreator = (htmlContent, cssContent) => {
     {
       GM_addStyle(cssContent);
@@ -304,12 +344,20 @@ button.dialog-quick-add-submit-button {
     const uiDoc = domParser.parseFromString(htmlContent, "text/html");
     const documentFragment = new DocumentFragment();
     const filterScriptNodeList = Array.from(uiDoc.body.children).filter((node) => node.nodeName !== "SCRIPT");
+    filterScriptNodeList.forEach((node) => {
+      sanitizeElement(node);
+    });
     documentFragment.append(...filterScriptNodeList);
     window.document.body.append(documentFragment);
     return filterScriptNodeList;
   };
+  const SELECTOR_HIGHLIGHT_CODE = ".highlight-code";
+  const SELECTOR_DIALOG_CANCEL_BUTTON = ".dialog-cancel-button";
+  const SELECTOR_DIALOG_SAVE_BUTTON = ".dialog-save-button";
+  const SELECTOR_QUICK_ADD_INPUT = ".dialog-quick-add-input";
+  const SELECTOR_QUICK_ADD_SUBMIT_BUTTON = ".dialog-quick-add-submit-button";
   const cssImportDefaultEvent = (dialog) => {
-    const codeContainer = dialog.querySelector(".hightlight-code");
+    const codeContainer = dialog.querySelector(SELECTOR_HIGHLIGHT_CODE);
     if (!codeContainer) {
       return;
     }
@@ -321,7 +369,7 @@ button.dialog-quick-add-submit-button {
     });
     const highlight = GM_getResourceText("highlight");
     highlight && GM_addStyle(highlight);
-    hljs.highlightBlock(codeContainer);
+    hljs.highlightElement(codeContainer);
   };
   class LocalStorage {
     constructor(key, defaultValue) {
@@ -342,7 +390,7 @@ button.dialog-quick-add-submit-button {
     /**
      * 获取值。
      *
-     * @returns The value stored in GM_getValue or the defaultValue if the key is not found.
+     * @returns The value stored in localStorage or null if the key is not found.
      */
     get() {
       return localStorage.getItem(this.key);
@@ -352,7 +400,11 @@ button.dialog-quick-add-submit-button {
   class CssToPage {
     static load() {
       this.remove();
-      this.styleNode = GM_addStyle(ExtraCSSConfigStorage.get());
+      const cssContent = ExtraCSSConfigStorage.get();
+      if (!cssContent) {
+        return;
+      }
+      this.styleNode = GM_addStyle(cssContent);
     }
     static remove() {
       if (this.styleNode) {
@@ -360,34 +412,214 @@ button.dialog-quick-add-submit-button {
       }
     }
   }
-  const highlightCode = (codeContainer) => {
-    codeContainer.textContent = codeContainer.textContent;
-    hljs.highlightBlock(codeContainer);
+  const saveSelection = (element) => {
+    const selection = window.getSelection();
+    if (!selection || selection.rangeCount === 0) {
+      return null;
+    }
+    const range = selection.getRangeAt(0);
+    if (!element.contains(range.commonAncestorContainer)) {
+      return null;
+    }
+    return range.cloneRange();
   };
+  const restoreSelection = (element, savedRange) => {
+    if (!savedRange) {
+      return;
+    }
+    const selection = window.getSelection();
+    if (!selection) {
+      return;
+    }
+    try {
+      selection.removeAllRanges();
+      selection.addRange(savedRange);
+    } catch (e) {
+      const range = document.createRange();
+      range.selectNodeContents(element);
+      range.collapse(false);
+      selection.removeAllRanges();
+      selection.addRange(range);
+    }
+  };
+  const highlightCode = (codeContainer) => {
+    const savedRange = saveSelection(codeContainer);
+    codeContainer.textContent = codeContainer.textContent;
+    hljs.highlightElement(codeContainer);
+    restoreSelection(codeContainer, savedRange);
+  };
+  class gmMenuCommand {
+    static list = [];
+    constructor() {
+    }
+    static get(title) {
+      const commandButton = gmMenuCommand.list.find((commandButton2) => commandButton2.title === title);
+      if (!commandButton) throw new Error("\u83DC\u5355\u6309\u94AE\u4E0D\u5B58\u5728");
+      return commandButton;
+    }
+    static createToggle(details) {
+      gmMenuCommand.create(details.active.title, () => {
+        gmMenuCommand.toggleActive(details.active.title);
+        gmMenuCommand.toggleActive(details.inactive.title);
+        details.active.onClick();
+        gmMenuCommand.render();
+      }, true).create(details.inactive.title, () => {
+        gmMenuCommand.toggleActive(details.active.title);
+        gmMenuCommand.toggleActive(details.inactive.title);
+        details.inactive.onClick();
+        gmMenuCommand.render();
+      }, false);
+      return gmMenuCommand;
+    }
+    static click(title) {
+      const commandButton = gmMenuCommand.get(title);
+      commandButton.onClick();
+      return gmMenuCommand;
+    }
+    static create(title, onClick, isActive = true) {
+      if (gmMenuCommand.list.some((commandButton) => commandButton.title === title)) throw new Error("\u83DC\u5355\u6309\u94AE\u5DF2\u5B58\u5728");
+      gmMenuCommand.list.push({
+        title,
+        onClick,
+        isActive,
+        id: 0
+      });
+      return gmMenuCommand;
+    }
+    static remove(title) {
+      gmMenuCommand.list = gmMenuCommand.list.filter((commandButton) => commandButton.title !== title);
+      return gmMenuCommand;
+    }
+    static swap(title1, title2) {
+      const index1 = gmMenuCommand.list.findIndex((commandButton) => commandButton.title === title1);
+      const index2 = gmMenuCommand.list.findIndex((commandButton) => commandButton.title === title2);
+      if (-1 === index1 || -1 === index2) throw new Error("\u83DC\u5355\u6309\u94AE\u4E0D\u5B58\u5728");
+      [gmMenuCommand.list[index1], gmMenuCommand.list[index2]] = [
+        gmMenuCommand.list[index2],
+        gmMenuCommand.list[index1]
+      ];
+      return gmMenuCommand;
+    }
+    static modify(title, details) {
+      const commandButton = gmMenuCommand.get(title);
+      details.onClick && (commandButton.onClick = details.onClick);
+      details.isActive && (commandButton.isActive = details.isActive);
+      return gmMenuCommand;
+    }
+    static toggleActive(title) {
+      const commandButton = gmMenuCommand.get(title);
+      commandButton.isActive = !commandButton.isActive;
+      return gmMenuCommand;
+    }
+    static render() {
+      gmMenuCommand.list.forEach((commandButton) => {
+        GM_unregisterMenuCommand(commandButton.id);
+        if (commandButton.isActive) commandButton.id = GM_registerMenuCommand(commandButton.title, commandButton.onClick);
+      });
+    }
+  }
+  function onKeydown(callback, options) {
+    const { target = window, once = false, capture = false, passive = false, key, ctrl = false, alt = false, shift = false, meta = false } = options || {};
+    const eventOptions = {
+      capture,
+      passive
+    };
+    const hasShortcutFilter = void 0 !== key || ctrl || alt || shift || meta;
+    let wrappedCallback;
+    wrappedCallback = once ? (event) => {
+      if (hasShortcutFilter) {
+        if (void 0 !== key) {
+          const eventKey = event.key;
+          const expectedKey = key;
+          const isMatch = 1 === eventKey.length && 1 === expectedKey.length ? eventKey.toLowerCase() === expectedKey.toLowerCase() : eventKey === expectedKey;
+          if (!isMatch) return;
+        }
+        if (event.ctrlKey !== ctrl) return;
+        if (event.altKey !== alt) return;
+        if (event.shiftKey !== shift) return;
+        if (event.metaKey !== meta) return;
+      }
+      callback(event);
+      target.removeEventListener("keydown", wrappedCallback, eventOptions);
+    } : (event) => {
+      if (hasShortcutFilter) {
+        if (void 0 !== key) {
+          const eventKey = event.key;
+          const expectedKey = key;
+          const isMatch = 1 === eventKey.length && 1 === expectedKey.length ? eventKey.toLowerCase() === expectedKey.toLowerCase() : eventKey === expectedKey;
+          if (!isMatch) return;
+        }
+        if (event.ctrlKey !== ctrl) return;
+        if (event.altKey !== alt) return;
+        if (event.shiftKey !== shift) return;
+        if (event.metaKey !== meta) return;
+      }
+      callback(event);
+    };
+    target.addEventListener("keydown", wrappedCallback, eventOptions);
+    return () => {
+      target.removeEventListener("keydown", wrappedCallback, eventOptions);
+    };
+  }
+  function onKeydownMultiple(bindings, options) {
+    const { target = window, capture = false, passive = false } = options || {};
+    const eventOptions = {
+      capture,
+      passive
+    };
+    const handleKeydown = (event) => {
+      for (const binding of bindings) {
+        const { callback, key, ctrl = false, alt = false, shift = false, meta = false } = binding;
+        const hasShortcutFilter = void 0 !== key || ctrl || alt || shift || meta;
+        if (hasShortcutFilter) {
+          if (void 0 !== key) {
+            const eventKey = event.key;
+            const expectedKey = key;
+            const isMatch = 1 === eventKey.length && 1 === expectedKey.length ? eventKey.toLowerCase() === expectedKey.toLowerCase() : eventKey === expectedKey;
+            if (!isMatch) continue;
+          }
+          if (event.ctrlKey !== ctrl) continue;
+          if (event.altKey !== alt) continue;
+          if (event.shiftKey !== shift) continue;
+          if (event.metaKey !== meta) continue;
+        }
+        callback(event);
+      }
+    };
+    target.addEventListener("keydown", handleKeydown, eventOptions);
+    return () => {
+      target.removeEventListener("keydown", handleKeydown, eventOptions);
+    };
+  }
   const cssImportCallback = (dialog) => {
-    const codeContainer = dialog.querySelector(".hightlight-code");
+    const codeContainer = dialog.querySelector(SELECTOR_HIGHLIGHT_CODE);
     if (!codeContainer) {
       return;
     }
     codeContainer.addEventListener("blur", () => {
       highlightCode(codeContainer);
     });
-    dialog.addEventListener("keydown", (e) => {
-      if (e.key === "Tab" || e.keyCode === 9) {
-        e.preventDefault();
-        const selection = window.getSelection();
-        if (!selection) return;
-        if (selection.rangeCount === 0) return;
-        const range = selection.getRangeAt(0);
-        range.deleteContents();
-        const tabNode = document.createTextNode("	");
-        range.insertNode(tabNode);
-        const newRange = document.createRange();
-        newRange.setStartAfter(tabNode);
-        newRange.collapse(true);
-        selection.removeAllRanges();
-        selection.addRange(newRange);
+    onKeydownMultiple([
+      {
+        key: "Tab",
+        callback: (e) => {
+          e.preventDefault();
+          const selection = window.getSelection();
+          if (!selection) return;
+          if (selection.rangeCount === 0) return;
+          const range = selection.getRangeAt(0);
+          range.deleteContents();
+          const tabNode = document.createTextNode("	");
+          range.insertNode(tabNode);
+          const newRange = document.createRange();
+          newRange.setStartAfter(tabNode);
+          newRange.collapse(true);
+          selection.removeAllRanges();
+          selection.addRange(newRange);
+        }
       }
+    ], {
+      target: dialog
     });
     const handleCancel = () => {
       dialog.close();
@@ -397,30 +629,28 @@ button.dialog-quick-add-submit-button {
       CssToPage.load();
       dialog.close();
     };
-    dialog.querySelector(".dialog-cancel-button")?.addEventListener("click", handleCancel);
-    dialog.querySelector(".dialog-save-button")?.addEventListener("click", handleSave);
-    const quickAddInput = dialog.querySelector(".dialog-quick-add-input");
-    const submitButton = dialog.querySelector(".dialog-quick-add-submit-button");
+    dialog.querySelector(SELECTOR_DIALOG_CANCEL_BUTTON)?.addEventListener("click", handleCancel);
+    dialog.querySelector(SELECTOR_DIALOG_SAVE_BUTTON)?.addEventListener("click", handleSave);
+    const quickAddInput = dialog.querySelector(SELECTOR_QUICK_ADD_INPUT);
+    const submitButton = dialog.querySelector(SELECTOR_QUICK_ADD_SUBMIT_BUTTON);
     if (!(quickAddInput && submitButton)) {
       return;
     }
     const handleQuickAdd = (input) => {
       const textContent = input.value.trim();
       input.value = "";
-      const appendData = `${codeContainer.textContent && "\n"}${textContent} {display: none !important;}`;
+      const appendData = `${codeContainer.textContent?.trim() ? "\n" : ""}${textContent} {display: none !important;}`;
       codeContainer.insertAdjacentText("beforeend", appendData);
       highlightCode(codeContainer);
     };
-    quickAddInput.addEventListener("keydown", (e) => {
-      if (e.key === "Enter") {
-        handleQuickAdd(quickAddInput);
-      }
-    });
+    onKeydown(() => {
+      handleQuickAdd(quickAddInput);
+    }, { target: quickAddInput, key: "Enter" });
     submitButton.addEventListener("click", () => handleQuickAdd(quickAddInput));
   };
   const cssImportOpenButton = (dialog) => {
     GM_registerMenuCommand("\u4FEE\u6539CSS", () => {
-      const codeContainer = dialog.querySelector(".hightlight-code");
+      const codeContainer = dialog.querySelector(SELECTOR_HIGHLIGHT_CODE);
       if (!codeContainer) {
         return;
       }
@@ -439,159 +669,23 @@ button.dialog-quick-add-submit-button {
     cssImportCallback(dialog);
     cssImportOpenButton(dialog);
   };
-  class MenuManager {
-    constructor() {
-      this.registeredMenus = [];
-      this.menuIdToItem = /* @__PURE__ */ new Map();
-    }
-    // 实现
-    registerMenuCommand(arg1, arg2) {
-      if (typeof arg1 === "object") {
-        return this.createToggleMenuItem(arg1);
-      }
-      if (typeof arg2 === "function") {
-        return this.createNormalMenuItem(arg1, arg2);
-      } else {
-        throw new Error("Invalid arguments for normal menu command");
-      }
-    }
-    /**
-     * 手动触发指定菜单项的回调函数
-     * @param menuId 要触发的菜单ID
-     */
-    trigger(menuId) {
-      const item = this.menuIdToItem.get(menuId);
-      if (item) item.callback();
-    }
-    /**
-     * 卸载指定菜单项
-     * @param menuId 要卸载的菜单ID
-     */
-    unregisterMenuCommand(menuId) {
-      const item = this.menuIdToItem.get(menuId);
-      if (!item) return;
-      GM_unregisterMenuCommand(item.menuId);
-      const index = this.registeredMenus.indexOf(item);
-      if (index !== -1) this.registeredMenus.splice(index, 1);
-      this.menuIdToItem.delete(item.menuId);
-    }
-    /**
-     * 卸载所有已注册的菜单项
-     */
-    unregisterAll() {
-      this.registeredMenus.forEach((item) => GM_unregisterMenuCommand(item.menuId));
-      this.registeredMenus = [];
-      this.menuIdToItem.clear();
-    }
-    /**
-     * 获取所有已注册的菜单ID列表
-     */
-    getRegisteredMenuIds() {
-      return this.registeredMenus.map((item) => item.menuId);
-    }
-    /**
-     * 获取所有已注册的菜单标题列表
-     */
-    getRegisteredTitles() {
-      return this.registeredMenus.map((item) => item.title);
-    }
-    /**
-     * 创建普通菜单项
-     * @param title 菜单标题
-     * @param callback 点击回调函数
-     * @returns GM返回的菜单ID
-     */
-    createNormalMenuItem(title, callback) {
-      const menuId = GM_registerMenuCommand(title, callback);
-      const item = {
-        type: "normal",
-        menuId,
-        title,
-        callback
-      };
-      this.registeredMenus.push(item);
-      this.menuIdToItem.set(menuId, item);
-      return menuId;
-    }
-    /**
-     * 创建可切换状态的菜单项
-     * @param options 状态切换配置选项
-     * @returns GM返回的唯一菜单ID
-     */
-    createToggleMenuItem(options) {
-      const {
-        titleOn,
-        titleOff,
-        onCallback,
-        offCallback,
-        initialState
-      } = options;
-      let currentState = initialState;
-      let currentTitle = currentState ? titleOn : titleOff;
-      const toggleCallback = () => {
-        currentState = !currentState;
-        currentTitle = currentState ? titleOn : titleOff;
-        const item = this.menuIdToItem.get(toggleItem.menuId);
-        if (item && item.type === "toggle") {
-          item.title = currentTitle;
-          item.status = currentState;
-        }
-        this.reRegisterMenusFrom(toggleItem.menuId);
-        currentState ? onCallback() : offCallback();
-      };
-      const initialMenuId = GM_registerMenuCommand(currentTitle, toggleCallback);
-      const toggleItem = {
-        type: "toggle",
-        menuId: initialMenuId,
-        // 初始ID
-        title: currentTitle,
-        status: currentState,
-        onCallback,
-        offCallback,
-        titleOn,
-        titleOff,
-        callback: toggleCallback
-      };
-      this.registeredMenus.push(toggleItem);
-      this.menuIdToItem.set(initialMenuId, toggleItem);
-      return initialMenuId;
-    }
-    /**
-     * 重新注册指定ID及其之后的所有菜单项
-     * @param menuId 要重新注册的起始菜单ID
-     */
-    reRegisterMenusFrom(menuId) {
-      const index = this.registeredMenus.findIndex(
-        (item) => item.menuId === menuId
-      );
-      if (index === -1) return;
-      const itemsToReRegister = this.registeredMenus.slice(index);
-      itemsToReRegister.forEach((item) => {
-        GM_unregisterMenuCommand(item.menuId);
-      });
-      itemsToReRegister.forEach((item) => {
-        const newMenuId = GM_registerMenuCommand(item.title, item.callback);
-        item.menuId = newMenuId;
-        this.menuIdToItem.delete(item.menuId);
-        this.menuIdToItem.set(newMenuId, item);
-      });
-    }
-  }
   const main = async () => {
     cssImportCreator();
     CssToPage.load();
-    const menuManager = new MenuManager();
-    menuManager.registerMenuCommand({
-      titleOn: "[On] \u5F15\u5165\u989D\u5916CSS",
-      onCallback: () => {
-        CssToPage.load();
+    gmMenuCommand.createToggle({
+      active: {
+        title: "[On] \u5F15\u5165\u989D\u5916CSS",
+        onClick: () => {
+          CssToPage.remove();
+        }
       },
-      titleOff: "[Off] \u5F15\u5165\u989D\u5916CSS",
-      offCallback: () => {
-        CssToPage.remove();
-      },
-      initialState: true
-    });
+      inactive: {
+        title: "[Off] \u5F15\u5165\u989D\u5916CSS",
+        onClick: () => {
+          CssToPage.load();
+        }
+      }
+    }).render();
   };
   main().catch(console.error);
 })();

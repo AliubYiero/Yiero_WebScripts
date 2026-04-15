@@ -1,3 +1,12 @@
+import { SELECTOR_HIGHLIGHT_CODE } from '../constants/selectors.ts';
+
+/**
+ * highlight.js 全局声明
+ */
+declare const hljs: {
+	highlightElement: ( element: Element ) => void;
+};
+
 /**
  * 对话框默认事件
  */
@@ -6,7 +15,7 @@ export const cssImportDefaultEvent = ( dialog: HTMLDialogElement ) => {
 	* 给代码着色
 	* */
 	// 获取元素
-	const codeContainer = dialog.querySelector( '.hightlight-code' );
+	const codeContainer = dialog.querySelector( SELECTOR_HIGHLIGHT_CODE );
 	if ( !codeContainer ) {
 		return;
 	}
@@ -28,5 +37,5 @@ export const cssImportDefaultEvent = ( dialog: HTMLDialogElement ) => {
 	highlight && GM_addStyle( highlight );
 	
 	// 代码着色
-	hljs.highlightBlock( codeContainer );
+	hljs.highlightElement( codeContainer );
 };

@@ -8,7 +8,11 @@ export class CssToPage {
 	
 	static load() {
 		this.remove();
-		this.styleNode = GM_addStyle( ExtraCSSConfigStorage.get() );
+		const cssContent = ExtraCSSConfigStorage.get();
+		if ( !cssContent ) {
+			return;
+		}
+		this.styleNode = GM_addStyle( cssContent );
 	}
 	
 	static remove() {
