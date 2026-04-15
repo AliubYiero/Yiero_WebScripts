@@ -2,6 +2,12 @@ import { describe, expect, test } from 'vitest';
 
 // 测试模块导出
 describe('Module exports', () => {
+  test('live module exports', async () => {
+    const live = await import('../src/live');
+    expect(live.api_getRoomInfo).toBeDefined();
+    expect(live.getRoomId).toBeDefined();
+  });
+
   test('video module exports', async () => {
     const video = await import('../src/video');
     expect(video.api_getVideoInfo).toBeDefined();

@@ -58,9 +58,10 @@ console.log(roomInfo.data.live_status);
 
 ### 直播模块 (Live)
 
-| 函数 | 说明 | 文档 |
-|------|------|------|
+| 函数                | 说明      | 文档 |
+|-------------------|---------|------|
 | `api_getRoomInfo` | 获取直播间信息 | [文档](./docs/live/api_getRoomInfo.md) |
+| `getRoomId`       | 从当前页面URL获取直播间ID | [文档](./docs/live/getRoomId.md) |
 
 ### 视频模块 (Video)
 
@@ -115,7 +116,7 @@ import type {
 | 模块 | 文档链接 |
 |------|----------|
 | 核心工具 | [xhrRequest](./docs/xhrRequest/xhrRequest.md) |
-| 直播 | [api_getRoomInfo](./docs/live/api_getRoomInfo.md) |
+| 直播 | [api_getRoomInfo](./docs/live/api_getRoomInfo.md) · [getRoomId](./docs/live/getRoomId.md) |
 | 视频 | [api_getVideoInfo](./docs/video/api_getVideoInfo.md) · [api_getPlayerInfo](./docs/video/api_getPlayerInfo.md) · [api_getSubtitleContent](./docs/video/api_getSubtitleContent.md) · [api_getUserUploadVideoList](./docs/video/api_getUserUploadVideoList.md) |
 | 合集 | [api_getSeasonInfo](./docs/season/api_getSeasonInfo.md) · [api_getSeasonSectionInfo](./docs/season/api_getSeasonSectionInfo.md) · [api_editSeason](./docs/season/api_editSeason.md) · [api_editSeasonSection](./docs/season/api_editSeasonSection.md) |
 

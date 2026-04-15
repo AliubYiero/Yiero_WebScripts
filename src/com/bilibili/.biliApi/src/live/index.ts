@@ -15,3 +15,4 @@
  */
 
 export * from './api_getRoomInfo';
+export * from './getRoomId';
