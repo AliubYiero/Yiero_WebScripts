@@ -7,7 +7,7 @@
 ### global
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 全局CSS导入 | 将自定义的 CSS 导入进页面中, 实现易用可控的页面样式控制. | 前台脚本 | 1.1.1 | 2026-04-15 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/.Global/global-css-import/backup/global-css-import.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/1626) |  |
+| 全局CSS导入 | 将自定义的 CSS 导入进页面中, 实现易用可控的页面样式控制. | 前台脚本 | 1.1.2 | 2026-04-15 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/.Global/global-css-import/backup/global-css-import.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/1626) |  |
 | 健康浏览网页 | 限制网页访问时间 | 前台脚本 | 1.0.0 | 2024-05-20 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/.Global/limit-web-view-time/backup/limit-web-view-time.user.js) |  |  |
 
 

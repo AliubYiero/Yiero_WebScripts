@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           全局CSS导入
 // @description    将自定义的 CSS 导入进页面中, 实现易用可控的页面样式控制.
-// @version        1.1.1
+// @version        1.1.2
 // @author         Yiero
 // @match          https://*/*
 // @require        https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js
@@ -29,9 +29,11 @@
 	
 	display: none;
 }
+
 .css-dialog-container[open] {
 	display: block;
 }
+
 .css-dialog {
 	width: 100%;
 	height: 100%;
@@ -191,6 +193,18 @@ button.dialog-quick-add-submit-button {
 	border: #909399 1px solid;
 }
 
+.dialog-apply-button {
+	background-color: rgb(225 225 225 / 0.75);
+	color: #333333;
+	border: rgb(225 225 225) 1px solid;
+}
+
+.dialog-apply-button:hover {
+	background-color: #333333;
+	color: rgb(225 225 225);
+	border: #333333 1px solid;
+}
+
 .dialog-save-button, .dialog-quick-add-submit-button {
 	background-color: rgba(236, 245, 255, 0.75);
 	color: #409eff;
@@ -290,6 +304,7 @@ button.dialog-quick-add-submit-button {
 		
 		<footer class="dialog-footer-container">
 			<button class="dialog-cancel-button dialog-button">\u53D6\u6D88</button>
+			<button class="dialog-apply-button dialog-button">\u5E94\u7528</button>
 			<button class="dialog-save-button dialog-button">\u4FDD\u5B58</button>
 		</footer>
 	</main>
@@ -354,6 +369,7 @@ button.dialog-quick-add-submit-button {
   const SELECTOR_HIGHLIGHT_CODE = ".highlight-code";
   const SELECTOR_DIALOG_CANCEL_BUTTON = ".dialog-cancel-button";
   const SELECTOR_DIALOG_SAVE_BUTTON = ".dialog-save-button";
+  const SELECTOR_DIALOG_APPLY_BUTTON = ".dialog-apply-button";
   const SELECTOR_QUICK_ADD_INPUT = ".dialog-quick-add-input";
   const SELECTOR_QUICK_ADD_SUBMIT_BUTTON = ".dialog-quick-add-submit-button";
   const cssImportDefaultEvent = (dialog) => {
@@ -624,13 +640,14 @@ button.dialog-quick-add-submit-button {
     const handleCancel = () => {
       dialog.close();
     };
-    const handleSave = () => {
+    const handleSave = (isClose = true) => {
       ExtraCSSConfigStorage.set(codeContainer.textContent || "");
       CssToPage.load();
-      dialog.close();
+      isClose && dialog.close();
     };
     dialog.querySelector(SELECTOR_DIALOG_CANCEL_BUTTON)?.addEventListener("click", handleCancel);
-    dialog.querySelector(SELECTOR_DIALOG_SAVE_BUTTON)?.addEventListener("click", handleSave);
+    dialog.querySelector(SELECTOR_DIALOG_SAVE_BUTTON)?.addEventListener("click", () => handleSave(true));
+    dialog.querySelector(SELECTOR_DIALOG_APPLY_BUTTON)?.addEventListener("click", () => handleSave(false));
     const quickAddInput = dialog.querySelector(SELECTOR_QUICK_ADD_INPUT);
     const submitButton = dialog.querySelector(SELECTOR_QUICK_ADD_SUBMIT_BUTTON);
     if (!(quickAddInput && submitButton)) {

@@ -10,6 +10,7 @@ export const SELECTOR_HIGHLIGHT_CODE_CONTAINER = '.highlight-code-container';
 // 对话框按钮
 export const SELECTOR_DIALOG_CANCEL_BUTTON = '.dialog-cancel-button';
 export const SELECTOR_DIALOG_SAVE_BUTTON = '.dialog-save-button';
+export const SELECTOR_DIALOG_APPLY_BUTTON = '.dialog-apply-button';
 
 // 快速添加输入
 export const SELECTOR_QUICK_ADD_INPUT = '.dialog-quick-add-input';

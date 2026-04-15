@@ -6,7 +6,7 @@ import {
 	SELECTOR_DIALOG_CANCEL_BUTTON,
 	SELECTOR_DIALOG_SAVE_BUTTON,
 	SELECTOR_QUICK_ADD_INPUT,
-	SELECTOR_QUICK_ADD_SUBMIT_BUTTON,
+	SELECTOR_QUICK_ADD_SUBMIT_BUTTON, SELECTOR_DIALOG_APPLY_BUTTON,
 } from '../constants/selectors.ts';
 import { onKeydown, onKeydownMultiple } from '@yiero/gmlib';
 
@@ -73,18 +73,20 @@ export const cssImportCallback = ( dialog: HTMLDialogElement ) => {
 	/**
 	 * 保存按钮回调
 	 */
-	const handleSave = () => {
+	const handleSave = ( isClose: boolean = true ) => {
 		// 保存代码
 		ExtraCSSConfigStorage.set( codeContainer.textContent || '' );
 		// 刷新页面CSS
 		CssToPage.load();
 		// 关闭对话框
-		dialog.close();
+		isClose && dialog.close();
 	};
 	// 监听取消按钮点击事件
 	dialog.querySelector( SELECTOR_DIALOG_CANCEL_BUTTON )?.addEventListener( 'click', handleCancel );
 	// 监听保存按钮点击事件
-	dialog.querySelector( SELECTOR_DIALOG_SAVE_BUTTON )?.addEventListener( 'click', handleSave );
+	dialog.querySelector( SELECTOR_DIALOG_SAVE_BUTTON )?.addEventListener( 'click', () => handleSave( true ) );
+	// 监听应用按钮点击事件
+	dialog.querySelector( SELECTOR_DIALOG_APPLY_BUTTON )?.addEventListener( 'click', () => handleSave( false ) );
 	
 	/*
 	* 快捷添加

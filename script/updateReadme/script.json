@@ -3,10 +3,10 @@
 		"global-css-import": {
 			"name": "全局CSS导入",
 			"description": "将自定义的 CSS 导入进页面中, 实现易用可控的页面样式控制.",
-			"version": "1.1.1",
+			"version": "1.1.2",
 			"private": false,
 			"archive": false,
-			"lastUpdate": 1776229708963.167,
+			"lastUpdate": 1776231402821.1584,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/global-css-import.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/.Global/global-css-import/backup/global-css-import.user.js",
