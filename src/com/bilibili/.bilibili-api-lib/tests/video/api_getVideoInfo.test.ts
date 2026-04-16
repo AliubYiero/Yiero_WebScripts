@@ -1,4 +1,4 @@
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { api_getVideoInfo } from '@/video/api_getVideoInfo';
 import { xhrRequest } from '@/xhrRequest';
 

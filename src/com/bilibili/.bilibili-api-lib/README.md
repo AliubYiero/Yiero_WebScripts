@@ -71,6 +71,7 @@ console.log(roomInfo.data.live_status);
 | `api_getPlayerInfo` | 获取播放器元数据信息 | [文档](./docs/video/api_getPlayerInfo.md) |
 | `api_getSubtitleContent` | 获取字幕文件内容 | [文档](./docs/video/api_getSubtitleContent.md) |
 | `api_getUserUploadVideoList` | 获取用户投稿的视频列表 | [文档](./docs/video/api_getUserUploadVideoList.md) |
+| `getVideoId` | 从 URL 获取视频 ID（av/bv 互转） | [文档](./docs/video/getVideoId.md) |
 
 ### 用户模块 (User)
 
@@ -126,7 +127,7 @@ import type {
 |------|----------|
 | 核心工具 | [xhrRequest](./docs/xhrRequest/xhrRequest.md) |
 | 直播 | [api_getRoomInfo](./docs/live/api_getRoomInfo.md) · [getRoomId](./docs/live/getRoomId.md) |
-| 视频 | [api_getVideoInfo](./docs/video/api_getVideoInfo.md) · [api_getPlayerInfo](./docs/video/api_getPlayerInfo.md) · [api_getSubtitleContent](./docs/video/api_getSubtitleContent.md) · [api_getUserUploadVideoList](./docs/video/api_getUserUploadVideoList.md) |
+| 视频 | [api_getVideoInfo](./docs/video/api_getVideoInfo.md) · [api_getPlayerInfo](./docs/video/api_getPlayerInfo.md) · [api_getSubtitleContent](./docs/video/api_getSubtitleContent.md) · [api_getUserUploadVideoList](./docs/video/api_getUserUploadVideoList.md) · [getVideoId](./docs/video/getVideoId.md) |
 | 用户 | [api_getUserCard](./docs/user/api_getUserCard.md) |
 | 合集 | [api_getSeasonInfo](./docs/season/api_getSeasonInfo.md) · [api_getSeasonSectionInfo](./docs/season/api_getSeasonSectionInfo.md) · [api_editSeason](./docs/season/api_editSeason.md) · [api_editSeasonSection](./docs/season/api_editSeasonSection.md) |
 

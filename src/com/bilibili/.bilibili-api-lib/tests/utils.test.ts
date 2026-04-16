@@ -1,6 +1,6 @@
-import { describe, test, expect, vi, beforeEach, afterEach } from 'vitest';
-import { getCsrf } from '@/utils/getCsrf';
+import { afterEach, beforeEach, describe, expect, test, vi } from 'vitest';
 import { NotLoginError } from '@/utils/Error';
+import { getCsrf } from '@/utils/getCsrf';
 
 describe('Utils', () => {
   describe('NotLoginError', () => {

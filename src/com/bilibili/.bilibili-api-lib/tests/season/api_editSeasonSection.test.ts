@@ -1,8 +1,8 @@
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { api_editSeasonSection } from '@/season/api_editSeasonSection';
-import { xhrRequest } from '@/xhrRequest';
-import { getCsrf } from '@/utils/getCsrf';
 import { NotLoginError } from '@/utils/Error';
+import { getCsrf } from '@/utils/getCsrf';
+import { xhrRequest } from '@/xhrRequest';
 
 // Mock 依赖模块
 vi.mock('@/xhrRequest', () => ({
@@ -93,10 +93,7 @@ describe('api_editSeasonSection', () => {
     vi.mocked(getCsrf).mockRejectedValue(new NotLoginError());
 
     await expect(
-      api_editSeasonSection(
-        { id: 123, seasonId: 456, type: 1 },
-        [],
-      ),
+      api_editSeasonSection({ id: 123, seasonId: 456, type: 1 }, []),
     ).rejects.toThrow(NotLoginError);
   });
 

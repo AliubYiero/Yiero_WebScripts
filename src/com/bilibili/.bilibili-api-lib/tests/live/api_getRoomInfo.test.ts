@@ -1,4 +1,4 @@
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { api_getRoomInfo } from '@/live/api_getRoomInfo';
 import { xhrRequest } from '@/xhrRequest';
 

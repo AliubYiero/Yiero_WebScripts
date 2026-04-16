@@ -1,8 +1,8 @@
-import { describe, test, expect, vi, beforeEach } from 'vitest';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { api_editSeason } from '@/season/api_editSeason';
-import { xhrRequest } from '@/xhrRequest';
-import { getCsrf } from '@/utils/getCsrf';
 import { NotLoginError } from '@/utils/Error';
+import { getCsrf } from '@/utils/getCsrf';
+import { xhrRequest } from '@/xhrRequest';
 
 // Mock 依赖模块
 vi.mock('@/xhrRequest', () => ({
