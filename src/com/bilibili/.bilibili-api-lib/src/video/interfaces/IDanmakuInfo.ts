@@ -10,6 +10,8 @@ export interface IDanmakuItem {
   size: number;
   /** 弹幕颜色（十进制 RGB888 值） */
   color: number;
+  /** 弹幕颜色（十六进制格式，如 #FFFFFF） */
+  colorHex: string;
   /** 弹幕发送时间戳 */
   date: number;
   /** 弹幕池类型：0 普通池，1 字幕池，2 特殊池（代码/BAS弹幕） */
@@ -22,6 +24,12 @@ export interface IDanmakuItem {
   text: string;
   /** 弹幕屏蔽等级（0-10，可选） */
   level?: number;
+  /**
+   * midHash 逆向后的可能 UID 列表
+   * 仅在开启 reverseUid 选项时填充，可能包含多个匹配的 UID
+   * 由于 CRC32 是哈希算法，结果可能有多个值
+   */
+  uid?: number[];
 }
 
 /**
