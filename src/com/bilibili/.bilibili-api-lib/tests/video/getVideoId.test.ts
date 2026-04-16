@@ -25,9 +25,9 @@ describe('bv2av', () => {
   });
 });
 describe('getVideoId', () => {
-  const mockLocation = (pathname: string) => {
+  const mockLocation = (pathname: string, search = '') => {
     Object.defineProperty(window, 'location', {
-      value: { pathname },
+      value: { pathname, search },
       writable: true,
     });
   };
@@ -44,8 +44,8 @@ describe('getVideoId', () => {
     expect(result).toBeDefined();
     expect(result?.bvId).toBe('BV17x411w7KC');
     expect(result?.avId).toBe(170001);
+    expect(result?.part).toBe(1);
   });
-
   test('应该从 av 号 URL 中解析出视频 ID', () => {
     mockLocation('/video/av170001');
 
@@ -54,6 +54,7 @@ describe('getVideoId', () => {
     expect(result).toBeDefined();
     expect(result?.avId).toBe(170001);
     expect(result?.bvId).toBe('BV17x411w7KC');
+    expect(result?.part).toBe(1);
   });
   test('在嵌套路径中应该正确解析视频 ID', () => {
     mockLocation('/bangumi/play/BV1xx411c7mD');
@@ -63,6 +64,7 @@ describe('getVideoId', () => {
     expect(result).toBeDefined();
     expect(result?.bvId).toBe('BV1xx411c7mD');
   });
+  
 
   test('当 URL 中没有视频 ID 时应该返回 undefined', () => {
     mockLocation('/');
@@ -78,5 +80,27 @@ describe('getVideoId', () => {
     const result = getVideoId();
 
     expect(result).toBeUndefined();
+  });
+
+  test('应该从带 ?p=3 的 BV 号 URL 中正确解析出分P数', () => {
+    mockLocation('/video/BV17x411w7KC', '?p=3');
+
+    const result = getVideoId();
+
+    expect(result).toBeDefined();
+    expect(result?.bvId).toBe('BV17x411w7KC');
+    expect(result?.avId).toBe(170001);
+    expect(result?.part).toBe(3);
+  });
+
+  test('应该从带 ?p=5 的 av 号 URL 中正确解析出分P数', () => {
+    mockLocation('/video/av170001', '?p=5');
+
+    const result = getVideoId();
+
+    expect(result).toBeDefined();
+    expect(result?.avId).toBe(170001);
+    expect(result?.bvId).toBe('BV17x411w7KC');
+    expect(result?.part).toBe(5);
   });
 });

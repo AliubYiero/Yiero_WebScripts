@@ -13,6 +13,8 @@ export interface VideoId {
   avId: number;
   /** BV 号 */
   bvId: string;
+  /* 分P数 */
+  part: number;
 }
 
 /**
@@ -94,10 +96,15 @@ export const getVideoId = (): VideoId | undefined => {
     return undefined;
   }
 
+  const videoPart = Number(
+    new URLSearchParams(location.search).get('p') || '1',
+  );
+
   if (videoId.startsWith('BV1')) {
     return {
       bvId: videoId,
       avId: bv2av(videoId),
+      part: videoPart,
     };
   }
 
@@ -106,6 +113,7 @@ export const getVideoId = (): VideoId | undefined => {
     return {
       avId,
       bvId: av2bv(avId),
+      part: videoPart,
     };
   }
 

@@ -20,7 +20,9 @@ interface VideoId {
   avId: number;
   /** BV 号 */
   bvId: string;
-}
+  /* 分P数 */
+  part: number;
+  }
 ```
 
 ## 说明
@@ -42,6 +44,7 @@ const videoId = getVideoId();
 if (videoId) {
   console.log('av号:', videoId.avId);
   console.log('BV号:', videoId.bvId);
+  console.log('分P数:', videoId.part);
 }
 ```
 
