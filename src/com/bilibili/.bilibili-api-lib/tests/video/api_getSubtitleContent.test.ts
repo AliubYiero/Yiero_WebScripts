@@ -33,10 +33,13 @@ describe('api_getSubtitleContent', () => {
     };
 
     // Mock fetch
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockSubtitle),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockSubtitle),
+      }),
+    );
 
     const subtitleUrl = 'https://i0.hdslb.com/bfs/subtitle/test.json';
     const result = await api_getSubtitleContent(subtitleUrl);
@@ -56,15 +59,32 @@ describe('api_getSubtitleContent', () => {
       lang: 'zh-CN',
       version: 'v1.0.0',
       body: [
-        { from: 0, to: 5, sid: 1, location: 2, content: '第一行字幕', music: 0 },
-        { from: 5, to: 10, sid: 2, location: 2, content: '第二行字幕', music: 0 },
+        {
+          from: 0,
+          to: 5,
+          sid: 1,
+          location: 2,
+          content: '第一行字幕',
+          music: 0,
+        },
+        {
+          from: 5,
+          to: 10,
+          sid: 2,
+          location: 2,
+          content: '第二行字幕',
+          music: 0,
+        },
       ],
     };
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockSubtitle),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockSubtitle),
+      }),
+    );
 
     const result = await api_getSubtitleContent(
       'https://example.com/subtitle.json',
@@ -88,10 +108,13 @@ describe('api_getSubtitleContent', () => {
       body: [],
     };
 
-    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
-      ok: true,
-      json: () => Promise.resolve(mockSubtitle),
-    }));
+    vi.stubGlobal(
+      'fetch',
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: () => Promise.resolve(mockSubtitle),
+      }),
+    );
 
     const result = await api_getSubtitleContent(
       'https://example.com/empty.json',

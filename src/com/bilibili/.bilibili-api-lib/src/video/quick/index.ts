@@ -7,7 +7,11 @@
  *
  * @example
  * ```typescript
- * import { getVideoSubtitlesList } from '@yiero/bilibili-api-lib/video/quick';
+ * import { getVideoSubtitlesList, getVideoCid } from '@yiero/bilibili-api-lib/video/quick';
+ *
+ * // 一键获取视频 cid 信息
+ * const videoCid = await getVideoCid('BV1xx411c7mD');
+ * console.log(videoCid.cid);
  *
  * // 一键获取视频字幕列表（已排序，带 getContent 快捷调用）
  * const result = await getVideoSubtitlesList('BV1xx411c7mD');
@@ -20,8 +24,10 @@
  * ```
  */
 
+export { getVideoCid } from './getVideoCid';
 export { getVideoSubtitlesList } from './getVideoSubtitlesList';
 export type {
   GetVideoSubtitlesListResult,
   VideoSubtitleItemWithGetContent,
 } from './types/GetVideoSubtitlesListResult.ts';
+export type { IVideoCid } from './types/IVideoCid.ts';

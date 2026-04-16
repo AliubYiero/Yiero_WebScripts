@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { getVideoId } from '@/video/getVideoId';
 import { getVideoSubtitlesList } from '@/video/quick/getVideoSubtitlesList';
 import { xhrRequest } from '@/xhrRequest';
-import { getVideoId } from '@/video/getVideoId';
 
 // Mock xhrRequest 模块（底层依赖）
 vi.mock('@/xhrRequest', () => ({
