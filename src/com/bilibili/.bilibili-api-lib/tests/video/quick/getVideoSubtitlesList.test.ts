@@ -36,6 +36,11 @@ describe('getVideoSubtitlesList', () => {
       aid: 123456789,
       title: '测试视频',
       desc: '这是一个测试视频',
+      owner: {
+        mid: 12345,
+        name: '测试UP主',
+        face: 'https://example.com/face.jpg',
+      },
       pages: [
         { page: 1, cid: 111111111, part: '第一P', duration: 300 },
         { page: 2, cid: 222222222, part: '第二P', duration: 600 },
@@ -151,6 +156,9 @@ describe('getVideoSubtitlesList', () => {
     expect(result.avid).toBe(123456789);
     expect(result.cid).toBe(111111111);
     expect(result.part).toBe(1);
+    expect(result.uid).toBe(12345);
+    expect(result.upName).toBe('测试UP主');
+    expect(result.upFace).toBe('https://example.com/face.jpg');
     expect(result.subtitles).toHaveLength(5);
 
     // 验证排序：中文 > 英文 > 其他，非AI > AI

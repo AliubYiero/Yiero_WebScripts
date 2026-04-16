@@ -53,6 +53,12 @@ export interface GetVideoSubtitlesListResult {
   cid: number;
   /** 分P 序号 */
   part: number;
+  /** UP 主 ID */
+  uid: number;
+  /** UP 主头像 URL */
+  upFace: string;
+  /** UP 主昵称 */
+  upName: string;
   /** 排序并扩展后的字幕条目（带 getContent） */
   subtitles: VideoSubtitleItemWithGetContent[];
 }

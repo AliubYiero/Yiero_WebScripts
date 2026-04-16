@@ -109,7 +109,8 @@ export async function getVideoSubtitlesList(
   const videoResponse = await api_getVideoInfo(id, login);
   const videoInfo = videoResponse.data;
 
-  const { title, desc, pages, bvid, aid } = videoInfo;
+  const { title, desc, pages, bvid, aid, owner } = videoInfo;
+  const { mid: uid, face: upFace, name: upName } = owner;
 
   // 校验 pages 是否存在
   if (!pages || pages.length === 0) {
@@ -162,6 +163,9 @@ export async function getVideoSubtitlesList(
     avid: aid,
     cid,
     part,
+    uid,
+    upFace,
+    upName,
     subtitles,
   };
 }

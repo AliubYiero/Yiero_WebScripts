@@ -151,16 +151,16 @@
 			"autoUpdate": true,
 			"getLastUpdateWay": "git"
 		},
-		"bilibili-video-ad-ban": {
+		"bilibili-video-ad-skipper": {
 			"name": "",
 			"description": "",
 			"version": "0.0.0",
 			"private": false,
 			"archive": false,
-			"lastUpdate": 1776350930682,
+			"lastUpdate": 1776354347207,
 			"scriptType": "web",
-			"userScriptFilepath": "backup/bilibili-video-ad-ban.user.js",
-			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-ad-ban/backup/bilibili-video-ad-ban.user.js",
+			"userScriptFilepath": "backup/bilibili-video-ad-skipper.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-ad-skipper/backup/bilibili-video-ad-skipper.user.js",
 			"downloadUrlFromScripCat": "",
 			"downloadUrlFromGreasyFork": "",
 			"autoUpdate": true,
