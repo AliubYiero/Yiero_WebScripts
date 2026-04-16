@@ -4,9 +4,6 @@ export default defineConfig({
   lib: [
     {
       format: 'esm',
-      experiments: {
-        advancedEsm: false,
-      },
       syntax: ['esnext'],
       dts: true,
     },

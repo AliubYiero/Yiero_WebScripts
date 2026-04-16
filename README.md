@@ -14,6 +14,7 @@
 ### bilibili.com
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+|  |  | 前台脚本 | 0.0.0 | 2026-04-16 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-ad-ban/backup/bilibili-video-ad-ban.user.js) |  |  |
 | Bilibili视频倍速记忆 | 自动记忆视频播放倍速设置，并提供快捷键快速调整播放速度。 | 前台脚本 | 1.2.0 | 2026-04-14 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-playback-rate-remember/backup/bilibili-video-playback-rate-remember.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5800) |  |
 | Bilibili直播评论样式修改 | 修改Bilibili直播间的评论样式弹幕显示样式, 使其按卡片式固定格式显示. 即上面是用户信息, 下面是弹幕.  优化弹幕框顶部的房间观众和大航海显示, 不再固定显示. | 前台脚本 | 1.0.4 | 2026-04-14 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-chat-style/backup/bilibili-live-chat-style.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5757) |  |
 | Bilibili 直播弹幕发送时间显示 | 在评论框直播弹幕的最后, 显示弹幕发送的时间 | 前台脚本 | 1.0.0 | 2026-04-14 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-danmaku-send-time-show/backup/bilibili-live-danmaku-send-time-show.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/2621) |  |

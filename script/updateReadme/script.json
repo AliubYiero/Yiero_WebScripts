@@ -151,6 +151,21 @@
 			"autoUpdate": true,
 			"getLastUpdateWay": "git"
 		},
+		"bilibili-video-ad-ban": {
+			"name": "",
+			"description": "",
+			"version": "0.0.0",
+			"private": false,
+			"archive": false,
+			"lastUpdate": 1776350930682,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/bilibili-video-ad-ban.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-ad-ban/backup/bilibili-video-ad-ban.user.js",
+			"downloadUrlFromScripCat": "",
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": true,
+			"getLastUpdateWay": "git"
+		},
 		"bilibili-video-auto-add-favorites": {
 			"name": "BiliBili自动添加视频收藏",
 			"description": "进入视频页面后, 自动添加视频到收藏夹中.",
