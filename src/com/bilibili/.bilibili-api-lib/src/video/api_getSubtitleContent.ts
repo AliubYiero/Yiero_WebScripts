@@ -1,4 +1,3 @@
-import { xhrRequest } from '../xhrRequest.ts';
 import type { ISubtitleInfo } from './interfaces/ISubtitleInfo.ts';
 
 /**
@@ -30,6 +29,6 @@ import type { ISubtitleInfo } from './interfaces/ISubtitleInfo.ts';
 export async function api_getSubtitleContent(
   url: string,
 ): Promise<ISubtitleInfo> {
-  const response = await xhrRequest.get<ISubtitleInfo>(url);
-  return response as unknown as ISubtitleInfo;
+  const response = (await fetch(url).then((r) => r.json())) as ISubtitleInfo;
+  return response;
 }

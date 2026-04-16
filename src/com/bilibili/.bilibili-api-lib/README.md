@@ -72,6 +72,7 @@ console.log(roomInfo.data.live_status);
 | `api_getSubtitleContent` | 获取字幕文件内容 | [文档](./docs/video/api_getSubtitleContent.md) |
 | `api_getUserUploadVideoList` | 获取用户投稿的视频列表 | [文档](./docs/video/api_getUserUploadVideoList.md) |
 | `getVideoId` | 从 URL 获取视频 ID（av/bv 互转） | [文档](./docs/video/getVideoId.md) |
+| `getVideoSubtitlesList` | 获取视频字幕列表（带快捷调用） | [文档](./docs/video/quick/getVideoSubtitlesList.md) |
 
 ### 用户模块 (User)
 

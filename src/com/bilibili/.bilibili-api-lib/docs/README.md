@@ -25,6 +25,7 @@
 - [api_getPlayerInfo](./video/api_getPlayerInfo.md) - 获取播放器信息
 - [api_getSubtitleContent](./video/api_getSubtitleContent.md) - 获取字幕内容
 - [api_getUserUploadVideoList](./video/api_getUserUploadVideoList.md) - 获取用户投稿视频列表
+- [getVideoSubtitlesList](./video/quick/getVideoSubtitlesList.md) - 获取视频字幕列表（带快捷调用）
 
 ## 快速开始
 

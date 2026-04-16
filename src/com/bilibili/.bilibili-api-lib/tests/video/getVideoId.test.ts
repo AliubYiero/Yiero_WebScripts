@@ -64,7 +64,6 @@ describe('getVideoId', () => {
     expect(result).toBeDefined();
     expect(result?.bvId).toBe('BV1xx411c7mD');
   });
-  
 
   test('当 URL 中没有视频 ID 时应该返回 undefined', () => {
     mockLocation('/');

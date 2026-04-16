@@ -24,3 +24,6 @@ export * from './api_getSubtitleContent';
 export * from './api_getUserUploadVideoList';
 export * from './api_getVideoInfo';
 export * from './getVideoId';
+
+/** 快捷调用模块 - 视频相关快捷组合函数 */
+export * from './quick';

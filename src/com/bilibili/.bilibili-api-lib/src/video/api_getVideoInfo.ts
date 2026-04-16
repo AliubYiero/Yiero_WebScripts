@@ -29,6 +29,13 @@ import type { IVideoInfo } from './interfaces/IVideoInfo.ts';
  * @see [获取视频详细信息(web端)](https://socialsisteryi.github.io/bilibili-API-collect/docs/video/info.html#%E8%8E%B7%E5%8F%96%E8%A7%86%E9%A2%91%E8%AF%A6%E7%BB%86%E4%BF%A1%E6%81%AF-web%E7%AB%AF)
  */
 export function api_getVideoInfo(id: string | number, login: boolean = false) {
+  // 参数校验
+  if (id === undefined || id === null) {
+    throw new TypeError(
+      'api_getVideoInfo: id 参数不能为空，请提供有效的 BV 号或 AV 号',
+    );
+  }
+
   // 根据 ID 类型判断使用 bvid 还是 aid 参数
   const params: Record<string, string> = {};
   if (typeof id === 'string' && id.startsWith('BV')) {

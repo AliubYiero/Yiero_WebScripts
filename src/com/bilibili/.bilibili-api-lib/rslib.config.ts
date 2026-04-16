@@ -1,18 +1,24 @@
 import { defineConfig } from '@rslib/core';
 
 export default defineConfig({
-  output: {
-    sourceMap: true,
-  },
   lib: [
     {
       format: 'esm',
-      syntax: ['node 18'],
+      experiments: {
+        advancedEsm: false,
+      },
+      syntax: ['esnext'],
       dts: true,
     },
     {
-      format: 'cjs',
-      syntax: ['node 18'],
+      format: 'umd',
+      syntax: ['esnext'],
+      umdName: 'bili',
+      output: {
+        filename: {
+          js: '[name].umd.js',
+        },
+      },
     },
   ],
 });
