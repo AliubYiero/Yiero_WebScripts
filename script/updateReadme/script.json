@@ -152,19 +152,19 @@
 			"getLastUpdateWay": "git"
 		},
 		"bilibili-video-ad-skipper": {
-			"name": "",
-			"description": "",
+			"name": "Bilibili跳过视频广告",
+			"description": "通过 AI 将 Bilibili 视频中的推广广告移除, 同时移除评论区的广告跳转评论.",
 			"version": "0.0.0",
 			"private": false,
 			"archive": false,
-			"lastUpdate": 1776354347207,
+			"lastUpdate": 1776354365585,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/bilibili-video-ad-skipper.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-ad-skipper/backup/bilibili-video-ad-skipper.user.js",
 			"downloadUrlFromScripCat": "",
 			"downloadUrlFromGreasyFork": "",
-			"autoUpdate": true,
-			"getLastUpdateWay": "git"
+			"autoUpdate": false,
+			"getLastUpdateWay": "file"
 		},
 		"bilibili-video-auto-add-favorites": {
 			"name": "BiliBili自动添加视频收藏",
