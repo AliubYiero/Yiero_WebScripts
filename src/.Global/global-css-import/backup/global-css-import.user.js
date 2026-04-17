@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           全局CSS导入
 // @description    将自定义的 CSS 导入进页面中, 实现易用可控的页面样式控制.
-// @version        1.1.2
+// @version        1.1.3
 // @author         Yiero
 // @match          https://*/*
 // @require        https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js
@@ -18,203 +18,207 @@
     'use strict';
     const cssImportStyle = `/* \u5BB9\u5668 */
 .css-dialog-container {
-	width: 50vw;
-	height: 50vh;
-	min-height: 350px;
-	min-width: 600px;
-	
-	border: none;
-	background-color: transparent;
-	overflow: hidden;
-	
-	display: none;
+    width: 50vw;
+    height: 50vh;
+    min-height: 350px;
+    min-width: 600px;
+
+    border: none;
+    background-color: transparent;
+    overflow: hidden;
+
+    display: none;
 }
 
 .css-dialog-container[open] {
-	display: block;
+    display: block;
 }
 
 .css-dialog {
-	width: 100%;
-	height: 100%;
-	border: 1px solid #333;
-	background-color: #f7d6bb;
-	color: #413747;
-	box-shadow: #ffffff 0 0 10px;
-	border-radius: 10px;
-	
-	overflow: auto;
-	font-size: 16px;
-	box-sizing: border-box;
-	scrollbar-width: thin;
-	padding: 24px;
-	
-	display: flex;
-	flex-flow: column;
-	gap: 24px;
-	align-items: center;
-	flex-basis: 100%;
+    width: 100%;
+    height: 100%;
+    border: 1px solid #333;
+    background-color: #f7d6bb;
+    color: #413747;
+    box-shadow: #ffffff 0 0 10px;
+    border-radius: 10px;
+
+    overflow: auto;
+    font-size: 16px;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    padding: 24px;
+
+    display: flex;
+    flex-flow: column;
+    gap: 24px;
+    align-items: center;
+    flex-basis: 100%;
 }
 
 /* \u5934\u90E8 */
 .dialog-header-container {
-	display: flex;
-	flex-flow: column;
-	align-items: center;
-	gap: 4px;
+    display: flex;
+    flex-flow: column;
+    align-items: center;
+    gap: 4px;
 }
 
 .dialog-header-title {
-	font-size: 26px;
+    font-size: 26px;
 }
 
-.dialog-header-title, .dialog-tip {
-	margin: 0;
-	padding: 0;
+.dialog-header-title,
+.dialog-tip {
+    margin: 0;
+    padding: 0;
 }
 
 .dialog-tip {
-	color: grey;
-	font-size: 12px;
+    color: grey;
+    font-size: 12px;
 }
 
 /* \u7F16\u8F91\u6846 */
 .dialog-edit-container {
-	flex: 1;
-	width: 100%;
-	min-width: 150px;
-	min-height: 150px;
-	box-sizing: border-box;
-	scrollbar-width: thin;
-	overflow: hidden;
-	
+    flex: 1;
+    width: 100%;
+    min-width: 150px;
+    min-height: 150px;
+    box-sizing: border-box;
+    scrollbar-width: thin;
+    overflow: hidden;
 }
 
 .highlight-code-container {
-	height: 100%;
-	padding: 0;
-	margin: 0;
-	box-sizing: border-box;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
 }
 
 .highlight-code {
-	font-size: 14px;
-	padding: 10px;
-	box-sizing: border-box;
-	display: block;
-	width: 100%;
-	height: 100%;
+    font-size: 14px;
+    padding: 10px;
+    box-sizing: border-box;
+    display: block;
+    width: 100%;
+    height: 100%;
 }
 
-
-pre, pre.highlight-code-container {
-	border: none;
-	background-color: transparent;
+pre,
+pre.highlight-code-container {
+    border: none;
+    background-color: transparent;
 }
 
 .highlight-code.highlight-code {
-	background-color: #f7d6bb;
-	color: #413747;
-	border: 1px solid #333;
-	border-radius: 5px;
-	outline: none;
+    background-color: #f7d6bb;
+    color: #413747;
+    border: 1px solid #333;
+    border-radius: 5px;
+    outline: none;
 }
 
 /* \u5FEB\u6377\u6DFB\u52A0\u8F93\u5165\u6846 */
 .dialog-quick-add-container {
-	width: 100%;
-	border-radius: 5px;
-	border: #333 1px solid;
-	
-	font-size: 16px;
-	box-sizing: border-box;
+    width: 100%;
+    border-radius: 5px;
+    border: #333 1px solid;
+
+    font-size: 16px;
+    box-sizing: border-box;
 }
 
 .highlight-code.highlight-code:focus-visible,
-.dialog-quick-add-container:has(.dialog-quick-add-input:focus-visible ) {
-	border: #9b5f00 1px solid;
+.dialog-quick-add-container:has(.dialog-quick-add-input:focus-visible) {
+    border: #9b5f00 1px solid;
 }
 
 .dialog-quick-add-label {
-	display: flex;
-	gap: 8px;
-	
+    display: flex;
+    gap: 8px;
 }
 
 .dialog-quick-add-prefix {
-	padding: 5px 10px;
-	border-right: 1px solid #333;
-	background-color: #f3cbaa;
-	border-radius: 5px 0 0 5px;
+    padding: 5px 10px;
+    border-right: 1px solid #333;
+    background-color: #f3cbaa;
+    border-radius: 5px 0 0 5px;
 }
 
 .dialog-quick-add-input {
-	flex: 1;
-	
-	padding: 4px 10px;
-	outline: none;
-	
-	background-color: #f7d6bb;
-	color: #413747;
-	border-radius: 5px;
-	
-	border: none;
-	outline: none;
+    flex: 1;
+
+    padding: 4px 10px;
+    outline: none;
+
+    background-color: #f7d6bb;
+    color: #413747;
+    border-radius: 5px;
+
+    border: none;
+    outline: none;
 }
 
 button.dialog-quick-add-submit-button {
-	border-radius: 0 5px 5px 0;
+    border-radius: 0 5px 5px 0;
 }
 
 /* \u5E95\u90E8 */
 .dialog-footer-container {
-	display: flex;
-	justify-content: center;
-	gap: 8px;
+    display: flex;
+    justify-content: center;
+    gap: 8px;
 }
 
 .dialog-button {
-	padding: 5px 10px;
-	border-radius: 5px;
-	border: none;
-	
-	transition: color, background-color, border 0.2s ease-in;
+    padding: 5px 10px;
+    border-radius: 5px;
+    border: none;
+
+    transition:
+        color,
+        background-color,
+        border 0.2s ease-in;
 }
 
 .dialog-cancel-button {
-	background-color: rgba(244, 244, 245, 0.75);
-	color: #909399;
-	border: #d3d4d6 1px solid;
+    background-color: rgba(244, 244, 245, 0.75);
+    color: #909399;
+    border: #d3d4d6 1px solid;
 }
 
 .dialog-cancel-button:hover {
-	background-color: #909399;
-	color: #ffffff;
-	border: #909399 1px solid;
+    background-color: #909399;
+    color: #ffffff;
+    border: #909399 1px solid;
 }
 
 .dialog-apply-button {
-	background-color: rgb(225 225 225 / 0.75);
-	color: #333333;
-	border: rgb(225 225 225) 1px solid;
+    background-color: rgb(225 225 225 / 0.75);
+    color: #333333;
+    border: rgb(225 225 225) 1px solid;
 }
 
 .dialog-apply-button:hover {
-	background-color: #333333;
-	color: rgb(225 225 225);
-	border: #333333 1px solid;
+    background-color: #333333;
+    color: rgb(225 225 225);
+    border: #333333 1px solid;
 }
 
-.dialog-save-button, .dialog-quick-add-submit-button {
-	background-color: rgba(236, 245, 255, 0.75);
-	color: #409eff;
-	border: #b3d8ff 1px solid;
+.dialog-save-button,
+.dialog-quick-add-submit-button {
+    background-color: rgba(236, 245, 255, 0.75);
+    color: #409eff;
+    border: #b3d8ff 1px solid;
 }
 
-.dialog-save-button:hover, .dialog-quick-add-submit-button:hover {
-	background-color: #409eff;
-	color: #ffffff;
-	border: #409eff 1px solid;
+.dialog-save-button:hover,
+.dialog-quick-add-submit-button:hover {
+    background-color: #409eff;
+    color: #ffffff;
+    border: #409eff 1px solid;
 }
 `;
     const cssImportHtmlContent = `<!doctype html>
@@ -445,41 +449,9 @@ button.dialog-quick-add-submit-button {
             }
         }
     }
-    const saveSelection = (element) => {
-        const selection = window.getSelection();
-        if (!selection || selection.rangeCount === 0) {
-            return null;
-        }
-        const range = selection.getRangeAt(0);
-        if (!element.contains(range.commonAncestorContainer)) {
-            return null;
-        }
-        return range.cloneRange();
-    };
-    const restoreSelection = (element, savedRange) => {
-        if (!savedRange) {
-            return;
-        }
-        const selection = window.getSelection();
-        if (!selection) {
-            return;
-        }
-        try {
-            selection.removeAllRanges();
-            selection.addRange(savedRange);
-        } catch (e) {
-            const range = document.createRange();
-            range.selectNodeContents(element);
-            range.collapse(false);
-            selection.removeAllRanges();
-            selection.addRange(range);
-        }
-    };
     const highlightCode = (codeContainer) => {
-        const savedRange = saveSelection(codeContainer);
         codeContainer.textContent = codeContainer.textContent;
         hljs.highlightElement(codeContainer);
-        restoreSelection(codeContainer, savedRange);
     };
     class gmMenuCommand {
         static list = [];

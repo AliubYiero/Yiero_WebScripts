@@ -28,13 +28,13 @@
 >
 > | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 > | --- | --- | --- | --- | --- | --- | --- | --- |
-> | Mr.Quin 录播抓取程序 | Mr.Quin 录播抓取, 并生成日志 | 前台脚本 | 0.1.1 | 2026-01-07 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/quin-live-record-video-collect/backup/quin-live-record-video-collect.user.js) |  |  |
+> | Mr.Quin 录播抓取程序 | Mr.Quin 录播抓取, 并生成日志 | 前台脚本 | 0.1.1 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/quin-live-record-video-collect/backup/quin-live-record-video-collect.user.js) |  |  |
 
 
 ### orzice.com
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 三角洲数据帝自动计算背包容器性价比 | 三角洲数据帝自动计算背包容器性价比 | 前台脚本 | 0.1.0 | 2026-01-07 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/orzice/package-capacity-calculate/backup/package-capacity-calculate.user.js) |  |  |
+| 三角洲数据帝自动计算背包容器性价比 | 三角洲数据帝自动计算背包容器性价比 | 前台脚本 | 0.1.0 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/orzice/package-capacity-calculate/backup/package-capacity-calculate.user.js) |  |  |
 
 
 ### dak.gg

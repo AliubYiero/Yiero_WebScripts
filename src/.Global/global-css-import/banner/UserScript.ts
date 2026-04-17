@@ -6,7 +6,7 @@ const UserScript: ScriptCatUserScript = [
         'description',
         '将自定义的 CSS 导入进页面中, 实现易用可控的页面样式控制. ',
     ],
-    ['version', '1.1.2'],
+    ['version', '1.1.3'],
     ['author', 'Yiero'],
     ['match', 'https://*/*'],
     [
