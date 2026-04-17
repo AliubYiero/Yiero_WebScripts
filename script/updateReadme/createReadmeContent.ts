@@ -6,107 +6,129 @@ import { ScriptInfo, ScriptDetail } from './updateReadme';
  * @param {boolean} isSeconds - 是否为秒级时间戳，默认 false（毫秒）
  * @returns {string} yyyy-mm-dd 格式的日期字符串
  */
-function timestampToBeijingDate( timestamp: number, isSeconds: boolean = false ): string {
-	if ( typeof timestamp !== 'number' || isNaN( timestamp ) ) {
-		throw new TypeError( '时间戳必须是有效数字' );
-	}
-	
-	// 统一转为毫秒
-	const ms = isSeconds ? timestamp * 1000 : timestamp;
-	
-	// 北京时间 = UTC + 8小时。将时间戳偏移后，其 UTC 时间即等于北京时间
-	const beijingDate = new Date( ms + 8 * 60 * 60 * 1000 );
-	
-	const year = beijingDate.getUTCFullYear();
-	const month = String( beijingDate.getUTCMonth() + 1 ).padStart( 2, '0' );
-	const day = String( beijingDate.getUTCDate() ).padStart( 2, '0' );
-	
-	return `${ year }-${ month }-${ day }`;
+function timestampToBeijingDate(
+    timestamp: number,
+    isSeconds: boolean = false,
+): string {
+    if (typeof timestamp !== 'number' || isNaN(timestamp)) {
+        throw new TypeError('时间戳必须是有效数字');
+    }
+
+    // 统一转为毫秒
+    const ms = isSeconds ? timestamp * 1000 : timestamp;
+
+    // 北京时间 = UTC + 8小时。将时间戳偏移后，其 UTC 时间即等于北京时间
+    const beijingDate = new Date(ms + 8 * 60 * 60 * 1000);
+
+    const year = beijingDate.getUTCFullYear();
+    const month = String(beijingDate.getUTCMonth() + 1).padStart(
+        2,
+        '0',
+    );
+    const day = String(beijingDate.getUTCDate()).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
 }
 
 /**
  * 创建脚本表格行
  */
-const createScriptTableRow = ( scriptDetail: ScriptDetail ): string => {
-	const scriptType = {
-		web: '前台脚本',
-		background: '后台脚本',
-		crontab: '定时脚本',
-	};
-	const downloadFromGithub = scriptDetail.downloadUrlFromGithub ? `[Github 源](${ scriptDetail.downloadUrlFromGithub })` : '';
-	const downloadFromScriptCat = scriptDetail.downloadUrlFromScripCat ? `[ScriptCat 源](${ scriptDetail.downloadUrlFromScripCat })` : '';
-	const downloadUrlFromGreasyFork = scriptDetail.downloadUrlFromGreasyFork ? `[GreasyFork 源](${ scriptDetail.downloadUrlFromGreasyFork })` : '';
-	return `| ${ [
-		scriptDetail.name,
-		scriptDetail.description,
-		scriptType[ scriptDetail.scriptType ] || 'unknown',
-		scriptDetail.version,
-		timestampToBeijingDate( scriptDetail.lastUpdate ),
-		downloadFromGithub,
-		downloadFromScriptCat,
-		downloadUrlFromGreasyFork,
-	].join( ' | ' ) } |`;
+const createScriptTableRow = (scriptDetail: ScriptDetail): string => {
+    const scriptType = {
+        web: '前台脚本',
+        background: '后台脚本',
+        crontab: '定时脚本',
+    };
+    const downloadFromGithub = scriptDetail.downloadUrlFromGithub
+        ? `[Github 源](${scriptDetail.downloadUrlFromGithub})`
+        : '';
+    const downloadFromScriptCat = scriptDetail.downloadUrlFromScripCat
+        ? `[ScriptCat 源](${scriptDetail.downloadUrlFromScripCat})`
+        : '';
+    const downloadUrlFromGreasyFork =
+        scriptDetail.downloadUrlFromGreasyFork
+            ? `[GreasyFork 源](${scriptDetail.downloadUrlFromGreasyFork})`
+            : '';
+    return `| ${[
+        scriptDetail.name,
+        scriptDetail.description,
+        scriptType[scriptDetail.scriptType] || 'unknown',
+        scriptDetail.version,
+        timestampToBeijingDate(scriptDetail.lastUpdate),
+        downloadFromGithub,
+        downloadFromScriptCat,
+        downloadUrlFromGreasyFork,
+    ].join(' | ')} |`;
 };
 
 /**
  * 创建脚本表格头
  */
-const createScriptTableHeader = ( isQuote: boolean = false ): string => {
-	const quote = isQuote ? '> ' : ''
-	return `${quote}| 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
+const createScriptTableHeader = (
+    isQuote: boolean = false,
+): string => {
+    const quote = isQuote ? '> ' : '';
+    return `${quote}| 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 ${quote}| --- | --- | --- | --- | --- | --- | --- | --- |`;
 };
 
 /**
  * 创建 脚本列表内容
  */
-const createScriptListContent = ( scriptInfo: ScriptInfo ) => {
-	const scriptList: string[] = [];
-	for ( let domain in scriptInfo ) {
-		const scriptDetailMap = scriptInfo[ domain ];
-		
-		// 按 lastUpdate 降序排序脚本
-		const sortedScripts = Object.entries( scriptDetailMap )
-			.sort( ( [ , a ], [ , b ] ) => b.lastUpdate - a.lastUpdate );
-		
-		// 分离普通脚本和归档脚本
-		const normalScripts = sortedScripts.filter( ( [ , detail ] ) => !detail.archive );
-		const archivedScripts = sortedScripts.filter( ( [ , detail ] ) => detail.archive );
-		
-		// 添加域名标题
-		scriptList.push( `### ${ domain }` );
-		
-		// 生成普通脚本表格
-		if ( normalScripts.length > 0 ) {
-			scriptList.push( createScriptTableHeader() );
-			for ( const [ , scriptDetail ] of normalScripts ) {
-				scriptList.push( createScriptTableRow( scriptDetail ) );
-			}
-		}
-		
-		// 生成归档脚本表格（引用块格式）
-		if ( archivedScripts.length > 0 ) {
-			scriptList.push( '\n> **归档脚本**\n>' );
-			scriptList.push( '>\n' + createScriptTableHeader(true) );
-			for ( const [ , scriptDetail ] of archivedScripts ) {
-				scriptList.push( '> ' + createScriptTableRow( scriptDetail ) );
-			}
-		}
-		
-		scriptList.push( '\n' );
-	}
-	return `
+const createScriptListContent = (scriptInfo: ScriptInfo) => {
+    const scriptList: string[] = [];
+    for (let domain in scriptInfo) {
+        const scriptDetailMap = scriptInfo[domain];
+
+        // 按 lastUpdate 降序排序脚本
+        const sortedScripts = Object.entries(scriptDetailMap).sort(
+            ([, a], [, b]) => b.lastUpdate - a.lastUpdate,
+        );
+
+        // 分离普通脚本和归档脚本
+        const normalScripts = sortedScripts.filter(
+            ([, detail]) => !detail.archive,
+        );
+        const archivedScripts = sortedScripts.filter(
+            ([, detail]) => detail.archive,
+        );
+
+        // 添加域名标题
+        scriptList.push(`### ${domain}`);
+
+        // 生成普通脚本表格
+        if (normalScripts.length > 0) {
+            scriptList.push(createScriptTableHeader());
+            for (const [, scriptDetail] of normalScripts) {
+                scriptList.push(createScriptTableRow(scriptDetail));
+            }
+        }
+
+        // 生成归档脚本表格（引用块格式）
+        if (archivedScripts.length > 0) {
+            scriptList.push('\n> **归档脚本**\n>');
+            scriptList.push('>\n' + createScriptTableHeader(true));
+            for (const [, scriptDetail] of archivedScripts) {
+                scriptList.push(
+                    '> ' + createScriptTableRow(scriptDetail),
+                );
+            }
+        }
+
+        scriptList.push('\n');
+    }
+    return `
 ## 脚本列表
 
-${ scriptList.join( '\n' ) }
+${scriptList.join('\n')}
 `.trim();
 };
 
 /**
  * 创建 私有 README 内容
  * */
-const createPrivateReadmeContent = ( scriptInfo: ScriptInfo ) => {
-	return `# Yiero's Private Web Scripts
+const createPrivateReadmeContent = (scriptInfo: ScriptInfo) => {
+    return `# Yiero's Private Web Scripts
 
 > 也不是那么 Private, 不发布到脚本网站而已. 发现了就能用.
 >
@@ -114,18 +136,18 @@ const createPrivateReadmeContent = ( scriptInfo: ScriptInfo ) => {
 >
 > 版本号小于 1.0.0 的脚本为实验性脚本, 不保证更新, 不保证问题修复.
 
-${ createScriptListContent( scriptInfo ) }`;
+${createScriptListContent(scriptInfo)}`;
 };
 
 /**
  * 创建 公有 README 内容
  */
-const createPublicReadmeContent = ( scriptInfo: ScriptInfo ) => {
-	return `# Yiero's Web Scripts
+const createPublicReadmeContent = (scriptInfo: ScriptInfo) => {
+    return `# Yiero's Web Scripts
 
 > 版本号小于 1.0.0 的脚本为实验性脚本, 不保证更新, 不保证问题修复.
 
-${ createScriptListContent( scriptInfo ) }
+${createScriptListContent(scriptInfo)}
 
 
 ## 目录结构
@@ -230,8 +252,11 @@ npm run build
 /**
  * 创建 README 内容
  */
-export const createReadmeContent = ( scriptInfo: ScriptInfo, isPrivate: boolean ) => {
-	return isPrivate
-		? createPrivateReadmeContent( scriptInfo )
-		: createPublicReadmeContent( scriptInfo );
+export const createReadmeContent = (
+    scriptInfo: ScriptInfo,
+    isPrivate: boolean,
+) => {
+    return isPrivate
+        ? createPrivateReadmeContent(scriptInfo)
+        : createPublicReadmeContent(scriptInfo);
 };

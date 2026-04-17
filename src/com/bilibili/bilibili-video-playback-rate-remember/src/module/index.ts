@@ -5,10 +5,10 @@
 // PlaybackRate 模块
 export type { PlaybackRateBase } from './PlaybackRate';
 export {
-	PlaybackRateBaseClass,
-	PlaybackRateSync,
-	PlaybackRateLocal,
-	PlaybackRateSingle,
+    PlaybackRateBaseClass,
+    PlaybackRateSync,
+    PlaybackRateLocal,
+    PlaybackRateSingle,
 } from './PlaybackRate';
 
 // Store 模块

@@ -3,131 +3,149 @@ import { customElement, property, state } from 'lit/decorators.js';
 import { RecordSession } from '../store/RecordSession.ts';
 import { elementWaiter } from '@yiero/gmlib';
 
-@customElement( 'history-modal' )
+@customElement('history-modal')
 export class HistoryModal extends LitElement {
-	@property( { type: Boolean } ) open = false;
-	@property( { type: Number } ) roomId = 0;
-	@state() private expandedSession = 0; // Using liveStartTime as ID
-	@property() historyData: RecordSession[] = [];
-	
-	connectedCallback() {
-		super.connectedCallback();
-		window.addEventListener( 'keydown', this.handleKeyDown );
-		this.expandedSession = this.historyData.length > 0 ? this.historyData[ 0 ].liveStartTime : 0;
-	}
-	
-	disconnectedCallback() {
-		window.removeEventListener( 'keydown', this.handleKeyDown );
-		super.disconnectedCallback();
-	}
-	
-	handleKeyDown = ( e: KeyboardEvent ) => {
-		if ( e.key === 'Escape' && this.open ) this.closeModal();
-	};
-	
-	closeModal() {
-		this.dispatchEvent( new CustomEvent( 'close', { bubbles: true } ) );
-	}
-	
-	saveHistory() {
-		this.dispatchEvent( new CustomEvent( 'history-updated', {
-			detail: this.historyData,
-			bubbles: true,
-		} ) );
-	}
-	
-	toggleSession( sessionTime: number ) {
-		this.expandedSession = this.expandedSession === sessionTime ? 0 : sessionTime;
-	}
-	
-	downloadSession( sessionTime: number ) {
-		const session = this.historyData.find( s => s.liveStartTime === sessionTime );
-		if ( !session ) return;
-		
-		this.dispatchEvent( new CustomEvent( 'download-session', {
-			detail: session,
-			bubbles: true,
-		} ) );
-	}
-	
-	deleteSession( sessionTime: number ) {
-		if ( !confirm( '确定要删除此场次记录？' ) ) return;
-		
-		this.historyData = this.historyData.filter( s => s.liveStartTime !== sessionTime );
-		this.saveHistory();
-		if ( this.expandedSession === sessionTime ) {
-			this.expandedSession = 0;
-		}
-	}
-	
-	clearAll() {
-		if ( !confirm( '确定要清空所有历史记录？此操作不可恢复！' ) ) return;
-		
-		this.historyData = [];
-		this.expandedSession = 0;
-		this.saveHistory();
-	}
-	
-	formatDate( timestamp: number ): string {
-		return new Date( timestamp ).toLocaleDateString( 'zh-CN', {
-			year: 'numeric',
-			month: '2-digit',
-			day: '2-digit',
-		} );
-	}
-	
-	formatTime( timeStr: string | number ): string {
-		if ( typeof timeStr === 'number' ) {
-			const date = new Date( timeStr );
-			return date.toLocaleString();
-		}
-		// Ensure consistent time formatting (hh:mm:ss)
-		return timeStr.length === 5 ? `${ timeStr }:00` : timeStr;
-	}
-	
-	renderEmptyState() {
-		return html`
+    @property({ type: Boolean }) open = false;
+    @property({ type: Number }) roomId = 0;
+    @state() private expandedSession = 0; // Using liveStartTime as ID
+    @property() historyData: RecordSession[] = [];
+
+    connectedCallback() {
+        super.connectedCallback();
+        window.addEventListener('keydown', this.handleKeyDown);
+        this.expandedSession =
+            this.historyData.length > 0
+                ? this.historyData[0].liveStartTime
+                : 0;
+    }
+
+    disconnectedCallback() {
+        window.removeEventListener('keydown', this.handleKeyDown);
+        super.disconnectedCallback();
+    }
+
+    handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape' && this.open) this.closeModal();
+    };
+
+    closeModal() {
+        this.dispatchEvent(
+            new CustomEvent('close', { bubbles: true }),
+        );
+    }
+
+    saveHistory() {
+        this.dispatchEvent(
+            new CustomEvent('history-updated', {
+                detail: this.historyData,
+                bubbles: true,
+            }),
+        );
+    }
+
+    toggleSession(sessionTime: number) {
+        this.expandedSession =
+            this.expandedSession === sessionTime ? 0 : sessionTime;
+    }
+
+    downloadSession(sessionTime: number) {
+        const session = this.historyData.find(
+            (s) => s.liveStartTime === sessionTime,
+        );
+        if (!session) return;
+
+        this.dispatchEvent(
+            new CustomEvent('download-session', {
+                detail: session,
+                bubbles: true,
+            }),
+        );
+    }
+
+    deleteSession(sessionTime: number) {
+        if (!confirm('确定要删除此场次记录？')) return;
+
+        this.historyData = this.historyData.filter(
+            (s) => s.liveStartTime !== sessionTime,
+        );
+        this.saveHistory();
+        if (this.expandedSession === sessionTime) {
+            this.expandedSession = 0;
+        }
+    }
+
+    clearAll() {
+        if (!confirm('确定要清空所有历史记录？此操作不可恢复！'))
+            return;
+
+        this.historyData = [];
+        this.expandedSession = 0;
+        this.saveHistory();
+    }
+
+    formatDate(timestamp: number): string {
+        return new Date(timestamp).toLocaleDateString('zh-CN', {
+            year: 'numeric',
+            month: '2-digit',
+            day: '2-digit',
+        });
+    }
+
+    formatTime(timeStr: string | number): string {
+        if (typeof timeStr === 'number') {
+            const date = new Date(timeStr);
+            return date.toLocaleString();
+        }
+        // Ensure consistent time formatting (hh:mm:ss)
+        return timeStr.length === 5 ? `${timeStr}:00` : timeStr;
+    }
+
+    renderEmptyState() {
+        return html`
 			<div class="empty-state">
 				<p class="empty-text">暂无任何标记记录，开始你的第一次标记吧！</p>
 			</div>
 		`;
-	}
-	
-	renderSessionRow( session: RecordSession ) {
-		const isExpanded = this.expandedSession === session.liveStartTime;
-		const markerRows = session.records.map( ( marker, index ) => html`
+    }
+
+    renderSessionRow(session: RecordSession) {
+        const isExpanded =
+            this.expandedSession === session.liveStartTime;
+        const markerRows = session.records.map(
+            (marker, index) => html`
 			<tr class="marker-row">
-				<td>${ index + 1 }</td>
-				<td>${ this.formatTime( marker.localTime ) }</td>
-				<td>${ this.formatTime( marker.liveTime ) }</td>
-				<td class="content-cell">${ marker.content }</td>
+				<td>${index + 1}</td>
+				<td>${this.formatTime(marker.localTime)}</td>
+				<td>${this.formatTime(marker.liveTime)}</td>
+				<td class="content-cell">${marker.content}</td>
 			</tr>
-		` );
-		
-		return html`
-			<tr class="session-row ${ isExpanded ? 'expanded' : '' }">
-				<td>${ this.formatDate( session.liveStartTime ) }</td>
-				<td class="title-cell">${ session.liveTitle }</td>
-				<td>${ session.records.length }</td>
+		`,
+        );
+
+        return html`
+			<tr class="session-row ${isExpanded ? 'expanded' : ''}">
+				<td>${this.formatDate(session.liveStartTime)}</td>
+				<td class="title-cell">${session.liveTitle}</td>
+				<td>${session.records.length}</td>
 				<td class="actions">
 					<button
 						class="detail-btn"
-						@click=${ () => this.toggleSession( session.liveStartTime ) }
-						aria-expanded=${ isExpanded }
+						@click=${() => this.toggleSession(session.liveStartTime)}
+						aria-expanded=${isExpanded}
 					>
-						详情 ${ isExpanded ? '▴' : '▾' }
+						详情 ${isExpanded ? '▴' : '▾'}
 					</button>
 					<button class="download-btn"
-					        @click=${ () => this.downloadSession( session.liveStartTime ) }>
-						${ this.renderDownloadIcon() }
+					        @click=${() => this.downloadSession(session.liveStartTime)}>
+						${this.renderDownloadIcon()}
 					</button>
 					<button class="delete-btn"
-					        @click=${ () => this.deleteSession( session.liveStartTime ) }>
-						${ this.renderDeleteIcon() }
+					        @click=${() => this.deleteSession(session.liveStartTime)}>
+						${this.renderDeleteIcon()}
 					</button>
 				</td>
 			</tr>
-			<tr class="sub-table-row ${ isExpanded ? 'visible' : '' }">
+			<tr class="sub-table-row ${isExpanded ? 'visible' : ''}">
 				<td colspan="4">
 					<div class="sub-table-container">
 						<table class="sub-table">
@@ -140,17 +158,17 @@ export class HistoryModal extends LitElement {
 							</tr>
 							</thead>
 							<tbody>
-							${ markerRows }
+							${markerRows}
 							</tbody>
 						</table>
 					</div>
 				</td>
 			</tr>
 		`;
-	}
-	
-	renderDownloadIcon() {
-		return html`
+    }
+
+    renderDownloadIcon() {
+        return html`
 			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
 			     viewBox="0 0 24 24" fill="none" stroke="currentColor"
 			     stroke-width="2">
@@ -159,10 +177,10 @@ export class HistoryModal extends LitElement {
 				<line x1="12" y1="15" x2="12" y2="3"></line>
 			</svg>
 		`;
-	}
-	
-	renderDeleteIcon() {
-		return html`
+    }
+
+    renderDeleteIcon() {
+        return html`
 			<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16"
 			     viewBox="0 0 24 24" fill="none" stroke="currentColor"
 			     stroke-width="2">
@@ -171,10 +189,10 @@ export class HistoryModal extends LitElement {
 				<line x1="9" y1="9" x2="15" y2="15"></line>
 			</svg>
 		`;
-	}
-	
-	renderCloseIcon() {
-		return html`
+    }
+
+    renderCloseIcon() {
+        return html`
 			<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
 			     viewBox="0 0 24 24" fill="none" stroke="currentColor"
 			     stroke-width="2">
@@ -182,26 +200,29 @@ export class HistoryModal extends LitElement {
 				<line x1="6" y1="6" x2="18" y2="18"></line>
 			</svg>
 		`;
-	}
-	
-	render() {
-		return html`
-			${ this.open ? html`
-				<div class="overlay" @click=${ this.closeModal }></div>
+    }
+
+    render() {
+        return html`
+			${
+                this.open
+                    ? html`
+				<div class="overlay" @click=${this.closeModal}></div>
 				<div class="modal">
 					<div class="modal-content glass-card">
 						<div class="modal-header">
 							<h2 class="modal-title">直播标记历史记录</h2>
 							<button class="close-btn"
-							        @click=${ this.closeModal }
+							        @click=${this.closeModal}
 							        aria-label="关闭">
-								${ this.renderCloseIcon() }
+								${this.renderCloseIcon()}
 							</button>
 						</div>
 						
-						${ this.historyData.length === 0
-							? this.renderEmptyState()
-							: html`
+						${
+                            this.historyData.length === 0
+                                ? this.renderEmptyState()
+                                : html`
 								<div class="table-container">
 									<table class="main-table">
 										<thead>
@@ -213,29 +234,31 @@ export class HistoryModal extends LitElement {
 										</tr>
 										</thead>
 										<tbody>
-										${ this.historyData.map( session => this.renderSessionRow( session ) ) }
+										${this.historyData.map((session) => this.renderSessionRow(session))}
 										</tbody>
 									</table>
 								</div>
 							`
-						}
+                        }
 						
 						<div class="modal-footer">
 							<button
 								class="clear-btn"
-								?disabled=${ this.historyData.length === 0 }
-								@click=${ this.clearAll }
+								?disabled=${this.historyData.length === 0}
+								@click=${this.clearAll}
 							>
 								清除所有记录
 							</button>
 						</div>
 					</div>
 				</div>
-			` : nothing }
+			`
+                    : nothing
+            }
 		`;
-	}
-	
-	static styles = css`
+    }
+
+    static styles = css`
 		:host {
 			display: block;
 			position: fixed;
@@ -589,29 +612,28 @@ export class HistoryModal extends LitElement {
 }
 
 declare global {
-	interface HTMLElementTagNameMap {
-		'history-modal': HistoryModal;
-	}
-	
-	interface HTMLElementEventMap {
-		'close': CustomEvent;
-		'history-updated': CustomEvent<RecordSession[]>;
-		'download-session': CustomEvent<RecordSession>;
-	}
-}
+    interface HTMLElementTagNameMap {
+        'history-modal': HistoryModal;
+    }
 
+    interface HTMLElementEventMap {
+        close: CustomEvent;
+        'history-updated': CustomEvent<RecordSession[]>;
+        'download-session': CustomEvent<RecordSession>;
+    }
+}
 
 /**
  * 初始化 HistoryModal 组件
  */
 export const initHistoryModal = async (
-	roomId: number,
-	records: RecordSession[] = [],
+    roomId: number,
+    records: RecordSession[] = [],
 ) => {
-	const historyModal = document.createElement( 'history-modal' );
-	historyModal.roomId = roomId;
-	historyModal.historyData = records;
-	const container = await elementWaiter( 'body' );
-	container.append( historyModal );
-	return historyModal;
+    const historyModal = document.createElement('history-modal');
+    historyModal.roomId = roomId;
+    historyModal.historyData = records;
+    const container = await elementWaiter('body');
+    container.append(historyModal);
+    return historyModal;
 };

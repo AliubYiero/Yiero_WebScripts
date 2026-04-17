@@ -10,17 +10,12 @@ import { isLimitTime } from './modules/isLimitTime/isLimitTime.ts';
 import { closeWeb } from './modules/closeWeb/closeWeb.ts';
 import { polling } from './utils/polling.ts';
 
-const closeWebChain = chain(
-	findAimWeb,
-	isLimitTime,
-	closeWeb,
-);
+const closeWebChain = chain(findAimWeb, isLimitTime, closeWeb);
 
-const poolingCloseWebChain = polling( closeWebChain, 60_000 );
-
+const poolingCloseWebChain = polling(closeWebChain, 60_000);
 /*
-* Main Entry
-* */
-;( () => {
-	poolingCloseWebChain( document.URL );
-} )();
+ * Main Entry
+ * */
+(() => {
+    poolingCloseWebChain(document.URL);
+})();

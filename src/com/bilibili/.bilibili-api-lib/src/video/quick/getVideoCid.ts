@@ -30,47 +30,49 @@ import type { IVideoCid } from './types/IVideoCid';
  * ```
  */
 export async function getVideoCid(
-  id?: string | number,
-  part: number = 1,
-  login: boolean = false,
+    id?: string | number,
+    part: number = 1,
+    login: boolean = false,
 ): Promise<IVideoCid> {
-  // 如果没有提供 id，从当前页面 URL 获取
-  if (!id) {
-    const videoId = getVideoId();
-    if (!videoId) {
-      throw new TypeError(
-        'getVideoCid: id 参数不能为空，请提供有效的 BV 号或 AV 号',
-      );
+    // 如果没有提供 id，从当前页面 URL 获取
+    if (!id) {
+        const videoId = getVideoId();
+        if (!videoId) {
+            throw new TypeError(
+                'getVideoCid: id 参数不能为空，请提供有效的 BV 号或 AV 号',
+            );
+        }
+        id = videoId.avId;
+        part = videoId.part;
     }
-    id = videoId.avId;
-    part = videoId.part;
-  }
 
-  // 获取视频信息
-  const videoResponse = await api_getVideoInfo(id, login);
-  const videoInfo = videoResponse.data;
+    // 获取视频信息
+    const videoResponse = await api_getVideoInfo(id, login);
+    const videoInfo = videoResponse.data;
 
-  const { pages, bvid, aid } = videoInfo;
+    const { pages, bvid, aid } = videoInfo;
 
-  // 校验 pages 是否存在
-  if (!pages || pages.length === 0) {
-    throw new Error(`视频 ${id} 没有分P信息`);
-  }
+    // 校验 pages 是否存在
+    if (!pages || pages.length === 0) {
+        throw new Error(`视频 ${id} 没有分P信息`);
+    }
 
-  // 根据 part 找到对应的分P信息
-  const pageItem = pages.find((p) => p.page === part);
-  if (!pageItem) {
-    throw new Error(`分P ${part} 不存在，视频共 ${pages.length}P`);
-  }
+    // 根据 part 找到对应的分P信息
+    const pageItem = pages.find((p) => p.page === part);
+    if (!pageItem) {
+        throw new Error(
+            `分P ${part} 不存在，视频共 ${pages.length}P`,
+        );
+    }
 
-  const { cid } = pageItem;
+    const { cid } = pageItem;
 
-  return {
-    avId: aid,
-    bvId: bvid,
-    part,
-    cid,
-  };
+    return {
+        avId: aid,
+        bvId: bvid,
+        part,
+        cid,
+    };
 }
 
 export type { IVideoCid };

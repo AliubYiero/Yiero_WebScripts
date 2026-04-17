@@ -5,5 +5,4 @@
  * @author  Yiero
  * */
 
-
 export * from './getVideoBvId/getVideoBvId.ts';

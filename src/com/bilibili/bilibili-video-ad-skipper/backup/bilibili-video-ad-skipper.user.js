@@ -70,239 +70,336 @@ AI配置:
         type: checkbox
         default: true
 ==/UserConfig== */
-(function() {
-  "use strict";
-  const returnElement = (selector, options, resolve, reject) => {
-    setTimeout(() => {
-      const element = options.parent.querySelector(selector);
-      if (!element) return void reject(new Error(`Element "${selector}" not found`));
-      resolve(element);
-    }, 1e3 * options.delayPerSecond);
-  };
-  const getElementByTimer = (selector, options, resolve, reject) => {
-    const intervalDelay = 100;
-    let intervalCounter = 0;
-    const maxIntervalCounter = Math.ceil(1e3 * options.timeoutPerSecond / intervalDelay);
-    const timer = window.setInterval(() => {
-      if (++intervalCounter > maxIntervalCounter) {
-        clearInterval(timer);
-        returnElement(selector, options, resolve, reject);
-        return;
-      }
-      const element = options.parent.querySelector(selector);
-      if (element) {
-        clearInterval(timer);
-        returnElement(selector, options, resolve, reject);
-      }
-    }, intervalDelay);
-  };
-  const getElementByMutationObserver = (selector, options, resolve, reject) => {
-    const timer = options.timeoutPerSecond && window.setTimeout(() => {
-      observer.disconnect();
-      reject(new Error(`Element "${selector}" not found within ${options.timeoutPerSecond} seconds`));
-    }, 1e3 * options.timeoutPerSecond);
-    const observeElementCallback = (mutations) => {
-      mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((addNode) => {
-          if (addNode.nodeType !== Node.ELEMENT_NODE) return;
-          const addedElement = addNode;
-          const element = addedElement.matches(selector) ? addedElement : addedElement.querySelector(selector);
-          if (element) {
-            timer && clearTimeout(timer);
-            returnElement(selector, options, resolve, reject);
-          }
-        });
-      });
+(function () {
+    'use strict';
+    const returnElement = (selector, options, resolve, reject) => {
+        setTimeout(() => {
+            const element = options.parent.querySelector(selector);
+            if (!element)
+                return void reject(
+                    new Error(`Element "${selector}" not found`),
+                );
+            resolve(element);
+        }, 1e3 * options.delayPerSecond);
     };
-    const observer = new MutationObserver(observeElementCallback);
-    observer.observe(options.parent, {
-      subtree: true,
-      childList: true
-    });
-    return true;
-  };
-  function elementWaiter(selector, options) {
-    const elementWaiterOptions = {
-      parent: document,
-      timeoutPerSecond: 20,
-      delayPerSecond: 0.5,
-      ...options
+    const getElementByTimer = (
+        selector,
+        options,
+        resolve,
+        reject,
+    ) => {
+        const intervalDelay = 100;
+        let intervalCounter = 0;
+        const maxIntervalCounter = Math.ceil(
+            (1e3 * options.timeoutPerSecond) / intervalDelay,
+        );
+        const timer = window.setInterval(() => {
+            if (++intervalCounter > maxIntervalCounter) {
+                clearInterval(timer);
+                returnElement(selector, options, resolve, reject);
+                return;
+            }
+            const element = options.parent.querySelector(selector);
+            if (element) {
+                clearInterval(timer);
+                returnElement(selector, options, resolve, reject);
+            }
+        }, intervalDelay);
     };
-    return new Promise((resolve, reject) => {
-      const targetElement = elementWaiterOptions.parent.querySelector(selector);
-      if (targetElement) return void returnElement(selector, elementWaiterOptions, resolve, reject);
-      if (MutationObserver) return void getElementByMutationObserver(selector, elementWaiterOptions, resolve, reject);
-      getElementByTimer(selector, elementWaiterOptions, resolve, reject);
-    });
-  }
-  class GmStorage {
-    key;
-    defaultValue;
-    listenerId = 0;
-    constructor(key, defaultValue) {
-      this.key = key;
-      this.defaultValue = defaultValue;
-      this.key = key;
-      this.defaultValue = defaultValue;
-    }
-    get value() {
-      return this.get();
-    }
-    get() {
-      return GM_getValue(this.key, this.defaultValue);
-    }
-    set(value) {
-      return GM_setValue(this.key, value);
-    }
-    remove() {
-      GM_deleteValue(this.key);
-    }
-    updateListener(callback) {
-      this.removeListener();
-      this.listenerId = GM_addValueChangeListener(this.key, (key, oldValue, newValue, remote) => {
-        callback({
-          key,
-          oldValue,
-          newValue,
-          remote
+    const getElementByMutationObserver = (
+        selector,
+        options,
+        resolve,
+        reject,
+    ) => {
+        const timer =
+            options.timeoutPerSecond &&
+            window.setTimeout(() => {
+                observer.disconnect();
+                reject(
+                    new Error(
+                        `Element "${selector}" not found within ${options.timeoutPerSecond} seconds`,
+                    ),
+                );
+            }, 1e3 * options.timeoutPerSecond);
+        const observeElementCallback = (mutations) => {
+            mutations.forEach((mutation) => {
+                mutation.addedNodes.forEach((addNode) => {
+                    if (addNode.nodeType !== Node.ELEMENT_NODE)
+                        return;
+                    const addedElement = addNode;
+                    const element = addedElement.matches(selector)
+                        ? addedElement
+                        : addedElement.querySelector(selector);
+                    if (element) {
+                        timer && clearTimeout(timer);
+                        returnElement(
+                            selector,
+                            options,
+                            resolve,
+                            reject,
+                        );
+                    }
+                });
+            });
+        };
+        const observer = new MutationObserver(observeElementCallback);
+        observer.observe(options.parent, {
+            subtree: true,
+            childList: true,
         });
-      });
+        return true;
+    };
+    function elementWaiter(selector, options) {
+        const elementWaiterOptions = {
+            parent: document,
+            timeoutPerSecond: 20,
+            delayPerSecond: 0.5,
+            ...options,
+        };
+        return new Promise((resolve, reject) => {
+            const targetElement =
+                elementWaiterOptions.parent.querySelector(selector);
+            if (targetElement)
+                return void returnElement(
+                    selector,
+                    elementWaiterOptions,
+                    resolve,
+                    reject,
+                );
+            if (MutationObserver)
+                return void getElementByMutationObserver(
+                    selector,
+                    elementWaiterOptions,
+                    resolve,
+                    reject,
+                );
+            getElementByTimer(
+                selector,
+                elementWaiterOptions,
+                resolve,
+                reject,
+            );
+        });
     }
-    removeListener() {
-      GM_removeValueChangeListener(this.listenerId);
+    class GmStorage {
+        key;
+        defaultValue;
+        listenerId = 0;
+        constructor(key, defaultValue) {
+            this.key = key;
+            this.defaultValue = defaultValue;
+            this.key = key;
+            this.defaultValue = defaultValue;
+        }
+        get value() {
+            return this.get();
+        }
+        get() {
+            return GM_getValue(this.key, this.defaultValue);
+        }
+        set(value) {
+            return GM_setValue(this.key, value);
+        }
+        remove() {
+            GM_deleteValue(this.key);
+        }
+        updateListener(callback) {
+            this.removeListener();
+            this.listenerId = GM_addValueChangeListener(
+                this.key,
+                (key, oldValue, newValue, remote) => {
+                    callback({
+                        key,
+                        oldValue,
+                        newValue,
+                        remote,
+                    });
+                },
+            );
+        }
+        removeListener() {
+            GM_removeValueChangeListener(this.listenerId);
+        }
     }
-  }
-  class gmMenuCommand {
-    static list = [];
-    constructor() {
+    class gmMenuCommand {
+        static list = [];
+        constructor() {}
+        static get(title) {
+            const commandButton = gmMenuCommand.list.find(
+                (commandButton2) => commandButton2.title === title,
+            );
+            if (!commandButton)
+                throw new Error(
+                    '\u83DC\u5355\u6309\u94AE\u4E0D\u5B58\u5728',
+                );
+            return commandButton;
+        }
+        static createToggle(details) {
+            gmMenuCommand
+                .create(
+                    details.active.title,
+                    () => {
+                        gmMenuCommand.toggleActive(
+                            details.active.title,
+                        );
+                        gmMenuCommand.toggleActive(
+                            details.inactive.title,
+                        );
+                        details.active.onClick();
+                        gmMenuCommand.render();
+                    },
+                    true,
+                )
+                .create(
+                    details.inactive.title,
+                    () => {
+                        gmMenuCommand.toggleActive(
+                            details.active.title,
+                        );
+                        gmMenuCommand.toggleActive(
+                            details.inactive.title,
+                        );
+                        details.inactive.onClick();
+                        gmMenuCommand.render();
+                    },
+                    false,
+                );
+            return gmMenuCommand;
+        }
+        static click(title) {
+            const commandButton = gmMenuCommand.get(title);
+            commandButton.onClick();
+            return gmMenuCommand;
+        }
+        static create(title, onClick, isActive = true) {
+            if (
+                gmMenuCommand.list.some(
+                    (commandButton) => commandButton.title === title,
+                )
+            )
+                throw new Error(
+                    '\u83DC\u5355\u6309\u94AE\u5DF2\u5B58\u5728',
+                );
+            gmMenuCommand.list.push({
+                title,
+                onClick,
+                isActive,
+                id: 0,
+            });
+            return gmMenuCommand;
+        }
+        static remove(title) {
+            gmMenuCommand.list = gmMenuCommand.list.filter(
+                (commandButton) => commandButton.title !== title,
+            );
+            return gmMenuCommand;
+        }
+        static swap(title1, title2) {
+            const index1 = gmMenuCommand.list.findIndex(
+                (commandButton) => commandButton.title === title1,
+            );
+            const index2 = gmMenuCommand.list.findIndex(
+                (commandButton) => commandButton.title === title2,
+            );
+            if (-1 === index1 || -1 === index2)
+                throw new Error(
+                    '\u83DC\u5355\u6309\u94AE\u4E0D\u5B58\u5728',
+                );
+            [gmMenuCommand.list[index1], gmMenuCommand.list[index2]] =
+                [
+                    gmMenuCommand.list[index2],
+                    gmMenuCommand.list[index1],
+                ];
+            return gmMenuCommand;
+        }
+        static modify(title, details) {
+            const commandButton = gmMenuCommand.get(title);
+            details.onClick &&
+                (commandButton.onClick = details.onClick);
+            details.isActive &&
+                (commandButton.isActive = details.isActive);
+            return gmMenuCommand;
+        }
+        static toggleActive(title) {
+            const commandButton = gmMenuCommand.get(title);
+            commandButton.isActive = !commandButton.isActive;
+            return gmMenuCommand;
+        }
+        static render() {
+            gmMenuCommand.list.forEach((commandButton) => {
+                GM_unregisterMenuCommand(commandButton.id);
+                if (commandButton.isActive)
+                    commandButton.id = GM_registerMenuCommand(
+                        commandButton.title,
+                        commandButton.onClick,
+                    );
+            });
+        }
     }
-    static get(title) {
-      const commandButton = gmMenuCommand.list.find((commandButton2) => commandButton2.title === title);
-      if (!commandButton) throw new Error("\u83DC\u5355\u6309\u94AE\u4E0D\u5B58\u5728");
-      return commandButton;
-    }
-    static createToggle(details) {
-      gmMenuCommand.create(details.active.title, () => {
-        gmMenuCommand.toggleActive(details.active.title);
-        gmMenuCommand.toggleActive(details.inactive.title);
-        details.active.onClick();
-        gmMenuCommand.render();
-      }, true).create(details.inactive.title, () => {
-        gmMenuCommand.toggleActive(details.active.title);
-        gmMenuCommand.toggleActive(details.inactive.title);
-        details.inactive.onClick();
-        gmMenuCommand.render();
-      }, false);
-      return gmMenuCommand;
-    }
-    static click(title) {
-      const commandButton = gmMenuCommand.get(title);
-      commandButton.onClick();
-      return gmMenuCommand;
-    }
-    static create(title, onClick, isActive = true) {
-      if (gmMenuCommand.list.some((commandButton) => commandButton.title === title)) throw new Error("\u83DC\u5355\u6309\u94AE\u5DF2\u5B58\u5728");
-      gmMenuCommand.list.push({
-        title,
-        onClick,
-        isActive,
-        id: 0
-      });
-      return gmMenuCommand;
-    }
-    static remove(title) {
-      gmMenuCommand.list = gmMenuCommand.list.filter((commandButton) => commandButton.title !== title);
-      return gmMenuCommand;
-    }
-    static swap(title1, title2) {
-      const index1 = gmMenuCommand.list.findIndex((commandButton) => commandButton.title === title1);
-      const index2 = gmMenuCommand.list.findIndex((commandButton) => commandButton.title === title2);
-      if (-1 === index1 || -1 === index2) throw new Error("\u83DC\u5355\u6309\u94AE\u4E0D\u5B58\u5728");
-      [gmMenuCommand.list[index1], gmMenuCommand.list[index2]] = [
-        gmMenuCommand.list[index2],
-        gmMenuCommand.list[index1]
-      ];
-      return gmMenuCommand;
-    }
-    static modify(title, details) {
-      const commandButton = gmMenuCommand.get(title);
-      details.onClick && (commandButton.onClick = details.onClick);
-      details.isActive && (commandButton.isActive = details.isActive);
-      return gmMenuCommand;
-    }
-    static toggleActive(title) {
-      const commandButton = gmMenuCommand.get(title);
-      commandButton.isActive = !commandButton.isActive;
-      return gmMenuCommand;
-    }
-    static render() {
-      gmMenuCommand.list.forEach((commandButton) => {
-        GM_unregisterMenuCommand(commandButton.id);
-        if (commandButton.isActive) commandButton.id = GM_registerMenuCommand(commandButton.title, commandButton.onClick);
-      });
-    }
-  }
-  let messageContainer = null;
-  const messageTypes = {
-    success: {
-      backgroundColor: "#f0f9eb",
-      borderColor: "#e1f3d8",
-      textColor: "#67c23a",
-      icon: "\u2713"
-    },
-    warning: {
-      backgroundColor: "#fdf6ec",
-      borderColor: "#faecd8",
-      textColor: "#e6a23c",
-      icon: "\u26A0"
-    },
-    error: {
-      backgroundColor: "#fef0f0",
-      borderColor: "#fde2e2",
-      textColor: "#f56c6c",
-      icon: "\u2715"
-    },
-    info: {
-      backgroundColor: "#edf2fc",
-      borderColor: "#e4e7ed",
-      textColor: "#909399",
-      icon: "i"
-    }
-  };
-  const messagePositions = {
-    top: {
-      top: "20px"
-    },
-    "top-left": {
-      top: "20px",
-      left: "20px"
-    },
-    "top-right": {
-      top: "20px",
-      right: "20px"
-    },
-    left: {
-      left: "20px"
-    },
-    right: {
-      right: "20px"
-    },
-    bottom: {
-      bottom: "20px"
-    },
-    "bottom-left": {
-      bottom: "20px",
-      left: "20px"
-    },
-    "bottom-right": {
-      bottom: "20px",
-      right: "20px"
-    }
-  };
-  function createMessageContainer() {
-    if (!messageContainer) {
-      messageContainer = document.createElement("div");
-      messageContainer.setAttribute("style", `
+    let messageContainer = null;
+    const messageTypes = {
+        success: {
+            backgroundColor: '#f0f9eb',
+            borderColor: '#e1f3d8',
+            textColor: '#67c23a',
+            icon: '\u2713',
+        },
+        warning: {
+            backgroundColor: '#fdf6ec',
+            borderColor: '#faecd8',
+            textColor: '#e6a23c',
+            icon: '\u26A0',
+        },
+        error: {
+            backgroundColor: '#fef0f0',
+            borderColor: '#fde2e2',
+            textColor: '#f56c6c',
+            icon: '\u2715',
+        },
+        info: {
+            backgroundColor: '#edf2fc',
+            borderColor: '#e4e7ed',
+            textColor: '#909399',
+            icon: 'i',
+        },
+    };
+    const messagePositions = {
+        top: {
+            top: '20px',
+        },
+        'top-left': {
+            top: '20px',
+            left: '20px',
+        },
+        'top-right': {
+            top: '20px',
+            right: '20px',
+        },
+        left: {
+            left: '20px',
+        },
+        right: {
+            right: '20px',
+        },
+        bottom: {
+            bottom: '20px',
+        },
+        'bottom-left': {
+            bottom: '20px',
+            left: '20px',
+        },
+        'bottom-right': {
+            bottom: '20px',
+            right: '20px',
+        },
+    };
+    function createMessageContainer() {
+        if (!messageContainer) {
+            messageContainer = document.createElement('div');
+            messageContainer.setAttribute(
+                'style',
+                `
                     position: fixed;
                     z-index: 9999999999;
                     top: 0;
@@ -314,57 +411,76 @@ AI配置:
                     justify-content: center;
                     align-items: center;
                     width: 100vw;
-                `);
-      document.body.appendChild(messageContainer);
+                `,
+            );
+            document.body.appendChild(messageContainer);
+        }
+        return messageContainer;
     }
-    return messageContainer;
-  }
-  function getAnimationOffset(position, isEnter) {
-    const isBottom = position.includes("bottom");
-    return isBottom ? 20 : -20;
-  }
-  function validateMessageOptions(detail) {
-    if (!detail.message || "string" != typeof detail.message) throw new Error("Message: message \u53C2\u6570\u5FC5\u987B\u662F\u6709\u6548\u7684\u975E\u7A7A\u5B57\u7B26\u4E32");
-    const MIN_DURATION = 100;
-    if (void 0 !== detail.duration) {
-      if ("number" != typeof detail.duration || detail.duration < MIN_DURATION) throw new Error(`Message: duration \u5FC5\u987B\u662F >= ${MIN_DURATION} \u7684\u6570\u5B57`);
+    function getAnimationOffset(position, isEnter) {
+        const isBottom = position.includes('bottom');
+        return isBottom ? 20 : -20;
     }
-    const validTypes = [
-      "success",
-      "warning",
-      "error",
-      "info"
-    ];
-    if (void 0 !== detail.type && !validTypes.includes(detail.type)) throw new Error(`Message: type \u5FC5\u987B\u662F ${validTypes.join(" | ")} \u4E4B\u4E00`);
-    const validPositions = [
-      "top",
-      "top-left",
-      "top-right",
-      "left",
-      "right",
-      "bottom",
-      "bottom-left",
-      "bottom-right"
-    ];
-    if (void 0 !== detail.position && !validPositions.includes(detail.position)) throw new Error(`Message: position \u5FC5\u987B\u662F ${validPositions.join(" | ")} \u4E4B\u4E00`);
-  }
-  const Message = (options) => {
-    const detail = {
-      type: "info",
-      duration: 3e3,
-      position: "top"
-    };
-    if ("string" == typeof options) detail.message = options;
-    else Object.assign(detail, options);
-    validateMessageOptions(detail);
-    messageContainer = createMessageContainer();
-    const messageEl = document.createElement("div");
-    const messageType = detail.type || "info";
-    const messagePosition = detail.position || "top";
-    const messageDuration = detail.duration || 3e3;
-    const typeConfig = messageTypes[messageType];
-    const initialOffset = getAnimationOffset(messagePosition);
-    messageEl.setAttribute("style", `
+    function validateMessageOptions(detail) {
+        if (!detail.message || 'string' != typeof detail.message)
+            throw new Error(
+                'Message: message \u53C2\u6570\u5FC5\u987B\u662F\u6709\u6548\u7684\u975E\u7A7A\u5B57\u7B26\u4E32',
+            );
+        const MIN_DURATION = 100;
+        if (void 0 !== detail.duration) {
+            if (
+                'number' != typeof detail.duration ||
+                detail.duration < MIN_DURATION
+            )
+                throw new Error(
+                    `Message: duration \u5FC5\u987B\u662F >= ${MIN_DURATION} \u7684\u6570\u5B57`,
+                );
+        }
+        const validTypes = ['success', 'warning', 'error', 'info'];
+        if (
+            void 0 !== detail.type &&
+            !validTypes.includes(detail.type)
+        )
+            throw new Error(
+                `Message: type \u5FC5\u987B\u662F ${validTypes.join(' | ')} \u4E4B\u4E00`,
+            );
+        const validPositions = [
+            'top',
+            'top-left',
+            'top-right',
+            'left',
+            'right',
+            'bottom',
+            'bottom-left',
+            'bottom-right',
+        ];
+        if (
+            void 0 !== detail.position &&
+            !validPositions.includes(detail.position)
+        )
+            throw new Error(
+                `Message: position \u5FC5\u987B\u662F ${validPositions.join(' | ')} \u4E4B\u4E00`,
+            );
+    }
+    const Message = (options) => {
+        const detail = {
+            type: 'info',
+            duration: 3e3,
+            position: 'top',
+        };
+        if ('string' == typeof options) detail.message = options;
+        else Object.assign(detail, options);
+        validateMessageOptions(detail);
+        messageContainer = createMessageContainer();
+        const messageEl = document.createElement('div');
+        const messageType = detail.type || 'info';
+        const messagePosition = detail.position || 'top';
+        const messageDuration = detail.duration || 3e3;
+        const typeConfig = messageTypes[messageType];
+        const initialOffset = getAnimationOffset(messagePosition);
+        messageEl.setAttribute(
+            'style',
+            `
                 position: absolute;
                 min-width: 300px;
                 max-width: 500px;
@@ -381,14 +497,19 @@ AI配置:
                 opacity: 0;
                 pointer-events: auto;
                 cursor: pointer;
-                ${Object.entries(messagePositions[messagePosition]).map(([k, v]) => `${k}: ${v};`).join(" ")}
-            `);
-    messageEl.setAttribute("role", "alert");
-    messageEl.setAttribute("aria-live", "polite");
-    messageEl.setAttribute("aria-atomic", "true");
-    messageEl.setAttribute("tabindex", "0");
-    const iconEl = document.createElement("span");
-    iconEl.setAttribute("style", `
+                ${Object.entries(messagePositions[messagePosition])
+                    .map(([k, v]) => `${k}: ${v};`)
+                    .join(' ')}
+            `,
+        );
+        messageEl.setAttribute('role', 'alert');
+        messageEl.setAttribute('aria-live', 'polite');
+        messageEl.setAttribute('aria-atomic', 'true');
+        messageEl.setAttribute('tabindex', '0');
+        const iconEl = document.createElement('span');
+        iconEl.setAttribute(
+            'style',
+            `
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
@@ -397,250 +518,302 @@ AI配置:
                 margin-right: 12px;
                 font-size: 16px;
                 font-weight: bold;
-            `);
-    iconEl.textContent = typeConfig.icon;
-    messageEl.appendChild(iconEl);
-    const contentEl = document.createElement("span");
-    contentEl.setAttribute("style", `
+            `,
+        );
+        iconEl.textContent = typeConfig.icon;
+        messageEl.appendChild(iconEl);
+        const contentEl = document.createElement('span');
+        contentEl.setAttribute(
+            'style',
+            `
                 flex: 1;
                 font-size: 14px;
                 line-height: 1.5;
-            `);
-    contentEl.textContent = detail.message;
-    messageEl.appendChild(contentEl);
-    messageContainer.appendChild(messageEl);
-    requestAnimationFrame(() => {
-      messageEl.style.opacity = "1";
-      messageEl.style.transform = "translateY(0)";
-    });
-    const timer = setTimeout(() => {
-      closeMessage(messageEl, messagePosition);
-    }, messageDuration);
-    messageEl.addEventListener("click", () => {
-      clearTimeout(timer);
-      closeMessage(messageEl, messagePosition);
-    });
-    messageEl.addEventListener("keydown", (e) => {
-      if ("Escape" === e.key) {
-        clearTimeout(timer);
-        closeMessage(messageEl, messagePosition);
-      }
-    });
-    const close = () => {
-      clearTimeout(timer);
-      closeMessage(messageEl, messagePosition);
-    };
-    return {
-      close,
-      element: messageEl
-    };
-  };
-  function closeMessage(element, position = "top") {
-    const exitOffset = getAnimationOffset(position);
-    element.style.opacity = "0";
-    element.style.transform = `translateY(${exitOffset}px)`;
-    setTimeout(() => {
-      if (element.parentNode) element.parentNode.removeChild(element);
-    }, 300);
-  }
-  const messageTypes_shortcuts = [
-    "success",
-    "warning",
-    "error",
-    "info"
-  ];
-  messageTypes_shortcuts.forEach((type) => {
-    Message[type] = (message, options) => Message({
-      ...options,
-      message,
-      type
-    });
-  });
-  function formatTime(seconds) {
-    const totalSeconds = Math.max(0, Math.floor(seconds));
-    const hours = Math.floor(totalSeconds / 3600);
-    const minutes = Math.floor(totalSeconds % 3600 / 60);
-    const secs = totalSeconds % 60;
-    const padStart = (num) => num.toString().padStart(2, "0");
-    return `${padStart(hours)}:${padStart(minutes)}:${padStart(secs)}`;
-  }
-  class Notify {
-    constructor(prefix) {
-      this.prefix = prefix;
-    }
-    info(content, options = {}) {
-      this.baseInfo(content, options, "info");
-    }
-    warning(content, options = {}) {
-      this.baseInfo(content, options, "warning");
-    }
-    error(content, options = {}) {
-      this.baseInfo(content, options, "error");
-    }
-    success(content, options = {}) {
-      this.baseInfo(content, options, "success");
-    }
-    baseInfo(content, options = {}, type = "info") {
-      options.showLog ??= true;
-      const formatContent = this.formatContent(content);
-      if (options.showMessage) {
-        Message({
-          type,
-          duration: options.duration || 3e3,
-          position: options.position || "top-left",
-          message: formatContent
+            `,
+        );
+        contentEl.textContent = detail.message;
+        messageEl.appendChild(contentEl);
+        messageContainer.appendChild(messageEl);
+        requestAnimationFrame(() => {
+            messageEl.style.opacity = '1';
+            messageEl.style.transform = 'translateY(0)';
         });
-      }
-      if (options.showLog) {
-        switch (type) {
-          case "warning":
-            console.warn(formatContent);
-            break;
-          case "error":
-            console.error(formatContent);
-            break;
-          default:
-            console.info(formatContent);
+        const timer = setTimeout(() => {
+            closeMessage(messageEl, messagePosition);
+        }, messageDuration);
+        messageEl.addEventListener('click', () => {
+            clearTimeout(timer);
+            closeMessage(messageEl, messagePosition);
+        });
+        messageEl.addEventListener('keydown', (e) => {
+            if ('Escape' === e.key) {
+                clearTimeout(timer);
+                closeMessage(messageEl, messagePosition);
+            }
+        });
+        const close = () => {
+            clearTimeout(timer);
+            closeMessage(messageEl, messagePosition);
+        };
+        return {
+            close,
+            element: messageEl,
+        };
+    };
+    function closeMessage(element, position = 'top') {
+        const exitOffset = getAnimationOffset(position);
+        element.style.opacity = '0';
+        element.style.transform = `translateY(${exitOffset}px)`;
+        setTimeout(() => {
+            if (element.parentNode)
+                element.parentNode.removeChild(element);
+        }, 300);
+    }
+    const messageTypes_shortcuts = [
+        'success',
+        'warning',
+        'error',
+        'info',
+    ];
+    messageTypes_shortcuts.forEach((type) => {
+        Message[type] = (message, options) =>
+            Message({
+                ...options,
+                message,
+                type,
+            });
+    });
+    function formatTime(seconds) {
+        const totalSeconds = Math.max(0, Math.floor(seconds));
+        const hours = Math.floor(totalSeconds / 3600);
+        const minutes = Math.floor((totalSeconds % 3600) / 60);
+        const secs = totalSeconds % 60;
+        const padStart = (num) => num.toString().padStart(2, '0');
+        return `${padStart(hours)}:${padStart(minutes)}:${padStart(secs)}`;
+    }
+    class Notify {
+        constructor(prefix) {
+            this.prefix = prefix;
+        }
+        info(content, options = {}) {
+            this.baseInfo(content, options, 'info');
+        }
+        warning(content, options = {}) {
+            this.baseInfo(content, options, 'warning');
+        }
+        error(content, options = {}) {
+            this.baseInfo(content, options, 'error');
+        }
+        success(content, options = {}) {
+            this.baseInfo(content, options, 'success');
+        }
+        baseInfo(content, options = {}, type = 'info') {
+            options.showLog ??= true;
+            const formatContent = this.formatContent(content);
+            if (options.showMessage) {
+                Message({
+                    type,
+                    duration: options.duration || 3e3,
+                    position: options.position || 'top-left',
+                    message: formatContent,
+                });
+            }
+            if (options.showLog) {
+                switch (type) {
+                    case 'warning':
+                        console.warn(formatContent);
+                        break;
+                    case 'error':
+                        console.error(formatContent);
+                        break;
+                    default:
+                        console.info(formatContent);
+                        break;
+                }
+            }
+        }
+        /**
+         * 给文本添加上前缀
+         */
+        formatContent(content) {
+            if (!this.prefix) {
+                return content;
+            }
+            return `${this.prefix} ${content}`;
+        }
+    }
+    const notify = new Notify('[Bilibili Video Ad Ban]');
+    const videoAdNotify = {
+        /**
+         * 屏蔽评论区广告
+         */
+        banCommentAd: () => {
+            notify.info(
+                '\u5DF2\u5C4F\u853D\u8BC4\u8BBA\u533A\u63A8\u5E7F\u8BC4\u8BBA',
+            );
+        },
+        /**
+         * 获取视频信息
+         */
+        getVideoInfo: () => {
+            notify.info(
+                '\u6B63\u5728\u83B7\u53D6\u5F53\u524D\u89C6\u9891\u5B57\u5E55\u4FE1\u606F...',
+                { showMessage: false },
+            );
+        },
+        /**
+         * 显示无字幕警告
+         */
+        noSubtitleWarning: () => {
+            notify.warning(
+                '\u5F53\u524D\u89C6\u9891\u65E0\u5B57\u5E55/\u5F39\u5E55, \u65E0\u6CD5\u8BC6\u522B\u89C6\u9891\u5E7F\u544A',
+                { showMessage: false },
+            );
+        },
+        /**
+         * 显示无广告信息
+         */
+        noAdInfo: () => {
+            notify.info(
+                '\u5F53\u524D\u89C6\u9891\u4E0D\u5B58\u5728\u89C6\u9891\u5E7F\u544A',
+                { showMessage: false },
+            );
+        },
+        /**
+         * 显示AI分析开始的消息
+         */
+        aiAnalysisStart: () => {
+            notify.info(
+                '\u5DF2\u83B7\u53D6\u5F53\u524D\u89C6\u9891\u7684\u5B57\u5E55\u4FE1\u606F, \u6B63\u5728\u4F7F\u7528 AI \u5206\u6790\u5F53\u524D\u89C6\u9891\u7684\u5E7F\u544A\u60C5\u51B5...',
+                { showMessage: false },
+            );
+        },
+        /**
+         * 显示AI分析完成的消息
+         * @param duration AI分析用时（秒）
+         * @param adTimes 广告时间段
+         */
+        aiAnalysisComplete: (adTimes, duration) => {
+            const timeContent = adTimes
+                .map(
+                    ({
+                        start,
+                        end,
+                    }) => `\u5F00\u59CB\u65F6\u95F4: ${formatTime(start)}
+\u7ED3\u675F\u65F6\u95F4: ${formatTime(end)}`,
+                )
+                .join('\n------\n');
+            const durationContent = duration
+                ? ` (\u7528\u65F6 ${duration} s)`
+                : '';
+            notify.success(
+                `\u5DF2\u83B7\u53D6\u5F53\u524D\u89C6\u9891\u7684\u5E7F\u544A\u4FE1\u606F${durationContent}, \u6B63\u5728\u76D1\u542C\u89C6\u9891\u8FDB\u5EA6\u6761:
+${timeContent}`,
+                { showMessage: false },
+            );
+        },
+        /**
+         * API KEY 未配置
+         */
+        apiKeyLost: () => {
+            notify.error('API_KEY \u672A\u914D\u7F6E', {
+                position: 'top',
+                showMessage: true,
+            });
+        },
+        /**
+         * AI 用户提问
+         */
+        aiUserAsk: (content) => {
+            console.groupCollapsed(
+                '[Bilibili Video Ad Ban] \u7528\u6237\u63D0\u95EE:',
+            );
+            console.info(content);
+            console.groupEnd();
+        },
+        /**
+         * AI 回答
+         */
+        aiAnswer: (content) => {
+            console.groupCollapsed(
+                '[Bilibili Video Ad Ban] AI\u56DE\u590D:',
+            );
+            console.info(content);
+            console.groupEnd();
+        },
+        /**
+         * 跳转至广告结束
+         */
+        jumpAdEnd: (start, end) => {
+            notify.success(
+                `\u8FDB\u5165\u89C6\u9891\u5E7F\u544A\u7247\u6BB5 (${formatTime(start)}~${formatTime(end)}), \u5F00\u59CB\u8DF3\u8F6C\u81F3\u5E7F\u544A\u7ED3\u675F`,
+            );
+        },
+    };
+    const removeAdComment = (commentContainer) => {
+        if (!commentContainer.shadowRoot) return;
+        const commentContentContainer =
+            commentContainer.shadowRoot.querySelector(
+                'bili-comment-renderer',
+            );
+        if (!(commentContainer && commentContainer.shadowRoot))
+            return;
+        const richContentContainer =
+            commentContentContainer.shadowRoot.querySelectorAll(
+                'bili-rich-text',
+            );
+        for (const richContentElement of richContentContainer) {
+            const { shadowRoot } = richContentElement;
+            if (!shadowRoot) continue;
+            if (!shadowRoot.querySelector('[data-type="goods"]')) {
+                continue;
+            }
+            commentContainer.style.display = 'none';
+            videoAdNotify.banCommentAd();
             break;
         }
-      }
-    }
-    /**
-     * 给文本添加上前缀
-     */
-    formatContent(content) {
-      if (!this.prefix) {
-        return content;
-      }
-      return `${this.prefix} ${content}`;
-    }
-  }
-  const notify = new Notify("[Bilibili Video Ad Ban]");
-  const videoAdNotify = {
-    /**
-     * 屏蔽评论区广告
-     */
-    banCommentAd: () => {
-      notify.info("\u5DF2\u5C4F\u853D\u8BC4\u8BBA\u533A\u63A8\u5E7F\u8BC4\u8BBA");
-    },
-    /**
-     * 获取视频信息
-     */
-    getVideoInfo: () => {
-      notify.info("\u6B63\u5728\u83B7\u53D6\u5F53\u524D\u89C6\u9891\u5B57\u5E55\u4FE1\u606F...", { showMessage: false });
-    },
-    /**
-     * 显示无字幕警告
-     */
-    noSubtitleWarning: () => {
-      notify.warning("\u5F53\u524D\u89C6\u9891\u65E0\u5B57\u5E55/\u5F39\u5E55, \u65E0\u6CD5\u8BC6\u522B\u89C6\u9891\u5E7F\u544A", { showMessage: false });
-    },
-    /**
-     * 显示无广告信息
-     */
-    noAdInfo: () => {
-      notify.info("\u5F53\u524D\u89C6\u9891\u4E0D\u5B58\u5728\u89C6\u9891\u5E7F\u544A", { showMessage: false });
-    },
-    /**
-     * 显示AI分析开始的消息
-     */
-    aiAnalysisStart: () => {
-      notify.info("\u5DF2\u83B7\u53D6\u5F53\u524D\u89C6\u9891\u7684\u5B57\u5E55\u4FE1\u606F, \u6B63\u5728\u4F7F\u7528 AI \u5206\u6790\u5F53\u524D\u89C6\u9891\u7684\u5E7F\u544A\u60C5\u51B5...", { showMessage: false });
-    },
-    /**
-     * 显示AI分析完成的消息
-     * @param duration AI分析用时（秒）
-     * @param adTimes 广告时间段
-     */
-    aiAnalysisComplete: (adTimes, duration) => {
-      const timeContent = adTimes.map(
-        ({ start, end }) => `\u5F00\u59CB\u65F6\u95F4: ${formatTime(start)}
-\u7ED3\u675F\u65F6\u95F4: ${formatTime(end)}`
-      ).join("\n------\n");
-      const durationContent = duration ? ` (\u7528\u65F6 ${duration} s)` : "";
-      notify.success(`\u5DF2\u83B7\u53D6\u5F53\u524D\u89C6\u9891\u7684\u5E7F\u544A\u4FE1\u606F${durationContent}, \u6B63\u5728\u76D1\u542C\u89C6\u9891\u8FDB\u5EA6\u6761:
-${timeContent}`, { showMessage: false });
-    },
-    /**
-     * API KEY 未配置
-     */
-    apiKeyLost: () => {
-      notify.error("API_KEY \u672A\u914D\u7F6E", {
-        position: "top",
-        showMessage: true
-      });
-    },
-    /**
-     * AI 用户提问
-     */
-    aiUserAsk: (content) => {
-      console.groupCollapsed("[Bilibili Video Ad Ban] \u7528\u6237\u63D0\u95EE:");
-      console.info(content);
-      console.groupEnd();
-    },
-    /**
-     * AI 回答
-     */
-    aiAnswer: (content) => {
-      console.groupCollapsed("[Bilibili Video Ad Ban] AI\u56DE\u590D:");
-      console.info(content);
-      console.groupEnd();
-    },
-    /**
-     * 跳转至广告结束
-     */
-    jumpAdEnd: (start, end) => {
-      notify.success(`\u8FDB\u5165\u89C6\u9891\u5E7F\u544A\u7247\u6BB5 (${formatTime(start)}~${formatTime(end)}), \u5F00\u59CB\u8DF3\u8F6C\u81F3\u5E7F\u544A\u7ED3\u675F`);
-    }
-  };
-  const removeAdComment = (commentContainer) => {
-    if (!commentContainer.shadowRoot) return;
-    const commentContentContainer = commentContainer.shadowRoot.querySelector("bili-comment-renderer");
-    if (!(commentContainer && commentContainer.shadowRoot)) return;
-    const richContentContainer = commentContentContainer.shadowRoot.querySelectorAll("bili-rich-text");
-    for (const richContentElement of richContentContainer) {
-      const { shadowRoot } = richContentElement;
-      if (!shadowRoot) continue;
-      if (!shadowRoot.querySelector('[data-type="goods"]')) {
-        continue;
-      }
-      commentContainer.style.display = "none";
-      videoAdNotify.banCommentAd();
-      break;
-    }
-  };
-  const banCommentAd = async () => {
-    const commentContainer = await elementWaiter("bili-comments", { timeoutPerSecond: void 0 });
-    if (!commentContainer.shadowRoot) return;
-    const commentContentContainer = await elementWaiter("#contents", {
-      parent: commentContainer.shadowRoot,
-      delayPerSecond: 0,
-      timeoutPerSecond: void 0
-    });
-    commentContentContainer.querySelectorAll("bili-comment-thread-renderer").forEach(removeAdComment);
-  };
-  const api_askAi = async (config) => {
-    const messages = [
-      { "role": "user", "content": config.message }
-    ];
-    config.prompt && messages.push({
-      "role": "system",
-      "content": config.prompt
-    });
-    const res = await fetch(config.url, {
-      method: "POST",
-      body: JSON.stringify({
-        model: config.model,
-        messages
-      }),
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${config.apiKey}`
-      }
-    });
-    return await res.json();
-  };
-  const defaultPrompt = `# Role
+    };
+    const banCommentAd = async () => {
+        const commentContainer = await elementWaiter(
+            'bili-comments',
+            {
+                timeoutPerSecond: void 0,
+            },
+        );
+        if (!commentContainer.shadowRoot) return;
+        const commentContentContainer = await elementWaiter(
+            '#contents',
+            {
+                parent: commentContainer.shadowRoot,
+                delayPerSecond: 0,
+                timeoutPerSecond: void 0,
+            },
+        );
+        commentContentContainer
+            .querySelectorAll('bili-comment-thread-renderer')
+            .forEach(removeAdComment);
+    };
+    const api_askAi = async (config) => {
+        const messages = [{ role: 'user', content: config.message }];
+        config.prompt &&
+            messages.push({
+                role: 'system',
+                content: config.prompt,
+            });
+        const res = await fetch(config.url, {
+            method: 'POST',
+            body: JSON.stringify({
+                model: config.model,
+                messages,
+            }),
+            headers: {
+                'Content-Type': 'application/json',
+                Authorization: `Bearer ${config.apiKey}`,
+            },
+        });
+        return await res.json();
+    };
+    const defaultPrompt = `# Role
 \u4F60\u662F\u4E00\u4E2A\u4E13\u95E8\u5206\u6790B\u7AD9\u89C6\u9891\u5185\u5BB9\u7684\u8D44\u6DF1AI\u5BA1\u8BA1\u5458\u3002\u4F60\u7684\u6838\u5FC3\u4EFB\u52A1\u662F\u901A\u8FC7\u5206\u6790\u89C6\u9891\u7684\u6807\u9898\u3001\u5B57\u5E55\u6587\u672C\u548C\u5F39\u5E55\uFF0C\u7CBE\u51C6\u5224\u65AD\u89C6\u9891\u662F\u5426\u5305\u542B\u5546\u4E1A\u5E7F\u544A\uFF08\u5305\u62EC\u4F46\u4E0D\u9650\u4E8E\uFF1A\u53E3\u64AD\u8F6F\u5E7F\u3001\u4EA7\u54C1\u690D\u5165\u3001\u4E13\u5C5E\u4F18\u60E0\u94FE\u63A5\u3001\u8D34\u7247\u5E7F\u544A\u3001\u8D5E\u52A9\u5546\u9E23\u8C22\u7B49\uFF09\uFF0C\u5E76\u5B9A\u4F4D\u5E7F\u544A\u7684\u7CBE\u786E\u65F6\u95F4\u533A\u95F4\u3002
 # Input Data Format
 \u4F60\u5C06\u63A5\u6536\u5230\u4EE5\u4E0BXML\u683C\u5F0F\u7684\u6570\u636E\uFF1A
@@ -677,884 +850,1136 @@ ${timeContent}`, { showMessage: false });
     </ad_segments>
 </ad_detection>
 `;
-  const defaultUrl = "https://open.bigmodel.cn/api/paas/v4/chat/completions";
-  const defaultModel = "GLM-4.7-Flash";
-  const aiConfigUrlStore = new GmStorage("AI\u914D\u7F6E.url", defaultUrl);
-  const aiConfigModelStore = new GmStorage("AI\u914D\u7F6E.model", defaultModel);
-  const aiConfigApiKeyStore = new GmStorage("AI\u914D\u7F6E.apiKey", "");
-  const aiConfigPromptKeyStore = new GmStorage("AI\u914D\u7F6E.prompt", defaultPrompt);
-  const aiConfig = {
-    url: aiConfigUrlStore.get(),
-    model: aiConfigModelStore.get(),
-    apiKey: aiConfigApiKeyStore.get(),
-    prompt: aiConfigPromptKeyStore.get()
-  };
-  const AD_KEYWORDS = [
-    "\u6070\u996D",
-    "\u91D1\u4E3B",
-    "\u5546\u5355",
-    "\u690D\u5165",
-    "\u8D5E\u52A9",
-    "\u5408\u4F5C",
-    "\u5E7F\u544A",
-    "\u94FE\u63A5",
-    "\u53E3\u4EE4",
-    "\u4F18\u60E0",
-    "\u6298\u6263",
-    "\u4E0B\u8F7D",
-    "\u8D2D\u4E70",
-    "\u70B9\u51FB",
-    "\u611F\u8C22",
-    "\u51A0\u540D",
-    "\u652F\u6301",
-    "APP",
-    "\u4EA7\u54C1",
-    "\u63A8\u8350"
-  ];
-  const filterMeaninglessDanmaku = (danmakuList) => {
-    const reg = /^(.)\1{2,}$/;
-    return danmakuList.filter((danmaku) => !reg.test(danmaku.text));
-  };
-  const aggregateDanmaku = (danmakuList, windowSize = 10) => {
-    if (!danmakuList.length) {
-      return [];
-    }
-    const filteredList = filterMeaninglessDanmaku(danmakuList);
-    const maxTime = Math.max(...filteredList.map((d) => d.startTime));
-    const numWindows = Math.ceil(maxTime / windowSize);
-    const groups = [];
-    for (let i = 0; i < numWindows; i++) {
-      const startTime = i * windowSize;
-      const endTime = (i + 1) * windowSize;
-      const windowDanmaku = filteredList.filter(
-        (d) => d.startTime >= startTime && d.startTime < endTime
-      );
-      if (!windowDanmaku.length) {
-        continue;
-      }
-      const wordCount = /* @__PURE__ */ new Map();
-      windowDanmaku.forEach((d) => {
-        AD_KEYWORDS.forEach((keyword) => {
-          if (d.text.includes(keyword)) {
-            wordCount.set(keyword, (wordCount.get(keyword) || 0) + 1);
-          }
-        });
-      });
-      const topKeywords = Array.from(wordCount.entries()).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([word]) => word);
-      const seenTexts = /* @__PURE__ */ new Set();
-      const sampleTexts = [];
-      for (const d of windowDanmaku) {
-        if (!seenTexts.has(d.text) && sampleTexts.length < 3) {
-          seenTexts.add(d.text);
-          sampleTexts.push(d.text);
+    const defaultUrl =
+        'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+    const defaultModel = 'GLM-4.7-Flash';
+    const aiConfigUrlStore = new GmStorage(
+        'AI\u914D\u7F6E.url',
+        defaultUrl,
+    );
+    const aiConfigModelStore = new GmStorage(
+        'AI\u914D\u7F6E.model',
+        defaultModel,
+    );
+    const aiConfigApiKeyStore = new GmStorage(
+        'AI\u914D\u7F6E.apiKey',
+        '',
+    );
+    const aiConfigPromptKeyStore = new GmStorage(
+        'AI\u914D\u7F6E.prompt',
+        defaultPrompt,
+    );
+    const aiConfig = {
+        url: aiConfigUrlStore.get(),
+        model: aiConfigModelStore.get(),
+        apiKey: aiConfigApiKeyStore.get(),
+        prompt: aiConfigPromptKeyStore.get(),
+    };
+    const AD_KEYWORDS = [
+        '\u6070\u996D',
+        '\u91D1\u4E3B',
+        '\u5546\u5355',
+        '\u690D\u5165',
+        '\u8D5E\u52A9',
+        '\u5408\u4F5C',
+        '\u5E7F\u544A',
+        '\u94FE\u63A5',
+        '\u53E3\u4EE4',
+        '\u4F18\u60E0',
+        '\u6298\u6263',
+        '\u4E0B\u8F7D',
+        '\u8D2D\u4E70',
+        '\u70B9\u51FB',
+        '\u611F\u8C22',
+        '\u51A0\u540D',
+        '\u652F\u6301',
+        'APP',
+        '\u4EA7\u54C1',
+        '\u63A8\u8350',
+    ];
+    const filterMeaninglessDanmaku = (danmakuList) => {
+        const reg = /^(.)\1{2,}$/;
+        return danmakuList.filter(
+            (danmaku) => !reg.test(danmaku.text),
+        );
+    };
+    const aggregateDanmaku = (danmakuList, windowSize = 10) => {
+        if (!danmakuList.length) {
+            return [];
         }
-        if (sampleTexts.length >= 3) break;
-      }
-      groups.push({
-        timeWindow: i,
-        startTime,
-        endTime,
-        count: windowDanmaku.length,
-        topKeywords,
-        sampleTexts
-      });
-    }
-    return groups;
-  };
-  const formatDanmakuGroupsToXML = (groups) => {
-    if (!groups.length) {
-      return "<danmaku_groups></danmaku_groups>";
-    }
-    const groupElements = groups.map((group) => {
-      const spikeAttr = group.hasSpike ? ' spike="true"' : "";
-      const keywords = group.topKeywords.join(",") || "\u65E0";
-      const samples = group.sampleTexts.join(" | ") || "\u65E0";
-      return `  <group start="${group.startTime}" end="${group.endTime}" count="${group.count}"${spikeAttr}>
+        const filteredList = filterMeaninglessDanmaku(danmakuList);
+        const maxTime = Math.max(
+            ...filteredList.map((d) => d.startTime),
+        );
+        const numWindows = Math.ceil(maxTime / windowSize);
+        const groups = [];
+        for (let i = 0; i < numWindows; i++) {
+            const startTime = i * windowSize;
+            const endTime = (i + 1) * windowSize;
+            const windowDanmaku = filteredList.filter(
+                (d) =>
+                    d.startTime >= startTime && d.startTime < endTime,
+            );
+            if (!windowDanmaku.length) {
+                continue;
+            }
+            const wordCount = /* @__PURE__ */ new Map();
+            windowDanmaku.forEach((d) => {
+                AD_KEYWORDS.forEach((keyword) => {
+                    if (d.text.includes(keyword)) {
+                        wordCount.set(
+                            keyword,
+                            (wordCount.get(keyword) || 0) + 1,
+                        );
+                    }
+                });
+            });
+            const topKeywords = Array.from(wordCount.entries())
+                .sort((a, b) => b[1] - a[1])
+                .slice(0, 3)
+                .map(([word]) => word);
+            const seenTexts = /* @__PURE__ */ new Set();
+            const sampleTexts = [];
+            for (const d of windowDanmaku) {
+                if (
+                    !seenTexts.has(d.text) &&
+                    sampleTexts.length < 3
+                ) {
+                    seenTexts.add(d.text);
+                    sampleTexts.push(d.text);
+                }
+                if (sampleTexts.length >= 3) break;
+            }
+            groups.push({
+                timeWindow: i,
+                startTime,
+                endTime,
+                count: windowDanmaku.length,
+                topKeywords,
+                sampleTexts,
+            });
+        }
+        return groups;
+    };
+    const formatDanmakuGroupsToXML = (groups) => {
+        if (!groups.length) {
+            return '<danmaku_groups></danmaku_groups>';
+        }
+        const groupElements = groups
+            .map((group) => {
+                const spikeAttr = group.hasSpike
+                    ? ' spike="true"'
+                    : '';
+                const keywords =
+                    group.topKeywords.join(',') || '\u65E0';
+                const samples =
+                    group.sampleTexts.join(' | ') || '\u65E0';
+                return `  <group start="${group.startTime}" end="${group.endTime}" count="${group.count}"${spikeAttr}>
     <keywords>${keywords}</keywords>
     <samples>${samples}</samples>
   </group>`;
-    }).join("\n");
-    return `<danmaku_groups>
+            })
+            .join('\n');
+        return `<danmaku_groups>
 ${groupElements}
 </danmaku_groups>`;
-  };
-  const escapeXML = (str) => {
-    return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
-  };
-  const formatSubtitle = (subtitleLineList, danmakuLineList, mainTitle, subTitle) => {
-    const subtitleXML = subtitleLineList.length ? `<subtitle>
-${subtitleLineList.map((line) => `  <line from="${line.from}" to="${line.to}">${escapeXML(line.content)}</line>`).join("\n")}
-</subtitle>` : "<subtitle></subtitle>";
-    const aggregated = aggregateDanmaku(danmakuLineList, 10);
-    const danmakuXML = formatDanmakuGroupsToXML(aggregated);
-    return `<video>
+    };
+    const escapeXML = (str) => {
+        return str
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&apos;');
+    };
+    const formatSubtitle = (
+        subtitleLineList,
+        danmakuLineList,
+        mainTitle,
+        subTitle,
+    ) => {
+        const subtitleXML = subtitleLineList.length
+            ? `<subtitle>
+${subtitleLineList.map((line) => `  <line from="${line.from}" to="${line.to}">${escapeXML(line.content)}</line>`).join('\n')}
+</subtitle>`
+            : '<subtitle></subtitle>';
+        const aggregated = aggregateDanmaku(danmakuLineList, 10);
+        const danmakuXML = formatDanmakuGroupsToXML(aggregated);
+        return `<video>
 <title>${escapeXML(mainTitle)}</title>
 <part>${escapeXML(subTitle)}</part>
 ${subtitleXML}
 ${danmakuXML}
 </video>`;
-  };
-  const getAdTime = async (subtitleLineList, danmakuLineList, videoInfo) => {
-    const defaultReturn = {
-      hasAd: false
     };
-    const subtitleTable = formatSubtitle(
-      subtitleLineList,
-      danmakuLineList,
-      videoInfo.title,
-      videoInfo.partTitle
-    );
-    if (!aiConfig.apiKey) {
-      videoAdNotify.apiKeyLost();
-      return defaultReturn;
-    }
-    videoAdNotify.aiUserAsk(subtitleTable);
-    const aiAnswer = await api_askAi({
-      message: subtitleTable,
-      ...aiConfig
-    });
-    const answer = aiAnswer.choices[0].message.content;
-    videoAdNotify.aiAnswer(answer);
-    const parser = new DOMParser();
-    const xmlDoc = parser.parseFromString(answer, "text/xml");
-    const hasAdNode = xmlDoc.querySelector("has_ad");
-    if (!hasAdNode || hasAdNode.textContent?.toLowerCase() !== "true") {
-      return defaultReturn;
-    }
-    const adTimes = [];
-    xmlDoc.querySelectorAll("segment").forEach((segment) => {
-      const startNode = segment.querySelector("start_time");
-      const endNode = segment.querySelector("end_time");
-      if (startNode && endNode) {
-        const start = parseFloat(startNode.textContent ?? "");
-        const end = parseFloat(endNode.textContent ?? "");
-        if (!isNaN(start) && !isNaN(end)) {
-          adTimes.push({ start, end });
+    const getAdTime = async (
+        subtitleLineList,
+        danmakuLineList,
+        videoInfo,
+    ) => {
+        const defaultReturn = {
+            hasAd: false,
+        };
+        const subtitleTable = formatSubtitle(
+            subtitleLineList,
+            danmakuLineList,
+            videoInfo.title,
+            videoInfo.partTitle,
+        );
+        if (!aiConfig.apiKey) {
+            videoAdNotify.apiKeyLost();
+            return defaultReturn;
         }
-      }
-    });
-    if (!adTimes.length) {
-      return defaultReturn;
-    }
-    return {
-      hasAd: true,
-      adTimes
-    };
-  };
-  const throttle = ({ interval }, func) => {
-    let ready = true;
-    let timer = void 0;
-    const throttled = (...args) => {
-      if (!ready)
-        return;
-      func(...args);
-      ready = false;
-      timer = setTimeout(() => {
-        ready = true;
-        timer = void 0;
-      }, interval);
-    };
-    throttled.isThrottled = () => {
-      return timer !== void 0;
-    };
-    return throttled;
-  };
-  class StringListStore {
-    constructor(key, defaultValue) {
-      this.key = key;
-      this.defaultValue = defaultValue;
-      this.cache = null;
-    }
-    /**
-     * 获取值（使用缓存）
-     */
-    get() {
-      if (this.cache !== null) {
-        return new Set(this.cache);
-      }
-      const content = GM_getValue(this.key);
-      if (!content) {
-        this.cache = new Set(this.defaultValue);
-        return new Set(this.defaultValue);
-      }
-      this.cache = new Set(content.split(/,\s/g));
-      return new Set(this.cache);
-    }
-    /**
-     * 设置值（更新缓存）
-     */
-    set(items) {
-      const content = Array.from(items).join(", ");
-      GM_setValue(this.key, content);
-      this.cache = new Set(items);
-    }
-    /**
-     * 删除值（更新缓存）
-     */
-    delete(item) {
-      const list = this.get();
-      list.delete(item);
-      this.set(list);
-    }
-    /**
-     * 新增值（更新缓存）
-     */
-    add(item) {
-      const list = this.get();
-      list.add(item);
-      this.set(list);
-    }
-    /**
-     * 是否包含值
-     */
-    has(item) {
-      const list = this.get();
-      return list.has(item);
-    }
-    /**
-     * 清除缓存
-     */
-    clearCache() {
-      this.cache = null;
-    }
-    /**
-     * 刷新缓存（强制从存储重新读取）
-     */
-    refresh() {
-      this.cache = null;
-      return this.get();
-    }
-  }
-  const banModeStore = new GmStorage("\u5C4F\u853D\u8BBE\u7F6E.banMode", "\u9ED1\u540D\u5355");
-  const whitelistUpStore = new StringListStore("\u5C4F\u853D\u8BBE\u7F6E.whitelist", /* @__PURE__ */ new Set());
-  const blacklistUpStore = new StringListStore("\u5C4F\u853D\u8BBE\u7F6E.blacklist", /* @__PURE__ */ new Set());
-  const currentBanListStore = banModeStore.get() === "\u767D\u540D\u5355" ? whitelistUpStore : blacklistUpStore;
-  const renderCacheClearButton = (videoAdCache) => {
-    gmMenuCommand.create("\u6E05\u9664\u5F53\u524D\u89C6\u9891\u7F13\u5B58", () => {
-      videoAdCache.delete();
-      gmMenuCommand.remove("\u6E05\u9664\u5F53\u524D\u89C6\u9891\u7F13\u5B58").render();
-    }).render();
-  };
-  const renderBanlistToggleButton = (mid, upName) => {
-    const titleMapper = {
-      "\u767D\u540D\u5355": [`\u6DFB\u52A0\u5E7F\u544A\u767D\u540D\u5355 [${upName}]`, `\u79FB\u9664\u5E7F\u544A\u767D\u540D\u5355 [${upName}]`],
-      "\u9ED1\u540D\u5355": [`\u6DFB\u52A0\u5E7F\u544A\u9ED1\u540D\u5355 [${upName}]`, `\u79FB\u9664\u5E7F\u544A\u9ED1\u540D\u5355 [${upName}]`]
-    };
-    const banMode = banModeStore.get();
-    const [activeTitle, inactiveTitle] = titleMapper[banMode];
-    gmMenuCommand.createToggle({
-      active: {
-        title: activeTitle,
-        onClick() {
-          currentBanListStore.add(String(mid));
-        }
-      },
-      inactive: {
-        title: inactiveTitle,
-        onClick() {
-          currentBanListStore.delete(String(mid));
-        }
-      }
-    }).render();
-    if (currentBanListStore.has(String(mid))) {
-      gmMenuCommand.toggleActive(activeTitle).toggleActive(inactiveTitle).render();
-    }
-  };
-  const renderStopVideoAdJumpButton = (videoContainer, handle) => {
-    const activeTitle = "\u6682\u505C\u8DF3\u8FC7\u89C6\u9891\u5E7F\u544A";
-    const inactiveTitle = "\u5F00\u542F\u8DF3\u8FC7\u89C6\u9891\u5E7F\u544A";
-    gmMenuCommand.createToggle({
-      active: {
-        title: activeTitle,
-        onClick() {
-          videoContainer.removeEventListener("timeupdate", handle);
-        }
-      },
-      inactive: {
-        title: inactiveTitle,
-        onClick() {
-          videoContainer.addEventListener("timeupdate", handle);
-        }
-      }
-    }).render();
-  };
-  function isTimeInAd(time, adTimes) {
-    return adTimes.find((ad) => time >= ad.start && time < ad.end);
-  }
-  const skipAdListener = async (adTimes) => {
-    const video = await elementWaiter('[aria-label="\u54D4\u54E9\u54D4\u54E9\u64AD\u653E\u5668"] video');
-    const handleVideoAdJumper = throttle({ interval: 200 }, () => {
-      const { currentTime } = video;
-      const timeInAd = isTimeInAd(currentTime, adTimes);
-      if (timeInAd) {
-        video.currentTime = timeInAd.end;
-        videoAdNotify.jumpAdEnd(timeInAd.start, timeInAd.end);
-      }
-    });
-    video.addEventListener("timeupdate", handleVideoAdJumper);
-    renderStopVideoAdJumpButton(video, handleVideoAdJumper);
-  };
-  class VideoAdCache {
-    constructor(bvId) {
-      this.bvId = bvId;
-      const prev = bvId.slice(3, 6);
-      this.store = new GmStorage(`videoAdCache-${prev}`, {});
-    }
-    /**
-     * 获取缓存
-     */
-    get cache() {
-      return this.store.get();
-    }
-    /**
-     * 添加广告状态
-     */
-    add(status) {
-      const cache = this.cache;
-      Object.assign(cache, { [this.bvId]: status });
-      this.store.set(cache);
-    }
-    /**
-     * 获取广告状态
-     */
-    getAdStatus() {
-      return this.cache[this.bvId];
-    }
-    /**
-     * 清除缓存
-     */
-    delete() {
-      const cache = this.cache;
-      delete cache[this.bvId];
-      this.store.set(cache);
-    }
-  }
-  const elementGetter = (selector, container = document) => {
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject("timeout"), 2e4);
-      const timer = setInterval(() => {
-        const target = container.querySelector(selector);
-        if (target) {
-          clearInterval(timer);
-          clearTimeout(timeout);
-          resolve(target);
-        }
-      }, 100);
-    });
-  };
-  const showIconStore = new GmStorage("\u901A\u7528\u914D\u7F6E.showIcon", true);
-  class AdIcon {
-    static {
-      this._adBanContentContainer = null;
-    }
-    static get adBanContentContainer() {
-      if (!this._adBanContentContainer) {
-        this._adBanContentContainer = document.createElement("div");
-        this._adBanContentContainer.classList.add("ad-ban-content");
-        Object.assign(this._adBanContentContainer.style, {
-          color: "#9499A0",
-          whiteSpace: "nowrap"
+        videoAdNotify.aiUserAsk(subtitleTable);
+        const aiAnswer = await api_askAi({
+            message: subtitleTable,
+            ...aiConfig,
         });
-        this._adBanContentContainer.textContent = "\u83B7\u53D6\u89C6\u9891\u6570\u636E\u4E2D...";
-      }
-      return this._adBanContentContainer;
+        const answer = aiAnswer.choices[0].message.content;
+        videoAdNotify.aiAnswer(answer);
+        const parser = new DOMParser();
+        const xmlDoc = parser.parseFromString(answer, 'text/xml');
+        const hasAdNode = xmlDoc.querySelector('has_ad');
+        if (
+            !hasAdNode ||
+            hasAdNode.textContent?.toLowerCase() !== 'true'
+        ) {
+            return defaultReturn;
+        }
+        const adTimes = [];
+        xmlDoc.querySelectorAll('segment').forEach((segment) => {
+            const startNode = segment.querySelector('start_time');
+            const endNode = segment.querySelector('end_time');
+            if (startNode && endNode) {
+                const start = parseFloat(startNode.textContent ?? '');
+                const end = parseFloat(endNode.textContent ?? '');
+                if (!isNaN(start) && !isNaN(end)) {
+                    adTimes.push({ start, end });
+                }
+            }
+        });
+        if (!adTimes.length) {
+            return defaultReturn;
+        }
+        return {
+            hasAd: true,
+            adTimes,
+        };
+    };
+    const throttle = ({ interval }, func) => {
+        let ready = true;
+        let timer = void 0;
+        const throttled = (...args) => {
+            if (!ready) return;
+            func(...args);
+            ready = false;
+            timer = setTimeout(() => {
+                ready = true;
+                timer = void 0;
+            }, interval);
+        };
+        throttled.isThrottled = () => {
+            return timer !== void 0;
+        };
+        return throttled;
+    };
+    class StringListStore {
+        constructor(key, defaultValue) {
+            this.key = key;
+            this.defaultValue = defaultValue;
+            this.cache = null;
+        }
+        /**
+         * 获取值（使用缓存）
+         */
+        get() {
+            if (this.cache !== null) {
+                return new Set(this.cache);
+            }
+            const content = GM_getValue(this.key);
+            if (!content) {
+                this.cache = new Set(this.defaultValue);
+                return new Set(this.defaultValue);
+            }
+            this.cache = new Set(content.split(/,\s/g));
+            return new Set(this.cache);
+        }
+        /**
+         * 设置值（更新缓存）
+         */
+        set(items) {
+            const content = Array.from(items).join(', ');
+            GM_setValue(this.key, content);
+            this.cache = new Set(items);
+        }
+        /**
+         * 删除值（更新缓存）
+         */
+        delete(item) {
+            const list = this.get();
+            list.delete(item);
+            this.set(list);
+        }
+        /**
+         * 新增值（更新缓存）
+         */
+        add(item) {
+            const list = this.get();
+            list.add(item);
+            this.set(list);
+        }
+        /**
+         * 是否包含值
+         */
+        has(item) {
+            const list = this.get();
+            return list.has(item);
+        }
+        /**
+         * 清除缓存
+         */
+        clearCache() {
+            this.cache = null;
+        }
+        /**
+         * 刷新缓存（强制从存储重新读取）
+         */
+        refresh() {
+            this.cache = null;
+            return this.get();
+        }
     }
-    /**
-     * 添加广告容器到页面中
-     */
-    static async append() {
-      if (!showIconStore.get()) {
-        return;
-      }
-      await elementGetter(".bpx-player-loading-panel:not(.bpx-state-loading)");
-      const container = await elementWaiter(".video-info-detail-list");
-      const iconContainer = document.createElement("div");
-      Object.assign(iconContainer.style, {
-        display: "flex",
-        gap: "4px",
-        alignItems: "center"
-      });
-      iconContainer.innerHTML = `
+    const banModeStore = new GmStorage(
+        '\u5C4F\u853D\u8BBE\u7F6E.banMode',
+        '\u9ED1\u540D\u5355',
+    );
+    const whitelistUpStore = new StringListStore(
+        '\u5C4F\u853D\u8BBE\u7F6E.whitelist',
+        /* @__PURE__ */ new Set(),
+    );
+    const blacklistUpStore = new StringListStore(
+        '\u5C4F\u853D\u8BBE\u7F6E.blacklist',
+        /* @__PURE__ */ new Set(),
+    );
+    const currentBanListStore =
+        banModeStore.get() === '\u767D\u540D\u5355'
+            ? whitelistUpStore
+            : blacklistUpStore;
+    const renderCacheClearButton = (videoAdCache) => {
+        gmMenuCommand
+            .create(
+                '\u6E05\u9664\u5F53\u524D\u89C6\u9891\u7F13\u5B58',
+                () => {
+                    videoAdCache.delete();
+                    gmMenuCommand
+                        .remove(
+                            '\u6E05\u9664\u5F53\u524D\u89C6\u9891\u7F13\u5B58',
+                        )
+                        .render();
+                },
+            )
+            .render();
+    };
+    const renderBanlistToggleButton = (mid, upName) => {
+        const titleMapper = {
+            '\u767D\u540D\u5355': [
+                `\u6DFB\u52A0\u5E7F\u544A\u767D\u540D\u5355 [${upName}]`,
+                `\u79FB\u9664\u5E7F\u544A\u767D\u540D\u5355 [${upName}]`,
+            ],
+            '\u9ED1\u540D\u5355': [
+                `\u6DFB\u52A0\u5E7F\u544A\u9ED1\u540D\u5355 [${upName}]`,
+                `\u79FB\u9664\u5E7F\u544A\u9ED1\u540D\u5355 [${upName}]`,
+            ],
+        };
+        const banMode = banModeStore.get();
+        const [activeTitle, inactiveTitle] = titleMapper[banMode];
+        gmMenuCommand
+            .createToggle({
+                active: {
+                    title: activeTitle,
+                    onClick() {
+                        currentBanListStore.add(String(mid));
+                    },
+                },
+                inactive: {
+                    title: inactiveTitle,
+                    onClick() {
+                        currentBanListStore.delete(String(mid));
+                    },
+                },
+            })
+            .render();
+        if (currentBanListStore.has(String(mid))) {
+            gmMenuCommand
+                .toggleActive(activeTitle)
+                .toggleActive(inactiveTitle)
+                .render();
+        }
+    };
+    const renderStopVideoAdJumpButton = (videoContainer, handle) => {
+        const activeTitle =
+            '\u6682\u505C\u8DF3\u8FC7\u89C6\u9891\u5E7F\u544A';
+        const inactiveTitle =
+            '\u5F00\u542F\u8DF3\u8FC7\u89C6\u9891\u5E7F\u544A';
+        gmMenuCommand
+            .createToggle({
+                active: {
+                    title: activeTitle,
+                    onClick() {
+                        videoContainer.removeEventListener(
+                            'timeupdate',
+                            handle,
+                        );
+                    },
+                },
+                inactive: {
+                    title: inactiveTitle,
+                    onClick() {
+                        videoContainer.addEventListener(
+                            'timeupdate',
+                            handle,
+                        );
+                    },
+                },
+            })
+            .render();
+    };
+    function isTimeInAd(time, adTimes) {
+        return adTimes.find(
+            (ad) => time >= ad.start && time < ad.end,
+        );
+    }
+    const skipAdListener = async (adTimes) => {
+        const video = await elementWaiter(
+            '[aria-label="\u54D4\u54E9\u54D4\u54E9\u64AD\u653E\u5668"] video',
+        );
+        const handleVideoAdJumper = throttle(
+            { interval: 200 },
+            () => {
+                const { currentTime } = video;
+                const timeInAd = isTimeInAd(currentTime, adTimes);
+                if (timeInAd) {
+                    video.currentTime = timeInAd.end;
+                    videoAdNotify.jumpAdEnd(
+                        timeInAd.start,
+                        timeInAd.end,
+                    );
+                }
+            },
+        );
+        video.addEventListener('timeupdate', handleVideoAdJumper);
+        renderStopVideoAdJumpButton(video, handleVideoAdJumper);
+    };
+    class VideoAdCache {
+        constructor(bvId) {
+            this.bvId = bvId;
+            const prev = bvId.slice(3, 6);
+            this.store = new GmStorage(`videoAdCache-${prev}`, {});
+        }
+        /**
+         * 获取缓存
+         */
+        get cache() {
+            return this.store.get();
+        }
+        /**
+         * 添加广告状态
+         */
+        add(status) {
+            const cache = this.cache;
+            Object.assign(cache, { [this.bvId]: status });
+            this.store.set(cache);
+        }
+        /**
+         * 获取广告状态
+         */
+        getAdStatus() {
+            return this.cache[this.bvId];
+        }
+        /**
+         * 清除缓存
+         */
+        delete() {
+            const cache = this.cache;
+            delete cache[this.bvId];
+            this.store.set(cache);
+        }
+    }
+    const elementGetter = (selector, container = document) => {
+        return new Promise((resolve, reject) => {
+            const timeout = setTimeout(() => reject('timeout'), 2e4);
+            const timer = setInterval(() => {
+                const target = container.querySelector(selector);
+                if (target) {
+                    clearInterval(timer);
+                    clearTimeout(timeout);
+                    resolve(target);
+                }
+            }, 100);
+        });
+    };
+    const showIconStore = new GmStorage(
+        '\u901A\u7528\u914D\u7F6E.showIcon',
+        true,
+    );
+    class AdIcon {
+        static {
+            this._adBanContentContainer = null;
+        }
+        static get adBanContentContainer() {
+            if (!this._adBanContentContainer) {
+                this._adBanContentContainer =
+                    document.createElement('div');
+                this._adBanContentContainer.classList.add(
+                    'ad-ban-content',
+                );
+                Object.assign(this._adBanContentContainer.style, {
+                    color: '#9499A0',
+                    whiteSpace: 'nowrap',
+                });
+                this._adBanContentContainer.textContent =
+                    '\u83B7\u53D6\u89C6\u9891\u6570\u636E\u4E2D...';
+            }
+            return this._adBanContentContainer;
+        }
+        /**
+         * 添加广告容器到页面中
+         */
+        static async append() {
+            if (!showIconStore.get()) {
+                return;
+            }
+            await elementGetter(
+                '.bpx-player-loading-panel:not(.bpx-state-loading)',
+            );
+            const container = await elementWaiter(
+                '.video-info-detail-list',
+            );
+            const iconContainer = document.createElement('div');
+            Object.assign(iconContainer.style, {
+                display: 'flex',
+                gap: '4px',
+                alignItems: 'center',
+            });
+            iconContainer.innerHTML = `
 <svg t="1769857927799" class="icon" viewBox="0 0 1024 1024" version="1.1" xmlns="http://www.w3.org/2000/svg" p-id="4899" xmlns:xlink="http://www.w3.org/1999/xlink" width="16" height="16"><path d="M104.6 222.3V716h814.8V222.3H104.6zM873.4 670H150.6V268.3h722.8V670z" p-id="4900"></path><path d="M351.7 517.3h75.1l27.6 89.4H504l-91.2-275.5h-47.2l-90.4 275.5H324l27.7-89.4z m60.9-46h-46.7l23.4-75.7 23.3 75.7zM755.8 471.1v-3.8c0-74.9-61-135.9-135.9-135.9h-95.5V607h95.5c74.9 0 135.9-61 135.9-135.9z m-185.4-93.7h49.5c49.6 0 89.9 40.3 89.9 89.9v3.8c0 49.6-40.3 89.9-89.9 89.9h-49.5V377.4zM127.3 755.7h769.1v46H127.3z" p-id="4901"></path></svg>
 	`;
-      iconContainer.append(this.adBanContentContainer);
-      container.append(iconContainer);
-    }
-    /**
-     * 修改视频广告状态: AI分析中
-     */
-    static changeStatusToAiAnalyze() {
-      this.adBanContentContainer.textContent = "AI\u5206\u6790\u4E2D...";
-    }
-    /**
-     * 修改视频广告状态: 无广告
-     */
-    static changeStatusToNoAd() {
-      this.adBanContentContainer.textContent = "\u5F53\u524D\u89C6\u9891\u65E0\u5E7F\u544A";
-    }
-    /**
-     * 修改视频广告状态: 广告时间显示
-     */
-    static changeStatusToAdTime(adTimes) {
-      this.adBanContentContainer.textContent = "\u5E7F\u544A\u65F6\u95F4: " + adTimes.map(
-        ({ start, end }) => `${formatTime(start)}~${formatTime(end)}`
-      ).join(" | ");
-    }
-    /**
-     * 修改视频广告状态: 无法识别
-     */
-    static changeStatusToCanNotAnalyze() {
-      this.adBanContentContainer.textContent = "\u5F53\u524D\u89C6\u9891\u65E0\u5B57\u5E55, \u65E0\u6CD5\u8BC6\u522B";
-    }
-    /**
-     * 修改视频广告状态: 缺失API KEY
-     */
-    static changeStatusToLostApiKey() {
-      this.adBanContentContainer.textContent = "\u672A\u914D\u7F6E API_KEY";
-    }
-  }
-  const normalizeHeaders = (headers) => {
-    const normalized = {};
-    for (const key in headers) normalized[key.toLowerCase()] = headers[key];
-    return normalized;
-  };
-  const processBody = (body, headers) => {
-    if (null == body) return null;
-    if (body instanceof FormData || body instanceof URLSearchParams || body instanceof Blob || body instanceof ArrayBuffer || body instanceof ReadableStream || "string" == typeof body) return body;
-    if ("object" == typeof body) {
-      if (!headers["content-type"]) headers["content-type"] = "application/json;charset=UTF-8";
-      return JSON.stringify(body);
-    }
-    return String(body);
-  };
-  async function xhrRequest(url, options = {}) {
-    const { method = "GET", withCredentials = false, timeout = 2e4, onProgress } = options;
-    const headers = normalizeHeaders(options.headers || {});
-    const requestBody = processBody(options.body, headers);
-    if (options.params) {
-      const searchParams = new URLSearchParams(options.params);
-      url += `?${searchParams.toString()}`;
-    }
-    let responseType = options.responseType;
-    if (!responseType) {
-      const accept = headers["accept"];
-      responseType = accept?.includes("text/html") ? "document" : accept?.includes("text/") ? "text" : "json";
-    }
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-      xhr.open(method.toUpperCase(), url, true);
-      xhr.timeout = timeout;
-      xhr.withCredentials = withCredentials;
-      xhr.responseType = responseType;
-      Object.entries(headers).forEach(([key, value]) => {
-        xhr.setRequestHeader(key, value);
-      });
-      if (onProgress) xhr.addEventListener("progress", onProgress);
-      xhr.addEventListener("load", () => {
-        if (xhr.status >= 200 && xhr.status < 300) resolve(xhr.response);
-        else reject(new Error(`HTTP Error ${xhr.status}: ${xhr.statusText} @ ${url}`));
-      });
-      xhr.addEventListener("error", () => {
-        reject(new Error(`Network Error: Failed to connect to ${url}`));
-      });
-      xhr.addEventListener("timeout", () => {
-        xhr.abort();
-        reject(new Error(`Request Timeout: Exceeded ${timeout}ms`));
-      });
-      xhr.send(requestBody);
-    });
-  }
-  xhrRequest.get = (url, options) => xhrRequest(url, {
-    ...options,
-    method: "GET"
-  });
-  xhrRequest.getWithCredentials = (url, options) => xhrRequest(url, {
-    ...options,
-    method: "GET",
-    withCredentials: true
-  });
-  xhrRequest.post = (url, options) => xhrRequest(url, {
-    ...options,
-    method: "POST"
-  });
-  xhrRequest.postWithCredentials = (url, options) => xhrRequest(url, {
-    ...options,
-    method: "POST",
-    withCredentials: true
-  });
-  function decimalRgb888ToHex(rgb) {
-    const val = Math.max(0, Math.min(16777215, Math.trunc(rgb)));
-    const r = val >> 16 & 255;
-    const g = val >> 8 & 255;
-    const b = 255 & val;
-    const toHex = (n) => n.toString(16).padStart(2, "0").toUpperCase();
-    return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-  }
-  function make_crc32_cracker() {
-    const POLY = 3988292384;
-    const crc32_table = new Uint32Array(256);
-    function make_table() {
-      for (let i = 0; i < 256; i++) {
-        let crc = i;
-        for (let _ = 0; _ < 8; _++) if (1 & crc) crc = (crc >>> 1 ^ POLY) >>> 0;
-        else crc >>>= 1;
-        crc32_table[i] = crc;
-      }
-    }
-    make_table();
-    function update_crc(by, crc) {
-      return (crc >>> 8 ^ crc32_table[255 & crc ^ by]) >>> 0;
-    }
-    function compute(arr, init) {
-      let crc = init || 0;
-      for (let i = 0; i < arr.length; i++) crc = update_crc(arr[i], crc);
-      return crc;
-    }
-    function make_rainbow(N) {
-      const rainbow = new Uint32Array(N);
-      for (let i = 0; i < N; i++) {
-        const arr = i.toString().split("").map((c) => c.charCodeAt(0));
-        rainbow[i] = compute(arr);
-      }
-      return rainbow;
-    }
-    const rainbow_0 = make_rainbow(1e5);
-    const five_zeros = Array(5).fill(48);
-    const rainbow_1 = rainbow_0.map((crc) => compute(five_zeros, crc));
-    const rainbow_pos = new Uint32Array(65537);
-    const rainbow_hash = new Uint32Array(2e5);
-    function make_hash() {
-      for (let i = 0; i < rainbow_0.length; i++) rainbow_pos[rainbow_0[i] >>> 16]++;
-      for (let i = 1; i <= 65536; i++) rainbow_pos[i] += rainbow_pos[i - 1];
-      for (let i = 0; i < rainbow_0.length; i++) {
-        const po = --rainbow_pos[rainbow_0[i] >>> 16];
-        rainbow_hash[po << 1] = rainbow_0[i];
-        rainbow_hash[po << 1 | 1] = i;
-      }
-    }
-    function lookup(crc) {
-      const results = [];
-      const first = rainbow_pos[crc >>> 16];
-      const last = rainbow_pos[1 + (crc >>> 16)];
-      for (let i = first; i < last; i++) if (rainbow_hash[i << 1] === crc) results.push(rainbow_hash[i << 1 | 1]);
-      return results;
-    }
-    make_hash();
-    function crack(maincrc, max_digit) {
-      const results = [];
-      maincrc = ~maincrc >>> 0;
-      let basecrc = 4294967295;
-      for (let ndigits = 1; ndigits <= max_digit; ndigits++) {
-        basecrc = update_crc(48, basecrc);
-        if (ndigits < 6) {
-          const first_uid = 10 ** (ndigits - 1);
-          const last_uid = 10 ** ndigits;
-          for (let uid = first_uid; uid < last_uid; uid++) if (maincrc === (basecrc ^ rainbow_0[uid]) >>> 0) results.push(uid);
-        } else {
-          const first_prefix = 10 ** (ndigits - 6);
-          const last_prefix = 10 ** (ndigits - 5);
-          for (let prefix = first_prefix; prefix < last_prefix; prefix++) {
-            const rem = (maincrc ^ basecrc ^ rainbow_1[prefix]) >>> 0;
-            const items = lookup(rem);
-            items.forEach((z) => {
-              results.push(1e5 * prefix + z);
-            });
-          }
+            iconContainer.append(this.adBanContentContainer);
+            container.append(iconContainer);
         }
-      }
-      return results;
+        /**
+         * 修改视频广告状态: AI分析中
+         */
+        static changeStatusToAiAnalyze() {
+            this.adBanContentContainer.textContent =
+                'AI\u5206\u6790\u4E2D...';
+        }
+        /**
+         * 修改视频广告状态: 无广告
+         */
+        static changeStatusToNoAd() {
+            this.adBanContentContainer.textContent =
+                '\u5F53\u524D\u89C6\u9891\u65E0\u5E7F\u544A';
+        }
+        /**
+         * 修改视频广告状态: 广告时间显示
+         */
+        static changeStatusToAdTime(adTimes) {
+            this.adBanContentContainer.textContent =
+                '\u5E7F\u544A\u65F6\u95F4: ' +
+                adTimes
+                    .map(
+                        ({ start, end }) =>
+                            `${formatTime(start)}~${formatTime(end)}`,
+                    )
+                    .join(' | ');
+        }
+        /**
+         * 修改视频广告状态: 无法识别
+         */
+        static changeStatusToCanNotAnalyze() {
+            this.adBanContentContainer.textContent =
+                '\u5F53\u524D\u89C6\u9891\u65E0\u5B57\u5E55, \u65E0\u6CD5\u8BC6\u522B';
+        }
+        /**
+         * 修改视频广告状态: 缺失API KEY
+         */
+        static changeStatusToLostApiKey() {
+            this.adBanContentContainer.textContent =
+                '\u672A\u914D\u7F6E API_KEY';
+        }
     }
-    return {
-      crack
+    const normalizeHeaders = (headers) => {
+        const normalized = {};
+        for (const key in headers)
+            normalized[key.toLowerCase()] = headers[key];
+        return normalized;
     };
-  }
-  let crc32_cracker = null;
-  function uhash2uid(uidhash, max_digit = 10) {
-    if (!crc32_cracker) crc32_cracker = make_crc32_cracker();
-    return crc32_cracker.crack(parseInt(uidhash, 16), max_digit);
-  }
-  function parseDanmakuXml(xmlString, reverseUid = false) {
-    const cleanedXml = xmlString.replace(/[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]/g, "");
-    const xmlDoc = new DOMParser().parseFromString(cleanedXml, "text/xml");
-    const parseError = xmlDoc.querySelector("parsererror");
-    if (parseError) throw new Error(`XML \u89E3\u6790\u5931\u8D25: ${parseError.textContent}`);
-    const danmakuList = [];
-    const elements = xmlDoc.getElementsByTagName("d");
-    const colorCache = /* @__PURE__ */ new Map();
-    for (let i = 0; i < elements.length; i++) {
-      const item = elements[i];
-      const pAttr = item.getAttribute("p");
-      if (!pAttr) continue;
-      const parts = pAttr.split(",");
-      if (parts.length < 8) continue;
-      const text = item.textContent || "";
-      const colorValue = parseInt(parts[3], 10);
-      let colorHex = colorCache.get(colorValue);
-      if (!colorHex) {
-        colorHex = decimalRgb888ToHex(colorValue);
-        colorCache.set(colorValue, colorHex);
-      }
-      const danmakuItem = {
-        startTime: parseFloat(parts[0]),
-        mode: parseInt(parts[1], 10),
-        size: parseInt(parts[2], 10),
-        color: colorValue,
-        colorHex,
-        date: parseInt(parts[4], 10),
-        pool: parseInt(parts[5], 10),
-        midHash: parts[6],
-        dmid: parts[7],
-        text
-      };
-      if (parts.length >= 9) danmakuItem.level = parseInt(parts[8], 10);
-      if (reverseUid) danmakuItem.uid = uhash2uid(parts[6]);
-      danmakuList.push(danmakuItem);
-    }
-    danmakuList.sort((a, b) => a.startTime - b.startTime);
-    return danmakuList;
-  }
-  async function api_getDanmakuInfo(cid, reverseUid = false) {
-    if (null == cid) throw new TypeError("api_getDanmakuInfo: cid \u53C2\u6570\u4E0D\u80FD\u4E3A\u7A7A\uFF0C\u8BF7\u63D0\u4F9B\u6709\u6548\u7684\u89C6\u9891 CID");
-    const url = "https://api.bilibili.com/x/v1/dm/list.so";
-    const xmlString = await xhrRequest.getWithCredentials(url, {
-      params: {
-        oid: String(cid)
-      },
-      responseType: "text"
-    });
-    const danmakuList = parseDanmakuXml(xmlString, reverseUid);
-    return {
-      code: 0,
-      message: "success",
-      ttl: 1,
-      data: danmakuList
+    const processBody = (body, headers) => {
+        if (null == body) return null;
+        if (
+            body instanceof FormData ||
+            body instanceof URLSearchParams ||
+            body instanceof Blob ||
+            body instanceof ArrayBuffer ||
+            body instanceof ReadableStream ||
+            'string' == typeof body
+        )
+            return body;
+        if ('object' == typeof body) {
+            if (!headers['content-type'])
+                headers['content-type'] =
+                    'application/json;charset=UTF-8';
+            return JSON.stringify(body);
+        }
+        return String(body);
     };
-  }
-  function api_getPlayerInfo(id, cid, login) {
-    const idParam = "number" == typeof id ? {
-      aid: String(id)
-    } : {
-      bvid: String(id)
+    async function xhrRequest(url, options = {}) {
+        const {
+            method = 'GET',
+            withCredentials = false,
+            timeout = 2e4,
+            onProgress,
+        } = options;
+        const headers = normalizeHeaders(options.headers || {});
+        const requestBody = processBody(options.body, headers);
+        if (options.params) {
+            const searchParams = new URLSearchParams(options.params);
+            url += `?${searchParams.toString()}`;
+        }
+        let responseType = options.responseType;
+        if (!responseType) {
+            const accept = headers['accept'];
+            responseType = accept?.includes('text/html')
+                ? 'document'
+                : accept?.includes('text/')
+                  ? 'text'
+                  : 'json';
+        }
+        return new Promise((resolve, reject) => {
+            const xhr = new XMLHttpRequest();
+            xhr.open(method.toUpperCase(), url, true);
+            xhr.timeout = timeout;
+            xhr.withCredentials = withCredentials;
+            xhr.responseType = responseType;
+            Object.entries(headers).forEach(([key, value]) => {
+                xhr.setRequestHeader(key, value);
+            });
+            if (onProgress)
+                xhr.addEventListener('progress', onProgress);
+            xhr.addEventListener('load', () => {
+                if (xhr.status >= 200 && xhr.status < 300)
+                    resolve(xhr.response);
+                else
+                    reject(
+                        new Error(
+                            `HTTP Error ${xhr.status}: ${xhr.statusText} @ ${url}`,
+                        ),
+                    );
+            });
+            xhr.addEventListener('error', () => {
+                reject(
+                    new Error(
+                        `Network Error: Failed to connect to ${url}`,
+                    ),
+                );
+            });
+            xhr.addEventListener('timeout', () => {
+                xhr.abort();
+                reject(
+                    new Error(
+                        `Request Timeout: Exceeded ${timeout}ms`,
+                    ),
+                );
+            });
+            xhr.send(requestBody);
+        });
+    }
+    xhrRequest.get = (url, options) =>
+        xhrRequest(url, {
+            ...options,
+            method: 'GET',
+        });
+    xhrRequest.getWithCredentials = (url, options) =>
+        xhrRequest(url, {
+            ...options,
+            method: 'GET',
+            withCredentials: true,
+        });
+    xhrRequest.post = (url, options) =>
+        xhrRequest(url, {
+            ...options,
+            method: 'POST',
+        });
+    xhrRequest.postWithCredentials = (url, options) =>
+        xhrRequest(url, {
+            ...options,
+            method: 'POST',
+            withCredentials: true,
+        });
+    function decimalRgb888ToHex(rgb) {
+        const val = Math.max(0, Math.min(16777215, Math.trunc(rgb)));
+        const r = (val >> 16) & 255;
+        const g = (val >> 8) & 255;
+        const b = 255 & val;
+        const toHex = (n) =>
+            n.toString(16).padStart(2, '0').toUpperCase();
+        return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+    }
+    function make_crc32_cracker() {
+        const POLY = 3988292384;
+        const crc32_table = new Uint32Array(256);
+        function make_table() {
+            for (let i = 0; i < 256; i++) {
+                let crc = i;
+                for (let _ = 0; _ < 8; _++)
+                    if (1 & crc) crc = ((crc >>> 1) ^ POLY) >>> 0;
+                    else crc >>>= 1;
+                crc32_table[i] = crc;
+            }
+        }
+        make_table();
+        function update_crc(by, crc) {
+            return (
+                ((crc >>> 8) ^ crc32_table[(255 & crc) ^ by]) >>> 0
+            );
+        }
+        function compute(arr, init) {
+            let crc = init || 0;
+            for (let i = 0; i < arr.length; i++)
+                crc = update_crc(arr[i], crc);
+            return crc;
+        }
+        function make_rainbow(N) {
+            const rainbow = new Uint32Array(N);
+            for (let i = 0; i < N; i++) {
+                const arr = i
+                    .toString()
+                    .split('')
+                    .map((c) => c.charCodeAt(0));
+                rainbow[i] = compute(arr);
+            }
+            return rainbow;
+        }
+        const rainbow_0 = make_rainbow(1e5);
+        const five_zeros = Array(5).fill(48);
+        const rainbow_1 = rainbow_0.map((crc) =>
+            compute(five_zeros, crc),
+        );
+        const rainbow_pos = new Uint32Array(65537);
+        const rainbow_hash = new Uint32Array(2e5);
+        function make_hash() {
+            for (let i = 0; i < rainbow_0.length; i++)
+                rainbow_pos[rainbow_0[i] >>> 16]++;
+            for (let i = 1; i <= 65536; i++)
+                rainbow_pos[i] += rainbow_pos[i - 1];
+            for (let i = 0; i < rainbow_0.length; i++) {
+                const po = --rainbow_pos[rainbow_0[i] >>> 16];
+                rainbow_hash[po << 1] = rainbow_0[i];
+                rainbow_hash[(po << 1) | 1] = i;
+            }
+        }
+        function lookup(crc) {
+            const results = [];
+            const first = rainbow_pos[crc >>> 16];
+            const last = rainbow_pos[1 + (crc >>> 16)];
+            for (let i = first; i < last; i++)
+                if (rainbow_hash[i << 1] === crc)
+                    results.push(rainbow_hash[(i << 1) | 1]);
+            return results;
+        }
+        make_hash();
+        function crack(maincrc, max_digit) {
+            const results = [];
+            maincrc = ~maincrc >>> 0;
+            let basecrc = 4294967295;
+            for (let ndigits = 1; ndigits <= max_digit; ndigits++) {
+                basecrc = update_crc(48, basecrc);
+                if (ndigits < 6) {
+                    const first_uid = 10 ** (ndigits - 1);
+                    const last_uid = 10 ** ndigits;
+                    for (let uid = first_uid; uid < last_uid; uid++)
+                        if (
+                            maincrc ===
+                            (basecrc ^ rainbow_0[uid]) >>> 0
+                        )
+                            results.push(uid);
+                } else {
+                    const first_prefix = 10 ** (ndigits - 6);
+                    const last_prefix = 10 ** (ndigits - 5);
+                    for (
+                        let prefix = first_prefix;
+                        prefix < last_prefix;
+                        prefix++
+                    ) {
+                        const rem =
+                            (maincrc ^
+                                basecrc ^
+                                rainbow_1[prefix]) >>>
+                            0;
+                        const items = lookup(rem);
+                        items.forEach((z) => {
+                            results.push(1e5 * prefix + z);
+                        });
+                    }
+                }
+            }
+            return results;
+        }
+        return {
+            crack,
+        };
+    }
+    let crc32_cracker = null;
+    function uhash2uid(uidhash, max_digit = 10) {
+        if (!crc32_cracker) crc32_cracker = make_crc32_cracker();
+        return crc32_cracker.crack(parseInt(uidhash, 16), max_digit);
+    }
+    function parseDanmakuXml(xmlString, reverseUid = false) {
+        const cleanedXml = xmlString.replace(
+            /[\x00-\x08\x0b-\x0c\x0e-\x1f\x7f]/g,
+            '',
+        );
+        const xmlDoc = new DOMParser().parseFromString(
+            cleanedXml,
+            'text/xml',
+        );
+        const parseError = xmlDoc.querySelector('parsererror');
+        if (parseError)
+            throw new Error(
+                `XML \u89E3\u6790\u5931\u8D25: ${parseError.textContent}`,
+            );
+        const danmakuList = [];
+        const elements = xmlDoc.getElementsByTagName('d');
+        const colorCache = /* @__PURE__ */ new Map();
+        for (let i = 0; i < elements.length; i++) {
+            const item = elements[i];
+            const pAttr = item.getAttribute('p');
+            if (!pAttr) continue;
+            const parts = pAttr.split(',');
+            if (parts.length < 8) continue;
+            const text = item.textContent || '';
+            const colorValue = parseInt(parts[3], 10);
+            let colorHex = colorCache.get(colorValue);
+            if (!colorHex) {
+                colorHex = decimalRgb888ToHex(colorValue);
+                colorCache.set(colorValue, colorHex);
+            }
+            const danmakuItem = {
+                startTime: parseFloat(parts[0]),
+                mode: parseInt(parts[1], 10),
+                size: parseInt(parts[2], 10),
+                color: colorValue,
+                colorHex,
+                date: parseInt(parts[4], 10),
+                pool: parseInt(parts[5], 10),
+                midHash: parts[6],
+                dmid: parts[7],
+                text,
+            };
+            if (parts.length >= 9)
+                danmakuItem.level = parseInt(parts[8], 10);
+            if (reverseUid) danmakuItem.uid = uhash2uid(parts[6]);
+            danmakuList.push(danmakuItem);
+        }
+        danmakuList.sort((a, b) => a.startTime - b.startTime);
+        return danmakuList;
+    }
+    async function api_getDanmakuInfo(cid, reverseUid = false) {
+        if (null == cid)
+            throw new TypeError(
+                'api_getDanmakuInfo: cid \u53C2\u6570\u4E0D\u80FD\u4E3A\u7A7A\uFF0C\u8BF7\u63D0\u4F9B\u6709\u6548\u7684\u89C6\u9891 CID',
+            );
+        const url = 'https://api.bilibili.com/x/v1/dm/list.so';
+        const xmlString = await xhrRequest.getWithCredentials(url, {
+            params: {
+                oid: String(cid),
+            },
+            responseType: 'text',
+        });
+        const danmakuList = parseDanmakuXml(xmlString, reverseUid);
+        return {
+            code: 0,
+            message: 'success',
+            ttl: 1,
+            data: danmakuList,
+        };
+    }
+    function api_getPlayerInfo(id, cid, login) {
+        const idParam =
+            'number' == typeof id
+                ? {
+                      aid: String(id),
+                  }
+                : {
+                      bvid: String(id),
+                  };
+        const request = login
+            ? xhrRequest.getWithCredentials
+            : xhrRequest.get;
+        return request('https://api.bilibili.com/x/player/wbi/v2', {
+            params: {
+                cid: String(cid),
+                ...idParam,
+            },
+        });
+    }
+    async function api_getSubtitleContent(url) {
+        const response = await fetch(url).then((r) => r.json());
+        return response;
+    }
+    function api_getVideoInfo(id, login = false) {
+        if (null == id)
+            throw new TypeError(
+                'api_getVideoInfo: id \u53C2\u6570\u4E0D\u80FD\u4E3A\u7A7A\uFF0C\u8BF7\u63D0\u4F9B\u6709\u6548\u7684 BV \u53F7\u6216 AV \u53F7',
+            );
+        const params = {};
+        if ('string' == typeof id && id.startsWith('BV'))
+            params.bvid = id;
+        else params.aid = id.toString();
+        const url = 'https://api.bilibili.com/x/web-interface/view';
+        if (login)
+            return xhrRequest.getWithCredentials(url, {
+                params,
+            });
+        return xhrRequest.get(url, {
+            params,
+        });
+    }
+    const XOR_CODE = 23442827791579n;
+    const MASK_CODE = 2251799813685247n;
+    const MAX_AID = 1n << 51n;
+    const BASE = 58n;
+    const DATA =
+        'FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf';
+    function av2bv(aid) {
+        const bytes = [
+            'B',
+            'V',
+            '1',
+            '0',
+            '0',
+            '0',
+            '0',
+            '0',
+            '0',
+            '0',
+            '0',
+            '0',
+        ];
+        let bvIndex = bytes.length - 1;
+        let tmp = (MAX_AID | BigInt(aid)) ^ XOR_CODE;
+        while (tmp > 0) {
+            bytes[bvIndex] = DATA[Number(tmp % BigInt(BASE))];
+            tmp /= BASE;
+            bvIndex -= 1;
+        }
+        [bytes[3], bytes[9]] = [bytes[9], bytes[3]];
+        [bytes[4], bytes[7]] = [bytes[7], bytes[4]];
+        return bytes.join('');
+    }
+    function bv2av(bvid) {
+        const bvidArr = Array.from(bvid);
+        [bvidArr[3], bvidArr[9]] = [bvidArr[9], bvidArr[3]];
+        [bvidArr[4], bvidArr[7]] = [bvidArr[7], bvidArr[4]];
+        bvidArr.splice(0, 3);
+        const tmp = bvidArr.reduce(
+            (pre, bvidChar) =>
+                pre * BASE + BigInt(DATA.indexOf(bvidChar)),
+            0n,
+        );
+        return Number((tmp & MASK_CODE) ^ XOR_CODE);
+    }
+    const getVideoId = () => {
+        const videoId = location.pathname
+            .split('/')
+            .find((id) => /^(BV1|av)/.test(id));
+        if (!videoId) return;
+        const videoPart = Number(
+            new URLSearchParams(location.search).get('p') || '1',
+        );
+        if (videoId.startsWith('BV1'))
+            return {
+                bvId: videoId,
+                avId: bv2av(videoId),
+                part: videoPart,
+            };
+        if (videoId.startsWith('av')) {
+            const avId = Number(videoId.slice(2));
+            return {
+                avId,
+                bvId: av2bv(avId),
+                part: videoPart,
+            };
+        }
     };
-    const request = login ? xhrRequest.getWithCredentials : xhrRequest.get;
-    return request("https://api.bilibili.com/x/player/wbi/v2", {
-      params: {
-        cid: String(cid),
-        ...idParam
-      }
-    });
-  }
-  async function api_getSubtitleContent(url) {
-    const response = await fetch(url).then((r) => r.json());
-    return response;
-  }
-  function api_getVideoInfo(id, login = false) {
-    if (null == id) throw new TypeError("api_getVideoInfo: id \u53C2\u6570\u4E0D\u80FD\u4E3A\u7A7A\uFF0C\u8BF7\u63D0\u4F9B\u6709\u6548\u7684 BV \u53F7\u6216 AV \u53F7");
-    const params = {};
-    if ("string" == typeof id && id.startsWith("BV")) params.bvid = id;
-    else params.aid = id.toString();
-    const url = "https://api.bilibili.com/x/web-interface/view";
-    if (login) return xhrRequest.getWithCredentials(url, {
-      params
-    });
-    return xhrRequest.get(url, {
-      params
-    });
-  }
-  const XOR_CODE = 23442827791579n;
-  const MASK_CODE = 2251799813685247n;
-  const MAX_AID = 1n << 51n;
-  const BASE = 58n;
-  const DATA = "FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf";
-  function av2bv(aid) {
-    const bytes = [
-      "B",
-      "V",
-      "1",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0",
-      "0"
-    ];
-    let bvIndex = bytes.length - 1;
-    let tmp = (MAX_AID | BigInt(aid)) ^ XOR_CODE;
-    while (tmp > 0) {
-      bytes[bvIndex] = DATA[Number(tmp % BigInt(BASE))];
-      tmp /= BASE;
-      bvIndex -= 1;
+    function lanDocOrder(lan_doc) {
+        if (/中文|简体|繁体|zh[-_]?/i.test(lan_doc)) return 0;
+        if (/英语|英文|en[-_]?/i.test(lan_doc)) return 1;
+        return 2;
     }
-    [bytes[3], bytes[9]] = [
-      bytes[9],
-      bytes[3]
-    ];
-    [bytes[4], bytes[7]] = [
-      bytes[7],
-      bytes[4]
-    ];
-    return bytes.join("");
-  }
-  function bv2av(bvid) {
-    const bvidArr = Array.from(bvid);
-    [bvidArr[3], bvidArr[9]] = [
-      bvidArr[9],
-      bvidArr[3]
-    ];
-    [bvidArr[4], bvidArr[7]] = [
-      bvidArr[7],
-      bvidArr[4]
-    ];
-    bvidArr.splice(0, 3);
-    const tmp = bvidArr.reduce((pre, bvidChar) => pre * BASE + BigInt(DATA.indexOf(bvidChar)), 0n);
-    return Number(tmp & MASK_CODE ^ XOR_CODE);
-  }
-  const getVideoId = () => {
-    const videoId = location.pathname.split("/").find((id) => /^(BV1|av)/.test(id));
-    if (!videoId) return;
-    const videoPart = Number(new URLSearchParams(location.search).get("p") || "1");
-    if (videoId.startsWith("BV1")) return {
-      bvId: videoId,
-      avId: bv2av(videoId),
-      part: videoPart
+    function compareSubtitleItems(a, b) {
+        const orderA = lanDocOrder(a.lan_doc);
+        const orderB = lanDocOrder(b.lan_doc);
+        if (orderA !== orderB) return orderA - orderB;
+        const aIsAi = /ai/i.test(a.lan);
+        const bIsAi = /ai/i.test(b.lan);
+        if (aIsAi !== bIsAi) return aIsAi ? 1 : -1;
+        return 0;
+    }
+    async function getVideoSubtitlesList(id, part = 1, login = true) {
+        if (!id) {
+            const videoId = getVideoId();
+            if (!videoId)
+                throw new TypeError(
+                    'getVideoSubtitlesList: id \u53C2\u6570\u4E0D\u80FD\u4E3A\u7A7A\uFF0C\u8BF7\u63D0\u4F9B\u6709\u6548\u7684 BV \u53F7\u6216 AV \u53F7',
+                );
+            id = videoId.avId;
+            part = videoId.part;
+        }
+        const videoResponse = await api_getVideoInfo(id, login);
+        const videoInfo = videoResponse.data;
+        const { title, desc, pages, bvid, aid, owner } = videoInfo;
+        const { mid: uid, face: upFace, name: upName } = owner;
+        if (!pages || 0 === pages.length)
+            throw new Error(
+                `\u89C6\u9891 ${id} \u6CA1\u6709\u5206P\u4FE1\u606F`,
+            );
+        const pageItem = pages.find((p) => p.page === part);
+        if (!pageItem)
+            throw new Error(
+                `\u5206P ${part} \u4E0D\u5B58\u5728\uFF0C\u89C6\u9891\u5171 ${pages.length}P`,
+            );
+        const { cid, part: partTitle } = pageItem;
+        const playerResponse = await api_getPlayerInfo(
+            id,
+            cid,
+            login,
+        );
+        const playerInfo = playerResponse.data;
+        const subtitles = (playerInfo.subtitle?.subtitles ?? []).map(
+            (sub) => {
+                const subtitleUrl = sub.subtitle_url.startsWith(
+                    'https',
+                )
+                    ? sub.subtitle_url
+                    : `https:${sub.subtitle_url}`;
+                return {
+                    id: sub.id,
+                    lan: sub.lan,
+                    lan_doc: sub.lan_doc,
+                    is_lock: sub.is_lock,
+                    subtitle_url: sub.subtitle_url,
+                    subtitle_url_v2: sub.subtitle_url_v2,
+                    type: sub.type,
+                    id_str: sub.id_str,
+                    ai_type: sub.ai_type,
+                    ai_status: sub.ai_status,
+                    getContent: () =>
+                        api_getSubtitleContent(subtitleUrl),
+                };
+            },
+        );
+        subtitles.sort(compareSubtitleItems);
+        return {
+            title,
+            desc,
+            partTitle,
+            bvid,
+            avid: aid,
+            cid,
+            part,
+            uid,
+            upFace,
+            upName,
+            subtitles,
+        };
+    }
+    const banVideoAd = async () => {
+        videoAdNotify.getVideoInfo();
+        const videoInfo = await getVideoSubtitlesList();
+        renderBanlistToggleButton(videoInfo.uid, videoInfo.upName);
+        const inBanList = currentBanListStore.has(
+            String(videoInfo.uid),
+        );
+        const banMode = banModeStore.get();
+        if (banMode === '\u767D\u540D\u5355' && inBanList) {
+            return;
+        }
+        if (banMode === '\u9ED1\u540D\u5355' && !inBanList) {
+            return;
+        }
+        AdIcon.append();
+        if (!aiConfig.apiKey) {
+            videoAdNotify.apiKeyLost();
+            AdIcon.changeStatusToLostApiKey();
+            return;
+        }
+        const videoAdCache = new VideoAdCache(videoInfo.bvid);
+        const cacheAdTimeInfo = videoAdCache.getAdStatus();
+        if (cacheAdTimeInfo) {
+            renderCacheClearButton(videoAdCache);
+            if (cacheAdTimeInfo.hasAd) {
+                videoAdNotify.aiAnalysisComplete(
+                    cacheAdTimeInfo.adTimes,
+                );
+                await skipAdListener(cacheAdTimeInfo.adTimes);
+                AdIcon.changeStatusToAdTime(cacheAdTimeInfo.adTimes);
+                return;
+            } else {
+                videoAdNotify.noAdInfo();
+                AdIcon.changeStatusToNoAd();
+                return;
+            }
+        }
+        const subtitleLineList = videoInfo.subtitles.length
+            ? await videoInfo.subtitles[0]
+                  .getContent()
+                  .then((res) => res.body)
+            : [];
+        const danmakuLineList = await api_getDanmakuInfo(
+            videoInfo.cid,
+        ).then((res) => res.data);
+        if (!subtitleLineList.length && !danmakuLineList.length) {
+            AdIcon.changeStatusToCanNotAnalyze();
+            videoAdNotify.noSubtitleWarning();
+            return;
+        }
+        videoAdNotify.aiAnalysisStart();
+        AdIcon.changeStatusToAiAnalyze();
+        const aiStartTime = Date.now();
+        const adTimeInfo = await getAdTime(
+            subtitleLineList,
+            danmakuLineList,
+            videoInfo,
+        );
+        if (!adTimeInfo.hasAd) {
+            AdIcon.changeStatusToNoAd();
+            videoAdNotify.noAdInfo();
+            videoAdCache.add(adTimeInfo);
+            return;
+        }
+        const aiDuration = ((Date.now() - aiStartTime) / 1e3).toFixed(
+            1,
+        );
+        videoAdNotify.aiAnalysisComplete(
+            adTimeInfo.adTimes,
+            aiDuration,
+        );
+        videoAdCache.add(adTimeInfo);
+        renderCacheClearButton(videoAdCache);
+        await skipAdListener(adTimeInfo.adTimes);
+        AdIcon.changeStatusToAdTime(adTimeInfo.adTimes);
     };
-    if (videoId.startsWith("av")) {
-      const avId = Number(videoId.slice(2));
-      return {
-        avId,
-        bvId: av2bv(avId),
-        part: videoPart
-      };
-    }
-  };
-  function lanDocOrder(lan_doc) {
-    if (/中文|简体|繁体|zh[-_]?/i.test(lan_doc)) return 0;
-    if (/英语|英文|en[-_]?/i.test(lan_doc)) return 1;
-    return 2;
-  }
-  function compareSubtitleItems(a, b) {
-    const orderA = lanDocOrder(a.lan_doc);
-    const orderB = lanDocOrder(b.lan_doc);
-    if (orderA !== orderB) return orderA - orderB;
-    const aIsAi = /ai/i.test(a.lan);
-    const bIsAi = /ai/i.test(b.lan);
-    if (aIsAi !== bIsAi) return aIsAi ? 1 : -1;
-    return 0;
-  }
-  async function getVideoSubtitlesList(id, part = 1, login = true) {
-    if (!id) {
-      const videoId = getVideoId();
-      if (!videoId) throw new TypeError("getVideoSubtitlesList: id \u53C2\u6570\u4E0D\u80FD\u4E3A\u7A7A\uFF0C\u8BF7\u63D0\u4F9B\u6709\u6548\u7684 BV \u53F7\u6216 AV \u53F7");
-      id = videoId.avId;
-      part = videoId.part;
-    }
-    const videoResponse = await api_getVideoInfo(id, login);
-    const videoInfo = videoResponse.data;
-    const { title, desc, pages, bvid, aid, owner } = videoInfo;
-    const { mid: uid, face: upFace, name: upName } = owner;
-    if (!pages || 0 === pages.length) throw new Error(`\u89C6\u9891 ${id} \u6CA1\u6709\u5206P\u4FE1\u606F`);
-    const pageItem = pages.find((p) => p.page === part);
-    if (!pageItem) throw new Error(`\u5206P ${part} \u4E0D\u5B58\u5728\uFF0C\u89C6\u9891\u5171 ${pages.length}P`);
-    const { cid, part: partTitle } = pageItem;
-    const playerResponse = await api_getPlayerInfo(id, cid, login);
-    const playerInfo = playerResponse.data;
-    const subtitles = (playerInfo.subtitle?.subtitles ?? []).map((sub) => {
-      const subtitleUrl = sub.subtitle_url.startsWith("https") ? sub.subtitle_url : `https:${sub.subtitle_url}`;
-      return {
-        id: sub.id,
-        lan: sub.lan,
-        lan_doc: sub.lan_doc,
-        is_lock: sub.is_lock,
-        subtitle_url: sub.subtitle_url,
-        subtitle_url_v2: sub.subtitle_url_v2,
-        type: sub.type,
-        id_str: sub.id_str,
-        ai_type: sub.ai_type,
-        ai_status: sub.ai_status,
-        getContent: () => api_getSubtitleContent(subtitleUrl)
-      };
-    });
-    subtitles.sort(compareSubtitleItems);
-    return {
-      title,
-      desc,
-      partTitle,
-      bvid,
-      avid: aid,
-      cid,
-      part,
-      uid,
-      upFace,
-      upName,
-      subtitles
+    const commentAdBanModeStore = new GmStorage(
+        '\u5C4F\u853D\u8BBE\u7F6E.commentAdBanMode',
+        true,
+    );
+    const main = async () => {
+        commentAdBanModeStore.get() && banCommentAd();
+        banVideoAd();
     };
-  }
-  const banVideoAd = async () => {
-    videoAdNotify.getVideoInfo();
-    const videoInfo = await getVideoSubtitlesList();
-    renderBanlistToggleButton(videoInfo.uid, videoInfo.upName);
-    const inBanList = currentBanListStore.has(String(videoInfo.uid));
-    const banMode = banModeStore.get();
-    if (banMode === "\u767D\u540D\u5355" && inBanList) {
-      return;
-    }
-    if (banMode === "\u9ED1\u540D\u5355" && !inBanList) {
-      return;
-    }
-    AdIcon.append();
-    if (!aiConfig.apiKey) {
-      videoAdNotify.apiKeyLost();
-      AdIcon.changeStatusToLostApiKey();
-      return;
-    }
-    const videoAdCache = new VideoAdCache(videoInfo.bvid);
-    const cacheAdTimeInfo = videoAdCache.getAdStatus();
-    if (cacheAdTimeInfo) {
-      renderCacheClearButton(videoAdCache);
-      if (cacheAdTimeInfo.hasAd) {
-        videoAdNotify.aiAnalysisComplete(cacheAdTimeInfo.adTimes);
-        await skipAdListener(cacheAdTimeInfo.adTimes);
-        AdIcon.changeStatusToAdTime(cacheAdTimeInfo.adTimes);
-        return;
-      } else {
-        videoAdNotify.noAdInfo();
-        AdIcon.changeStatusToNoAd();
-        return;
-      }
-    }
-    const subtitleLineList = videoInfo.subtitles.length ? await videoInfo.subtitles[0].getContent().then((res) => res.body) : [];
-    const danmakuLineList = await api_getDanmakuInfo(videoInfo.cid).then((res) => res.data);
-    if (!subtitleLineList.length && !danmakuLineList.length) {
-      AdIcon.changeStatusToCanNotAnalyze();
-      videoAdNotify.noSubtitleWarning();
-      return;
-    }
-    videoAdNotify.aiAnalysisStart();
-    AdIcon.changeStatusToAiAnalyze();
-    const aiStartTime = Date.now();
-    const adTimeInfo = await getAdTime(subtitleLineList, danmakuLineList, videoInfo);
-    if (!adTimeInfo.hasAd) {
-      AdIcon.changeStatusToNoAd();
-      videoAdNotify.noAdInfo();
-      videoAdCache.add(adTimeInfo);
-      return;
-    }
-    const aiDuration = ((Date.now() - aiStartTime) / 1e3).toFixed(1);
-    videoAdNotify.aiAnalysisComplete(adTimeInfo.adTimes, aiDuration);
-    videoAdCache.add(adTimeInfo);
-    renderCacheClearButton(videoAdCache);
-    await skipAdListener(adTimeInfo.adTimes);
-    AdIcon.changeStatusToAdTime(adTimeInfo.adTimes);
-  };
-  const commentAdBanModeStore = new GmStorage("\u5C4F\u853D\u8BBE\u7F6E.commentAdBanMode", true);
-  const main = async () => {
-    commentAdBanModeStore.get() && banCommentAd();
-    banVideoAd();
-  };
-  main().catch((error) => {
-    console.error(error);
-  });
+    main().catch((error) => {
+        console.error(error);
+    });
 })();

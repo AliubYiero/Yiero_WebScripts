@@ -18,12 +18,12 @@
  * ```
  */
 export const getRoomId = (): number | undefined => {
-  const roomId = new URL(document.URL).pathname
-    .split('/')
-    .find((item) => /^\d+$/.test(item));
-  if (!roomId) {
-    return undefined;
-  }
+    const roomId = new URL(document.URL).pathname
+        .split('/')
+        .find((item) => /^\d+$/.test(item));
+    if (!roomId) {
+        return undefined;
+    }
 
-  return Number(roomId);
+    return Number(roomId);
 };

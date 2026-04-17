@@ -13,10 +13,10 @@ import backupScriptPlugin from '@yiero/vite-plugin-scriptcat-backup';
 import replace from '@rollup/plugin-replace';
 var Environment;
 (function (Environment) {
-    Environment["Development"] = "development";
-    Environment["Sync"] = "sync";
-    Environment["Production"] = "production";
-    Environment["Test"] = "test";
+    Environment['Development'] = 'development';
+    Environment['Sync'] = 'sync';
+    Environment['Production'] = 'production';
+    Environment['Test'] = 'test';
 })(Environment || (Environment = {}));
 export default defineConfig((env) => {
     // 项目名
@@ -29,26 +29,20 @@ export default defineConfig((env) => {
         config = {
             build: {
                 rollupOptions: {
-                    plugins: [
-                        requireSelfPlugin(),
-                    ],
+                    plugins: [requireSelfPlugin()],
                 },
             },
         };
-    }
-    else if (env.mode === Environment.Sync) {
+    } else if (env.mode === Environment.Sync) {
         name && (name[1] = `[Dev] ${name[1]}`);
         config = {
             build: {
                 rollupOptions: {
-                    plugins: [
-                        scriptPushPlugin(),
-                    ],
+                    plugins: [scriptPushPlugin()],
                 },
             },
         };
-    }
-    else if (env.mode === Environment.Production) {
+    } else if (env.mode === Environment.Production) {
         config = {
             esbuild: {
                 drop: ['debugger'],
@@ -59,8 +53,8 @@ export default defineConfig((env) => {
                     plugins: [
                         backupScriptPlugin(),
                         /*
-                        * 自定义替换代码
-                        * */
+                         * 自定义替换代码
+                         * */
                         replace({
                             preventAssignment: true,
                             /**
@@ -76,9 +70,14 @@ export default defineConfig((env) => {
                 },
             },
         };
-    }
-    else if (env.mode === Environment.Test) {
-        UserScript.push(['name', `[test] ${projectName}`], ['description', `[test project] ${projectName}`], ['version', '0.1.0-alpha'], ['author', 'test'], ['match', '*://*.*']);
+    } else if (env.mode === Environment.Test) {
+        UserScript.push(
+            ['name', `[test] ${projectName}`],
+            ['description', `[test project] ${projectName}`],
+            ['version', '0.1.0-alpha'],
+            ['author', 'test'],
+            ['match', '*://*.*'],
+        );
     }
     const baseOptions = {
         esbuild: {
@@ -119,8 +118,8 @@ export default defineConfig((env) => {
                     extend: true,
                 },
                 /*
-                * 插件配置
-                * */
+                 * 插件配置
+                 * */
                 plugins: [
                     // 直接导入 css / html 作为字符串
                     vitePluginRaw({

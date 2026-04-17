@@ -11,11 +11,11 @@ import { GMStorageExtra } from '../../lib/Storage/GMStorageExtra.ts';
  * 滚动速度储存
  * */
 export class ScrollSpeedStorage {
-	static get() {
-		return GMStorageExtra.getItem( 'scrollSpeed', 1 );
-	}
-	
-	static set( value: number ) {
-		GMStorageExtra.setItem( 'scrollSpeed', value );
-	}
+    static get() {
+        return GMStorageExtra.getItem('scrollSpeed', 1);
+    }
+
+    static set(value: number) {
+        GMStorageExtra.setItem('scrollSpeed', value);
+    }
 }

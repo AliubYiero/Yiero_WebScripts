@@ -27,8 +27,10 @@ import type { ISubtitleInfo } from './interfaces/ISubtitleInfo.ts';
  * ```
  */
 export async function api_getSubtitleContent(
-  url: string,
+    url: string,
 ): Promise<ISubtitleInfo> {
-  const response = (await fetch(url).then((r) => r.json())) as ISubtitleInfo;
-  return response;
+    const response = (await fetch(url).then((r) =>
+        r.json(),
+    )) as ISubtitleInfo;
+    return response;
 }

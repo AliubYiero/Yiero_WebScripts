@@ -27,9 +27,9 @@
         default: 16
         min: 12
 ==/UserConfig== */
-(function() {
-  "use strict";
-  const rawStyle = `/* \u8BA9\u5F39\u5E55\u6587\u672C\u548C\u53D1\u9001\u8005\u5206\u5F00 */
+(function () {
+    'use strict';
+    const rawStyle = `/* \u8BA9\u5F39\u5E55\u6587\u672C\u548C\u53D1\u9001\u8005\u5206\u5F00 */
 .chat-item.danmaku-item:not(.superChat-card-detail) {
 	display: flex !important;
 	flex-flow: column !important;
@@ -108,65 +108,71 @@
 	height: 32px !important;
 }
 `;
-  let styleElement = null;
-  const addStyle = (fontSize) => {
-    if (styleElement) {
-      styleElement.remove();
+    let styleElement = null;
+    const addStyle = (fontSize) => {
+        if (styleElement) {
+            styleElement.remove();
+        }
+        const style =
+            // 添加样式
+            rawStyle +
+            `.danmaku-item-right {font-size: ${fontSize}px; line-height: ${fontSize + 8}px !important;`;
+        styleElement = GM_addStyle(style);
+        styleElement.classList.add('bilibili-live-chat-style');
+    };
+    class GmStorage {
+        key;
+        defaultValue;
+        listenerId = null;
+        constructor(key, defaultValue) {
+            this.key = key;
+            this.defaultValue = defaultValue;
+        }
+        get value() {
+            return this.get();
+        }
+        get() {
+            return GM_getValue(this.key, this.defaultValue);
+        }
+        set(value) {
+            GM_setValue(this.key, value);
+        }
+        remove() {
+            GM_deleteValue(this.key);
+        }
+        updateListener(callback) {
+            this.removeListener();
+            this.listenerId = GM_addValueChangeListener(
+                this.key,
+                (key, oldValue, newValue, remote) => {
+                    callback({
+                        key,
+                        oldValue,
+                        newValue,
+                        remote,
+                    });
+                },
+            );
+        }
+        removeListener() {
+            if (null !== this.listenerId) {
+                GM_removeValueChangeListener(this.listenerId);
+                this.listenerId = null;
+            }
+        }
     }
-    const style = (
-      // 添加样式
-      rawStyle + `.danmaku-item-right {font-size: ${fontSize}px; line-height: ${fontSize + 8}px !important;`
+    const danmakuFontSizeStore = new GmStorage(
+        '\u914D\u7F6E.danmakuFontSize',
+        16,
     );
-    styleElement = GM_addStyle(style);
-    styleElement.classList.add("bilibili-live-chat-style");
-  };
-  class GmStorage {
-    key;
-    defaultValue;
-    listenerId = null;
-    constructor(key, defaultValue) {
-      this.key = key;
-      this.defaultValue = defaultValue;
-    }
-    get value() {
-      return this.get();
-    }
-    get() {
-      return GM_getValue(this.key, this.defaultValue);
-    }
-    set(value) {
-      GM_setValue(this.key, value);
-    }
-    remove() {
-      GM_deleteValue(this.key);
-    }
-    updateListener(callback) {
-      this.removeListener();
-      this.listenerId = GM_addValueChangeListener(this.key, (key, oldValue, newValue, remote) => {
-        callback({
-          key,
-          oldValue,
-          newValue,
-          remote
+    const main = async () => {
+        const fontSize = danmakuFontSizeStore.get();
+        addStyle(fontSize);
+        danmakuFontSizeStore.updateListener(({ newValue }) => {
+            newValue && addStyle(newValue);
         });
-      });
-    }
-    removeListener() {
-      if (null !== this.listenerId) {
-        GM_removeValueChangeListener(this.listenerId);
-        this.listenerId = null;
-      }
-    }
-  }
-  const danmakuFontSizeStore = new GmStorage("\u914D\u7F6E.danmakuFontSize", 16);
-  const main = async () => {
-    const fontSize = danmakuFontSizeStore.get();
-    addStyle(fontSize);
-    danmakuFontSizeStore.updateListener(({ newValue }) => {
-      newValue && addStyle(newValue);
+    };
+    main().catch((error) => {
+        console.error(error);
     });
-  };
-  main().catch((error) => {
-    console.error(error);
-  });
 })();

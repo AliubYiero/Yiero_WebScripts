@@ -1,48 +1,48 @@
 /* V1 - 原始样式 */
 /* 设置为浮动容器 */
 .chat-item.danmaku-item[data-send-time] {
-	display: flow-root;
+    display: flow-root;
 }
 /* 表情弹幕为 flex 布局, 铺满宽度 */
 .chat-item.danmaku-item.chat-emoticon.bulge-emoticon[data-send-time] {
-	width: 96% !important;
+    width: 96% !important;
 }
 .danmaku-item-right.emoticon {
-	flex: 1;
+    flex: 1;
 }
 
 /* 弹幕发送的现实时间 */
 .chat-item.danmaku-item[data-send-time]::after {
-	content: attr(data-send-time);
-	float: right;
-	margin-left: 8px; /* 与左侧元素保持间距 */
-	font-size: 10px;
-	color: #9499a0;
+    content: attr(data-send-time);
+    float: right;
+    margin-left: 8px; /* 与左侧元素保持间距 */
+    font-size: 10px;
+    color: #9499a0;
 }
 
 /* 弹幕发送的直播时间 */
 .chat-item.danmaku-item[data-send-time]:hover::after {
-	content: attr(data-send-time-in-live);
-	color: #00AEEC;
+    content: attr(data-send-time-in-live);
+    color: #00aeec;
 }
 
 /* V2 - 联动脚本 */
 .danmaku-item-right[data-send-time] {
-	display: flex !important;
+    display: flex !important;
 }
 
 /* 弹幕发送的现实时间 */
 .danmaku-item-right[data-send-time]::after {
-	content: attr(data-send-time);
-	margin-left: auto;
-	font-size: 10px;
-	color: #9499a0;
-	padding: 0 8px;
-	align-self: end;
+    content: attr(data-send-time);
+    margin-left: auto;
+    font-size: 10px;
+    color: #9499a0;
+    padding: 0 8px;
+    align-self: end;
 }
 
 /* 弹幕发送的直播时间 */
 .chat-item.danmaku-item:hover > .danmaku-item-right[data-send-time]::after {
-	content: attr(data-send-time-in-live);
-	color: #00AEEC;
+    content: attr(data-send-time-in-live);
+    color: #00aeec;
 }

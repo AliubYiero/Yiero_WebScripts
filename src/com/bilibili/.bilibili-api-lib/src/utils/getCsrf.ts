@@ -21,9 +21,9 @@ import { NotLoginError } from './Error';
  * ```
  */
 export const getCsrf = async () => {
-  const csrfCookie = await cookieStore.get('bili_jct');
-  if (!csrfCookie || !csrfCookie.value) {
-    throw new NotLoginError();
-  }
-  return csrfCookie.value;
+    const csrfCookie = await cookieStore.get('bili_jct');
+    if (!csrfCookie || !csrfCookie.value) {
+        throw new NotLoginError();
+    }
+    return csrfCookie.value;
 };

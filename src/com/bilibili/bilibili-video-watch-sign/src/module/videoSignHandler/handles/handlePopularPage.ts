@@ -9,19 +9,22 @@ import { IVideoItem } from '../types/IVideoItem.ts';
 import { elementGetter } from '../../../util/elementGetter.ts';
 
 export const rankingVideoCardParser = (
-	container: HTMLElement
-): IVideoItem | null => baseParser(container, {
-	tagContainer: '',
-	videoLink: '.video-card__content > a',
-})
-
+    container: HTMLElement,
+): IVideoItem | null =>
+    baseParser(container, {
+        tagContainer: '',
+        videoLink: '.video-card__content > a',
+    });
 
 export const handlePopularPage = async () => {
-	await elementGetter( '#biliMainHeader[data-v-app]' );
-	
-	// 热门 (综合热门 / 入站必刷)
-	baseVideoSignLoader( {
-		container: '.card-list',
-		item: '.video-card',
-	}, rankingVideoCardParser );
+    await elementGetter('#biliMainHeader[data-v-app]');
+
+    // 热门 (综合热门 / 入站必刷)
+    baseVideoSignLoader(
+        {
+            container: '.card-list',
+            item: '.video-card',
+        },
+        rankingVideoCardParser,
+    );
 };

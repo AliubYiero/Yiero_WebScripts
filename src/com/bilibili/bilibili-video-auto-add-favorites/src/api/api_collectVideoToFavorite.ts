@@ -2,17 +2,17 @@ import { getVideoEpId } from '../module/getVideoAvId/getVideoEpId.ts';
 import { requestConfig, xhrRequest } from './xhr_request.ts';
 
 export interface IFavouriteVideoResponse {
-	code: number;
-	message: string;
-	ttl: number;
-	data: IFavouriteVideoResponseData;
+    code: number;
+    message: string;
+    ttl: number;
+    data: IFavouriteVideoResponseData;
 }
 
 export interface IFavouriteVideoResponseData {
-	prompt: boolean;
-	ga_data?: any;
-	toast_msg: string;
-	success_num: number;
+    prompt: boolean;
+    ga_data?: any;
+    toast_msg: string;
+    success_num: number;
 }
 
 /**
@@ -23,21 +23,17 @@ export interface IFavouriteVideoResponseData {
  * @return {Promise<any>} 收集视频后返回到收藏夹的数据。
  */
 export const api_collectVideoToFavorite = async (
-	videoId: string,
-	favoriteId: string,
+    videoId: string,
+    favoriteId: string,
 ): Promise<IFavouriteVideoResponse> => {
-	const epId = await getVideoEpId();
-	
-	const formData = {
-		rid: videoId,
-		type: epId ? '42' : '2',
-		add_media_ids: favoriteId,
-		csrf: requestConfig.csrf,
-	};
-	
-	return xhrRequest(
-		'/x/v3/fav/resource/deal',
-		'POST',
-		formData,
-	);
+    const epId = await getVideoEpId();
+
+    const formData = {
+        rid: videoId,
+        type: epId ? '42' : '2',
+        add_media_ids: favoriteId,
+        csrf: requestConfig.csrf,
+    };
+
+    return xhrRequest('/x/v3/fav/resource/deal', 'POST', formData);
 };

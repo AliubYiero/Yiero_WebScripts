@@ -9,6 +9,4 @@ export * from './observeVideoCardLoad/observeVideoCardLoad.ts';
 export * from './observeContainerLoad/observeContainerLoad.ts';
 export * from './listenVideoCardLoad/listenVideoCardLoad.ts';
 export * from '../interface/';
-export {
-	ElementDisplay,
-} from '../utils/ElementDisplay/ElementDisplay.ts';
+export { ElementDisplay } from '../utils/ElementDisplay/ElementDisplay.ts';

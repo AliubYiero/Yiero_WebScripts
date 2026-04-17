@@ -2,5 +2,5 @@
 import sendTimeStyle from './sendTimeStyle.css?raw';
 
 export const addSendTimeStyle = () => {
-	sendTimeStyle && GM_addStyle( sendTimeStyle );
+    sendTimeStyle && GM_addStyle(sendTimeStyle);
 };

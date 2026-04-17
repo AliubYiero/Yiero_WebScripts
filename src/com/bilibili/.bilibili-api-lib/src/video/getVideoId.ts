@@ -3,18 +3,19 @@ const MASK_CODE = 2251799813685247n;
 const MAX_AID = 1n << 51n;
 const BASE = 58n;
 
-const DATA = 'FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf';
+const DATA =
+    'FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf';
 
 /**
  * 视频 ID 接口
  */
 export interface VideoId {
-  /** av 号 */
-  avId: number;
-  /** BV 号 */
-  bvId: string;
-  /* 分P数 */
-  part: number;
+    /** av 号 */
+    avId: number;
+    /** BV 号 */
+    bvId: string;
+    /* 分P数 */
+    part: number;
 }
 
 /**
@@ -30,17 +31,30 @@ export interface VideoId {
  * ```
  */
 export function av2bv(aid: number): string {
-  const bytes = ['B', 'V', '1', '0', '0', '0', '0', '0', '0', '0', '0', '0'];
-  let bvIndex = bytes.length - 1;
-  let tmp = (MAX_AID | BigInt(aid)) ^ XOR_CODE;
-  while (tmp > 0) {
-    bytes[bvIndex] = DATA[Number(tmp % BigInt(BASE))];
-    tmp = tmp / BASE;
-    bvIndex -= 1;
-  }
-  [bytes[3], bytes[9]] = [bytes[9], bytes[3]];
-  [bytes[4], bytes[7]] = [bytes[7], bytes[4]];
-  return bytes.join('');
+    const bytes = [
+        'B',
+        'V',
+        '1',
+        '0',
+        '0',
+        '0',
+        '0',
+        '0',
+        '0',
+        '0',
+        '0',
+        '0',
+    ];
+    let bvIndex = bytes.length - 1;
+    let tmp = (MAX_AID | BigInt(aid)) ^ XOR_CODE;
+    while (tmp > 0) {
+        bytes[bvIndex] = DATA[Number(tmp % BigInt(BASE))];
+        tmp = tmp / BASE;
+        bvIndex -= 1;
+    }
+    [bytes[3], bytes[9]] = [bytes[9], bytes[3]];
+    [bytes[4], bytes[7]] = [bytes[7], bytes[4]];
+    return bytes.join('');
 }
 
 /**
@@ -56,15 +70,16 @@ export function av2bv(aid: number): string {
  * ```
  */
 export function bv2av(bvid: string): number {
-  const bvidArr = Array.from<string>(bvid);
-  [bvidArr[3], bvidArr[9]] = [bvidArr[9], bvidArr[3]];
-  [bvidArr[4], bvidArr[7]] = [bvidArr[7], bvidArr[4]];
-  bvidArr.splice(0, 3);
-  const tmp = bvidArr.reduce(
-    (pre, bvidChar) => pre * BASE + BigInt(DATA.indexOf(bvidChar)),
-    0n,
-  );
-  return Number((tmp & MASK_CODE) ^ XOR_CODE);
+    const bvidArr = Array.from<string>(bvid);
+    [bvidArr[3], bvidArr[9]] = [bvidArr[9], bvidArr[3]];
+    [bvidArr[4], bvidArr[7]] = [bvidArr[7], bvidArr[4]];
+    bvidArr.splice(0, 3);
+    const tmp = bvidArr.reduce(
+        (pre, bvidChar) =>
+            pre * BASE + BigInt(DATA.indexOf(bvidChar)),
+        0n,
+    );
+    return Number((tmp & MASK_CODE) ^ XOR_CODE);
 }
 
 /**
@@ -89,33 +104,33 @@ export function bv2av(bvid: string): number {
  * ```
  */
 export const getVideoId = (): VideoId | undefined => {
-  const videoId = location.pathname
-    .split('/')
-    .find((id) => /^(BV1|av)/.test(id));
-  if (!videoId) {
+    const videoId = location.pathname
+        .split('/')
+        .find((id) => /^(BV1|av)/.test(id));
+    if (!videoId) {
+        return undefined;
+    }
+
+    const videoPart = Number(
+        new URLSearchParams(location.search).get('p') || '1',
+    );
+
+    if (videoId.startsWith('BV1')) {
+        return {
+            bvId: videoId,
+            avId: bv2av(videoId),
+            part: videoPart,
+        };
+    }
+
+    if (videoId.startsWith('av')) {
+        const avId = Number(videoId.slice(2));
+        return {
+            avId,
+            bvId: av2bv(avId),
+            part: videoPart,
+        };
+    }
+
     return undefined;
-  }
-
-  const videoPart = Number(
-    new URLSearchParams(location.search).get('p') || '1',
-  );
-
-  if (videoId.startsWith('BV1')) {
-    return {
-      bvId: videoId,
-      avId: bv2av(videoId),
-      part: videoPart,
-    };
-  }
-
-  if (videoId.startsWith('av')) {
-    const avId = Number(videoId.slice(2));
-    return {
-      avId,
-      bvId: av2bv(avId),
-      part: videoPart,
-    };
-  }
-
-  return undefined;
 };

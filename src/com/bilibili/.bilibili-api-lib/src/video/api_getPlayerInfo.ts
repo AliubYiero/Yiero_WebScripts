@@ -26,18 +26,25 @@ import type { IPlayerInfo } from './interfaces/IPlayerInfo.ts';
  * ```
  */
 export function api_getPlayerInfo(
-  id: number | string,
-  cid: number,
-  login?: boolean,
+    id: number | string,
+    cid: number,
+    login?: boolean,
 ) {
-  const idParam: Record<string, string> =
-    typeof id === 'number' ? { aid: String(id) } : { bvid: String(id) };
+    const idParam: Record<string, string> =
+        typeof id === 'number'
+            ? { aid: String(id) }
+            : { bvid: String(id) };
 
-  const request = login ? xhrRequest.getWithCredentials : xhrRequest.get;
-  return request<IPlayerInfo>('https://api.bilibili.com/x/player/wbi/v2', {
-    params: {
-      cid: String(cid),
-      ...idParam,
-    },
-  });
+    const request = login
+        ? xhrRequest.getWithCredentials
+        : xhrRequest.get;
+    return request<IPlayerInfo>(
+        'https://api.bilibili.com/x/player/wbi/v2',
+        {
+            params: {
+                cid: String(cid),
+                ...idParam,
+            },
+        },
+    );
 }

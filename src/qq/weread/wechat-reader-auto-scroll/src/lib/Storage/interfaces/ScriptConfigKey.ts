@@ -5,4 +5,4 @@
  * @author  Yiero
  * */
 
-export type ScriptConfigKey = `${ string }.${ string }`
+export type ScriptConfigKey = `${string}.${string}`;

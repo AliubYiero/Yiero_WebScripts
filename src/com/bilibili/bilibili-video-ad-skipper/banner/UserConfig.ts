@@ -84,69 +84,70 @@ export const defaultPrompt = `# Role
     </ad_segments>
 </ad_detection>
 `;
-export const defaultUrl = 'https://open.bigmodel.cn/api/paas/v4/chat/completions';
+export const defaultUrl =
+    'https://open.bigmodel.cn/api/paas/v4/chat/completions';
 export const defaultModel = 'GLM-4.7-Flash';
 
-
 export const UserConfig: ScriptCatUserConfig = {
-	'AI配置': {
-		url: {
-			title: '请求地址',
-			description: '请使用兼容 OpenAI 的请求地址\n默认配置的是硅基流动的请求地址',
-			type: 'text',
-			default: defaultUrl,
-		},
-		model: {
-			title: '模型',
-			description: '',
-			type: 'text',
-			default: defaultModel,
-		},
-		apiKey: {
-			title: '秘钥',
-			description: '请输入并保护好你的秘钥',
-			type: 'text',
-			password: true,
-		},
-		prompt: {
-			title: 'AI提示词',
-			description: '',
-			type: 'textarea',
-			default: defaultPrompt,
-		},
-	},
-	'屏蔽设置': {
-		commentAdBanMode: {
-			title: '评论广告屏蔽',
-			description: '是否屏蔽评论区的推广广告',
-			type: 'checkbox',
-			default: true,
-		},
-		banMode: {
-			title: '视频广告屏蔽模式',
-			description: '',
-			type: 'select',
-			values: [ '黑名单', '白名单' ],
-			default: '黑名单',
-		},
-		
-		'blacklist': {
-			title: '黑名单\n(默认不屏蔽视频广告, 仅在黑名单内的用户不屏蔽视频广告)',
-			description: '',
-			type: 'textarea',
-		},
-		'whitelist': {
-			title: '白名单\n(默认屏蔽视频广告, 仅在白名单内的用户不屏蔽视频广告)',
-			description: '',
-			type: 'textarea',
-		},
-	},
-	'通用配置': {
-		showIcon: {
-			title: '显示状态',
-			description: '是否在页面中显示识别进度状态',
-			type: 'checkbox',
-			default: true,
-		},
-	},
+    AI配置: {
+        url: {
+            title: '请求地址',
+            description:
+                '请使用兼容 OpenAI 的请求地址\n默认配置的是硅基流动的请求地址',
+            type: 'text',
+            default: defaultUrl,
+        },
+        model: {
+            title: '模型',
+            description: '',
+            type: 'text',
+            default: defaultModel,
+        },
+        apiKey: {
+            title: '秘钥',
+            description: '请输入并保护好你的秘钥',
+            type: 'text',
+            password: true,
+        },
+        prompt: {
+            title: 'AI提示词',
+            description: '',
+            type: 'textarea',
+            default: defaultPrompt,
+        },
+    },
+    屏蔽设置: {
+        commentAdBanMode: {
+            title: '评论广告屏蔽',
+            description: '是否屏蔽评论区的推广广告',
+            type: 'checkbox',
+            default: true,
+        },
+        banMode: {
+            title: '视频广告屏蔽模式',
+            description: '',
+            type: 'select',
+            values: ['黑名单', '白名单'],
+            default: '黑名单',
+        },
+
+        blacklist: {
+            title: '黑名单\n(默认不屏蔽视频广告, 仅在黑名单内的用户不屏蔽视频广告)',
+            description: '',
+            type: 'textarea',
+        },
+        whitelist: {
+            title: '白名单\n(默认屏蔽视频广告, 仅在白名单内的用户不屏蔽视频广告)',
+            description: '',
+            type: 'textarea',
+        },
+    },
+    通用配置: {
+        showIcon: {
+            title: '显示状态',
+            description: '是否在页面中显示识别进度状态',
+            type: 'checkbox',
+            default: true,
+        },
+    },
 };

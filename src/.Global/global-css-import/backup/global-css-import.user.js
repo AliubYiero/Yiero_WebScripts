@@ -14,9 +14,9 @@
 // @grant          GM_unregisterMenuCommand
 // @grant          GM_registerMenuCommand
 // ==/UserScript==
-(function() {
-  "use strict";
-  const cssImportStyle = `/* \u5BB9\u5668 */
+(function () {
+    'use strict';
+    const cssImportStyle = `/* \u5BB9\u5668 */
 .css-dialog-container {
 	width: 50vw;
 	height: 50vh;
@@ -217,7 +217,7 @@ button.dialog-quick-add-submit-button {
 	border: #409eff 1px solid;
 }
 `;
-  const cssImportHtmlContent = `<!doctype html>
+    const cssImportHtmlContent = `<!doctype html>
 <html lang="zh-cn">
 <head>
 	<meta charset="UTF-8">
@@ -312,397 +312,551 @@ button.dialog-quick-add-submit-button {
 </body>
 </html>
 `;
-  const DANGEROUS_ATTRIBUTES = [
-    "onabort",
-    "onblur",
-    "onchange",
-    "onclick",
-    "ondblclick",
-    "onerror",
-    "onfocus",
-    "onkeydown",
-    "onkeypress",
-    "onkeyup",
-    "onload",
-    "onmousedown",
-    "onmousemove",
-    "onmouseout",
-    "onmouseover",
-    "onmouseup",
-    "onreset",
-    "onresize",
-    "onselect",
-    "onsubmit",
-    "onunload",
-    "oncontextmenu",
-    "oninput",
-    "oninvalid",
-    "ondrag",
-    "ondrop",
-    "onscroll"
-  ];
-  const sanitizeElement = (element) => {
-    DANGEROUS_ATTRIBUTES.forEach((attr) => {
-      if (element.hasAttribute(attr)) {
-        element.removeAttribute(attr);
-      }
-    });
-    Array.from(element.children).forEach((child) => {
-      sanitizeElement(child);
-    });
-  };
-  const uiCreator = (htmlContent, cssContent) => {
-    {
-      GM_addStyle(cssContent);
-    }
-    const domParser = new DOMParser();
-    const uiDoc = domParser.parseFromString(htmlContent, "text/html");
-    const documentFragment = new DocumentFragment();
-    const filterScriptNodeList = Array.from(uiDoc.body.children).filter((node) => node.nodeName !== "SCRIPT");
-    filterScriptNodeList.forEach((node) => {
-      sanitizeElement(node);
-    });
-    documentFragment.append(...filterScriptNodeList);
-    window.document.body.append(documentFragment);
-    return filterScriptNodeList;
-  };
-  const SELECTOR_HIGHLIGHT_CODE = ".highlight-code";
-  const SELECTOR_DIALOG_CANCEL_BUTTON = ".dialog-cancel-button";
-  const SELECTOR_DIALOG_SAVE_BUTTON = ".dialog-save-button";
-  const SELECTOR_DIALOG_APPLY_BUTTON = ".dialog-apply-button";
-  const SELECTOR_QUICK_ADD_INPUT = ".dialog-quick-add-input";
-  const SELECTOR_QUICK_ADD_SUBMIT_BUTTON = ".dialog-quick-add-submit-button";
-  const cssImportDefaultEvent = (dialog) => {
-    const codeContainer = dialog.querySelector(SELECTOR_HIGHLIGHT_CODE);
-    if (!codeContainer) {
-      return;
-    }
-    const stopPropagationEventList = ["keydown", "keyup", "scroll", "input", "change"];
-    stopPropagationEventList.forEach((eventName) => {
-      dialog.addEventListener(eventName, (event) => {
-        event.stopPropagation();
-      });
-    });
-    const highlight = GM_getResourceText("highlight");
-    highlight && GM_addStyle(highlight);
-    hljs.highlightElement(codeContainer);
-  };
-  class LocalStorage {
-    constructor(key, defaultValue) {
-      this.key = key;
-      if (defaultValue && !this.get()) {
-        this.set(defaultValue);
-      }
-    }
-    /**
-     * 设置 / 更新键
-     *
-     * @param value - The new value to be set.
-     * @returns void
-     */
-    set(value) {
-      localStorage.setItem(this.key, value.trim());
-    }
-    /**
-     * 获取值。
-     *
-     * @returns The value stored in localStorage or null if the key is not found.
-     */
-    get() {
-      return localStorage.getItem(this.key);
-    }
-  }
-  const ExtraCSSConfigStorage = new LocalStorage("ExtraCSSConfig", "");
-  class CssToPage {
-    static load() {
-      this.remove();
-      const cssContent = ExtraCSSConfigStorage.get();
-      if (!cssContent) {
-        return;
-      }
-      this.styleNode = GM_addStyle(cssContent);
-    }
-    static remove() {
-      if (this.styleNode) {
-        this.styleNode.remove();
-      }
-    }
-  }
-  const saveSelection = (element) => {
-    const selection = window.getSelection();
-    if (!selection || selection.rangeCount === 0) {
-      return null;
-    }
-    const range = selection.getRangeAt(0);
-    if (!element.contains(range.commonAncestorContainer)) {
-      return null;
-    }
-    return range.cloneRange();
-  };
-  const restoreSelection = (element, savedRange) => {
-    if (!savedRange) {
-      return;
-    }
-    const selection = window.getSelection();
-    if (!selection) {
-      return;
-    }
-    try {
-      selection.removeAllRanges();
-      selection.addRange(savedRange);
-    } catch (e) {
-      const range = document.createRange();
-      range.selectNodeContents(element);
-      range.collapse(false);
-      selection.removeAllRanges();
-      selection.addRange(range);
-    }
-  };
-  const highlightCode = (codeContainer) => {
-    const savedRange = saveSelection(codeContainer);
-    codeContainer.textContent = codeContainer.textContent;
-    hljs.highlightElement(codeContainer);
-    restoreSelection(codeContainer, savedRange);
-  };
-  class gmMenuCommand {
-    static list = [];
-    constructor() {
-    }
-    static get(title) {
-      const commandButton = gmMenuCommand.list.find((commandButton2) => commandButton2.title === title);
-      if (!commandButton) throw new Error("\u83DC\u5355\u6309\u94AE\u4E0D\u5B58\u5728");
-      return commandButton;
-    }
-    static createToggle(details) {
-      gmMenuCommand.create(details.active.title, () => {
-        gmMenuCommand.toggleActive(details.active.title);
-        gmMenuCommand.toggleActive(details.inactive.title);
-        details.active.onClick();
-        gmMenuCommand.render();
-      }, true).create(details.inactive.title, () => {
-        gmMenuCommand.toggleActive(details.active.title);
-        gmMenuCommand.toggleActive(details.inactive.title);
-        details.inactive.onClick();
-        gmMenuCommand.render();
-      }, false);
-      return gmMenuCommand;
-    }
-    static click(title) {
-      const commandButton = gmMenuCommand.get(title);
-      commandButton.onClick();
-      return gmMenuCommand;
-    }
-    static create(title, onClick, isActive = true) {
-      if (gmMenuCommand.list.some((commandButton) => commandButton.title === title)) throw new Error("\u83DC\u5355\u6309\u94AE\u5DF2\u5B58\u5728");
-      gmMenuCommand.list.push({
-        title,
-        onClick,
-        isActive,
-        id: 0
-      });
-      return gmMenuCommand;
-    }
-    static remove(title) {
-      gmMenuCommand.list = gmMenuCommand.list.filter((commandButton) => commandButton.title !== title);
-      return gmMenuCommand;
-    }
-    static swap(title1, title2) {
-      const index1 = gmMenuCommand.list.findIndex((commandButton) => commandButton.title === title1);
-      const index2 = gmMenuCommand.list.findIndex((commandButton) => commandButton.title === title2);
-      if (-1 === index1 || -1 === index2) throw new Error("\u83DC\u5355\u6309\u94AE\u4E0D\u5B58\u5728");
-      [gmMenuCommand.list[index1], gmMenuCommand.list[index2]] = [
-        gmMenuCommand.list[index2],
-        gmMenuCommand.list[index1]
-      ];
-      return gmMenuCommand;
-    }
-    static modify(title, details) {
-      const commandButton = gmMenuCommand.get(title);
-      details.onClick && (commandButton.onClick = details.onClick);
-      details.isActive && (commandButton.isActive = details.isActive);
-      return gmMenuCommand;
-    }
-    static toggleActive(title) {
-      const commandButton = gmMenuCommand.get(title);
-      commandButton.isActive = !commandButton.isActive;
-      return gmMenuCommand;
-    }
-    static render() {
-      gmMenuCommand.list.forEach((commandButton) => {
-        GM_unregisterMenuCommand(commandButton.id);
-        if (commandButton.isActive) commandButton.id = GM_registerMenuCommand(commandButton.title, commandButton.onClick);
-      });
-    }
-  }
-  function onKeydown(callback, options) {
-    const { target = window, once = false, capture = false, passive = false, key, ctrl = false, alt = false, shift = false, meta = false } = options || {};
-    const eventOptions = {
-      capture,
-      passive
+    const DANGEROUS_ATTRIBUTES = [
+        'onabort',
+        'onblur',
+        'onchange',
+        'onclick',
+        'ondblclick',
+        'onerror',
+        'onfocus',
+        'onkeydown',
+        'onkeypress',
+        'onkeyup',
+        'onload',
+        'onmousedown',
+        'onmousemove',
+        'onmouseout',
+        'onmouseover',
+        'onmouseup',
+        'onreset',
+        'onresize',
+        'onselect',
+        'onsubmit',
+        'onunload',
+        'oncontextmenu',
+        'oninput',
+        'oninvalid',
+        'ondrag',
+        'ondrop',
+        'onscroll',
+    ];
+    const sanitizeElement = (element) => {
+        DANGEROUS_ATTRIBUTES.forEach((attr) => {
+            if (element.hasAttribute(attr)) {
+                element.removeAttribute(attr);
+            }
+        });
+        Array.from(element.children).forEach((child) => {
+            sanitizeElement(child);
+        });
     };
-    const hasShortcutFilter = void 0 !== key || ctrl || alt || shift || meta;
-    let wrappedCallback;
-    wrappedCallback = once ? (event) => {
-      if (hasShortcutFilter) {
-        if (void 0 !== key) {
-          const eventKey = event.key;
-          const expectedKey = key;
-          const isMatch = 1 === eventKey.length && 1 === expectedKey.length ? eventKey.toLowerCase() === expectedKey.toLowerCase() : eventKey === expectedKey;
-          if (!isMatch) return;
+    const uiCreator = (htmlContent, cssContent) => {
+        {
+            GM_addStyle(cssContent);
         }
-        if (event.ctrlKey !== ctrl) return;
-        if (event.altKey !== alt) return;
-        if (event.shiftKey !== shift) return;
-        if (event.metaKey !== meta) return;
-      }
-      callback(event);
-      target.removeEventListener("keydown", wrappedCallback, eventOptions);
-    } : (event) => {
-      if (hasShortcutFilter) {
-        if (void 0 !== key) {
-          const eventKey = event.key;
-          const expectedKey = key;
-          const isMatch = 1 === eventKey.length && 1 === expectedKey.length ? eventKey.toLowerCase() === expectedKey.toLowerCase() : eventKey === expectedKey;
-          if (!isMatch) return;
+        const domParser = new DOMParser();
+        const uiDoc = domParser.parseFromString(
+            htmlContent,
+            'text/html',
+        );
+        const documentFragment = new DocumentFragment();
+        const filterScriptNodeList = Array.from(
+            uiDoc.body.children,
+        ).filter((node) => node.nodeName !== 'SCRIPT');
+        filterScriptNodeList.forEach((node) => {
+            sanitizeElement(node);
+        });
+        documentFragment.append(...filterScriptNodeList);
+        window.document.body.append(documentFragment);
+        return filterScriptNodeList;
+    };
+    const SELECTOR_HIGHLIGHT_CODE = '.highlight-code';
+    const SELECTOR_DIALOG_CANCEL_BUTTON = '.dialog-cancel-button';
+    const SELECTOR_DIALOG_SAVE_BUTTON = '.dialog-save-button';
+    const SELECTOR_DIALOG_APPLY_BUTTON = '.dialog-apply-button';
+    const SELECTOR_QUICK_ADD_INPUT = '.dialog-quick-add-input';
+    const SELECTOR_QUICK_ADD_SUBMIT_BUTTON =
+        '.dialog-quick-add-submit-button';
+    const cssImportDefaultEvent = (dialog) => {
+        const codeContainer = dialog.querySelector(
+            SELECTOR_HIGHLIGHT_CODE,
+        );
+        if (!codeContainer) {
+            return;
         }
-        if (event.ctrlKey !== ctrl) return;
-        if (event.altKey !== alt) return;
-        if (event.shiftKey !== shift) return;
-        if (event.metaKey !== meta) return;
-      }
-      callback(event);
+        const stopPropagationEventList = [
+            'keydown',
+            'keyup',
+            'scroll',
+            'input',
+            'change',
+        ];
+        stopPropagationEventList.forEach((eventName) => {
+            dialog.addEventListener(eventName, (event) => {
+                event.stopPropagation();
+            });
+        });
+        const highlight = GM_getResourceText('highlight');
+        highlight && GM_addStyle(highlight);
+        hljs.highlightElement(codeContainer);
     };
-    target.addEventListener("keydown", wrappedCallback, eventOptions);
-    return () => {
-      target.removeEventListener("keydown", wrappedCallback, eventOptions);
-    };
-  }
-  function onKeydownMultiple(bindings, options) {
-    const { target = window, capture = false, passive = false } = options || {};
-    const eventOptions = {
-      capture,
-      passive
-    };
-    const handleKeydown = (event) => {
-      for (const binding of bindings) {
-        const { callback, key, ctrl = false, alt = false, shift = false, meta = false } = binding;
-        const hasShortcutFilter = void 0 !== key || ctrl || alt || shift || meta;
-        if (hasShortcutFilter) {
-          if (void 0 !== key) {
-            const eventKey = event.key;
-            const expectedKey = key;
-            const isMatch = 1 === eventKey.length && 1 === expectedKey.length ? eventKey.toLowerCase() === expectedKey.toLowerCase() : eventKey === expectedKey;
-            if (!isMatch) continue;
-          }
-          if (event.ctrlKey !== ctrl) continue;
-          if (event.altKey !== alt) continue;
-          if (event.shiftKey !== shift) continue;
-          if (event.metaKey !== meta) continue;
+    class LocalStorage {
+        constructor(key, defaultValue) {
+            this.key = key;
+            if (defaultValue && !this.get()) {
+                this.set(defaultValue);
+            }
         }
-        callback(event);
-      }
-    };
-    target.addEventListener("keydown", handleKeydown, eventOptions);
-    return () => {
-      target.removeEventListener("keydown", handleKeydown, eventOptions);
-    };
-  }
-  const cssImportCallback = (dialog) => {
-    const codeContainer = dialog.querySelector(SELECTOR_HIGHLIGHT_CODE);
-    if (!codeContainer) {
-      return;
+        /**
+         * 设置 / 更新键
+         *
+         * @param value - The new value to be set.
+         * @returns void
+         */
+        set(value) {
+            localStorage.setItem(this.key, value.trim());
+        }
+        /**
+         * 获取值。
+         *
+         * @returns The value stored in localStorage or null if the key is not found.
+         */
+        get() {
+            return localStorage.getItem(this.key);
+        }
     }
-    codeContainer.addEventListener("blur", () => {
-      highlightCode(codeContainer);
-    });
-    onKeydownMultiple([
-      {
-        key: "Tab",
-        callback: (e) => {
-          e.preventDefault();
-          const selection = window.getSelection();
-          if (!selection) return;
-          if (selection.rangeCount === 0) return;
-          const range = selection.getRangeAt(0);
-          range.deleteContents();
-          const tabNode = document.createTextNode("	");
-          range.insertNode(tabNode);
-          const newRange = document.createRange();
-          newRange.setStartAfter(tabNode);
-          newRange.collapse(true);
-          selection.removeAllRanges();
-          selection.addRange(newRange);
+    const ExtraCSSConfigStorage = new LocalStorage(
+        'ExtraCSSConfig',
+        '',
+    );
+    class CssToPage {
+        static load() {
+            this.remove();
+            const cssContent = ExtraCSSConfigStorage.get();
+            if (!cssContent) {
+                return;
+            }
+            this.styleNode = GM_addStyle(cssContent);
         }
-      }
-    ], {
-      target: dialog
-    });
-    const handleCancel = () => {
-      dialog.close();
-    };
-    const handleSave = (isClose = true) => {
-      ExtraCSSConfigStorage.set(codeContainer.textContent || "");
-      CssToPage.load();
-      isClose && dialog.close();
-    };
-    dialog.querySelector(SELECTOR_DIALOG_CANCEL_BUTTON)?.addEventListener("click", handleCancel);
-    dialog.querySelector(SELECTOR_DIALOG_SAVE_BUTTON)?.addEventListener("click", () => handleSave(true));
-    dialog.querySelector(SELECTOR_DIALOG_APPLY_BUTTON)?.addEventListener("click", () => handleSave(false));
-    const quickAddInput = dialog.querySelector(SELECTOR_QUICK_ADD_INPUT);
-    const submitButton = dialog.querySelector(SELECTOR_QUICK_ADD_SUBMIT_BUTTON);
-    if (!(quickAddInput && submitButton)) {
-      return;
+        static remove() {
+            if (this.styleNode) {
+                this.styleNode.remove();
+            }
+        }
     }
-    const handleQuickAdd = (input) => {
-      const textContent = input.value.trim();
-      input.value = "";
-      const appendData = `${codeContainer.textContent?.trim() ? "\n" : ""}${textContent} {display: none !important;}`;
-      codeContainer.insertAdjacentText("beforeend", appendData);
-      highlightCode(codeContainer);
+    const saveSelection = (element) => {
+        const selection = window.getSelection();
+        if (!selection || selection.rangeCount === 0) {
+            return null;
+        }
+        const range = selection.getRangeAt(0);
+        if (!element.contains(range.commonAncestorContainer)) {
+            return null;
+        }
+        return range.cloneRange();
     };
-    onKeydown(() => {
-      handleQuickAdd(quickAddInput);
-    }, { target: quickAddInput, key: "Enter" });
-    submitButton.addEventListener("click", () => handleQuickAdd(quickAddInput));
-  };
-  const cssImportOpenButton = (dialog) => {
-    GM_registerMenuCommand("\u4FEE\u6539CSS", () => {
-      const codeContainer = dialog.querySelector(SELECTOR_HIGHLIGHT_CODE);
-      if (!codeContainer) {
-        return;
-      }
-      codeContainer.textContent = ExtraCSSConfigStorage.get();
-      highlightCode(codeContainer);
-      dialog.showModal();
-    });
-  };
-  const cssImportCreator = () => {
-    const docFrag = uiCreator(cssImportHtmlContent, cssImportStyle);
-    const dialog = docFrag.find((node) => node.classList.contains("css-dialog-container"));
-    if (!dialog) {
-      return;
+    const restoreSelection = (element, savedRange) => {
+        if (!savedRange) {
+            return;
+        }
+        const selection = window.getSelection();
+        if (!selection) {
+            return;
+        }
+        try {
+            selection.removeAllRanges();
+            selection.addRange(savedRange);
+        } catch (e) {
+            const range = document.createRange();
+            range.selectNodeContents(element);
+            range.collapse(false);
+            selection.removeAllRanges();
+            selection.addRange(range);
+        }
+    };
+    const highlightCode = (codeContainer) => {
+        const savedRange = saveSelection(codeContainer);
+        codeContainer.textContent = codeContainer.textContent;
+        hljs.highlightElement(codeContainer);
+        restoreSelection(codeContainer, savedRange);
+    };
+    class gmMenuCommand {
+        static list = [];
+        constructor() {}
+        static get(title) {
+            const commandButton = gmMenuCommand.list.find(
+                (commandButton2) => commandButton2.title === title,
+            );
+            if (!commandButton)
+                throw new Error(
+                    '\u83DC\u5355\u6309\u94AE\u4E0D\u5B58\u5728',
+                );
+            return commandButton;
+        }
+        static createToggle(details) {
+            gmMenuCommand
+                .create(
+                    details.active.title,
+                    () => {
+                        gmMenuCommand.toggleActive(
+                            details.active.title,
+                        );
+                        gmMenuCommand.toggleActive(
+                            details.inactive.title,
+                        );
+                        details.active.onClick();
+                        gmMenuCommand.render();
+                    },
+                    true,
+                )
+                .create(
+                    details.inactive.title,
+                    () => {
+                        gmMenuCommand.toggleActive(
+                            details.active.title,
+                        );
+                        gmMenuCommand.toggleActive(
+                            details.inactive.title,
+                        );
+                        details.inactive.onClick();
+                        gmMenuCommand.render();
+                    },
+                    false,
+                );
+            return gmMenuCommand;
+        }
+        static click(title) {
+            const commandButton = gmMenuCommand.get(title);
+            commandButton.onClick();
+            return gmMenuCommand;
+        }
+        static create(title, onClick, isActive = true) {
+            if (
+                gmMenuCommand.list.some(
+                    (commandButton) => commandButton.title === title,
+                )
+            )
+                throw new Error(
+                    '\u83DC\u5355\u6309\u94AE\u5DF2\u5B58\u5728',
+                );
+            gmMenuCommand.list.push({
+                title,
+                onClick,
+                isActive,
+                id: 0,
+            });
+            return gmMenuCommand;
+        }
+        static remove(title) {
+            gmMenuCommand.list = gmMenuCommand.list.filter(
+                (commandButton) => commandButton.title !== title,
+            );
+            return gmMenuCommand;
+        }
+        static swap(title1, title2) {
+            const index1 = gmMenuCommand.list.findIndex(
+                (commandButton) => commandButton.title === title1,
+            );
+            const index2 = gmMenuCommand.list.findIndex(
+                (commandButton) => commandButton.title === title2,
+            );
+            if (-1 === index1 || -1 === index2)
+                throw new Error(
+                    '\u83DC\u5355\u6309\u94AE\u4E0D\u5B58\u5728',
+                );
+            [gmMenuCommand.list[index1], gmMenuCommand.list[index2]] =
+                [
+                    gmMenuCommand.list[index2],
+                    gmMenuCommand.list[index1],
+                ];
+            return gmMenuCommand;
+        }
+        static modify(title, details) {
+            const commandButton = gmMenuCommand.get(title);
+            details.onClick &&
+                (commandButton.onClick = details.onClick);
+            details.isActive &&
+                (commandButton.isActive = details.isActive);
+            return gmMenuCommand;
+        }
+        static toggleActive(title) {
+            const commandButton = gmMenuCommand.get(title);
+            commandButton.isActive = !commandButton.isActive;
+            return gmMenuCommand;
+        }
+        static render() {
+            gmMenuCommand.list.forEach((commandButton) => {
+                GM_unregisterMenuCommand(commandButton.id);
+                if (commandButton.isActive)
+                    commandButton.id = GM_registerMenuCommand(
+                        commandButton.title,
+                        commandButton.onClick,
+                    );
+            });
+        }
     }
-    cssImportDefaultEvent(dialog);
-    cssImportCallback(dialog);
-    cssImportOpenButton(dialog);
-  };
-  const main = async () => {
-    cssImportCreator();
-    CssToPage.load();
-    gmMenuCommand.createToggle({
-      active: {
-        title: "[On] \u5F15\u5165\u989D\u5916CSS",
-        onClick: () => {
-          CssToPage.remove();
+    function onKeydown(callback, options) {
+        const {
+            target = window,
+            once = false,
+            capture = false,
+            passive = false,
+            key,
+            ctrl = false,
+            alt = false,
+            shift = false,
+            meta = false,
+        } = options || {};
+        const eventOptions = {
+            capture,
+            passive,
+        };
+        const hasShortcutFilter =
+            void 0 !== key || ctrl || alt || shift || meta;
+        let wrappedCallback;
+        wrappedCallback = once
+            ? (event) => {
+                  if (hasShortcutFilter) {
+                      if (void 0 !== key) {
+                          const eventKey = event.key;
+                          const expectedKey = key;
+                          const isMatch =
+                              1 === eventKey.length &&
+                              1 === expectedKey.length
+                                  ? eventKey.toLowerCase() ===
+                                    expectedKey.toLowerCase()
+                                  : eventKey === expectedKey;
+                          if (!isMatch) return;
+                      }
+                      if (event.ctrlKey !== ctrl) return;
+                      if (event.altKey !== alt) return;
+                      if (event.shiftKey !== shift) return;
+                      if (event.metaKey !== meta) return;
+                  }
+                  callback(event);
+                  target.removeEventListener(
+                      'keydown',
+                      wrappedCallback,
+                      eventOptions,
+                  );
+              }
+            : (event) => {
+                  if (hasShortcutFilter) {
+                      if (void 0 !== key) {
+                          const eventKey = event.key;
+                          const expectedKey = key;
+                          const isMatch =
+                              1 === eventKey.length &&
+                              1 === expectedKey.length
+                                  ? eventKey.toLowerCase() ===
+                                    expectedKey.toLowerCase()
+                                  : eventKey === expectedKey;
+                          if (!isMatch) return;
+                      }
+                      if (event.ctrlKey !== ctrl) return;
+                      if (event.altKey !== alt) return;
+                      if (event.shiftKey !== shift) return;
+                      if (event.metaKey !== meta) return;
+                  }
+                  callback(event);
+              };
+        target.addEventListener(
+            'keydown',
+            wrappedCallback,
+            eventOptions,
+        );
+        return () => {
+            target.removeEventListener(
+                'keydown',
+                wrappedCallback,
+                eventOptions,
+            );
+        };
+    }
+    function onKeydownMultiple(bindings, options) {
+        const {
+            target = window,
+            capture = false,
+            passive = false,
+        } = options || {};
+        const eventOptions = {
+            capture,
+            passive,
+        };
+        const handleKeydown = (event) => {
+            for (const binding of bindings) {
+                const {
+                    callback,
+                    key,
+                    ctrl = false,
+                    alt = false,
+                    shift = false,
+                    meta = false,
+                } = binding;
+                const hasShortcutFilter =
+                    void 0 !== key || ctrl || alt || shift || meta;
+                if (hasShortcutFilter) {
+                    if (void 0 !== key) {
+                        const eventKey = event.key;
+                        const expectedKey = key;
+                        const isMatch =
+                            1 === eventKey.length &&
+                            1 === expectedKey.length
+                                ? eventKey.toLowerCase() ===
+                                  expectedKey.toLowerCase()
+                                : eventKey === expectedKey;
+                        if (!isMatch) continue;
+                    }
+                    if (event.ctrlKey !== ctrl) continue;
+                    if (event.altKey !== alt) continue;
+                    if (event.shiftKey !== shift) continue;
+                    if (event.metaKey !== meta) continue;
+                }
+                callback(event);
+            }
+        };
+        target.addEventListener(
+            'keydown',
+            handleKeydown,
+            eventOptions,
+        );
+        return () => {
+            target.removeEventListener(
+                'keydown',
+                handleKeydown,
+                eventOptions,
+            );
+        };
+    }
+    const cssImportCallback = (dialog) => {
+        const codeContainer = dialog.querySelector(
+            SELECTOR_HIGHLIGHT_CODE,
+        );
+        if (!codeContainer) {
+            return;
         }
-      },
-      inactive: {
-        title: "[Off] \u5F15\u5165\u989D\u5916CSS",
-        onClick: () => {
-          CssToPage.load();
+        codeContainer.addEventListener('blur', () => {
+            highlightCode(codeContainer);
+        });
+        onKeydownMultiple(
+            [
+                {
+                    key: 'Tab',
+                    callback: (e) => {
+                        e.preventDefault();
+                        const selection = window.getSelection();
+                        if (!selection) return;
+                        if (selection.rangeCount === 0) return;
+                        const range = selection.getRangeAt(0);
+                        range.deleteContents();
+                        const tabNode =
+                            document.createTextNode('	');
+                        range.insertNode(tabNode);
+                        const newRange = document.createRange();
+                        newRange.setStartAfter(tabNode);
+                        newRange.collapse(true);
+                        selection.removeAllRanges();
+                        selection.addRange(newRange);
+                    },
+                },
+            ],
+            {
+                target: dialog,
+            },
+        );
+        const handleCancel = () => {
+            dialog.close();
+        };
+        const handleSave = (isClose = true) => {
+            ExtraCSSConfigStorage.set(
+                codeContainer.textContent || '',
+            );
+            CssToPage.load();
+            isClose && dialog.close();
+        };
+        dialog
+            .querySelector(SELECTOR_DIALOG_CANCEL_BUTTON)
+            ?.addEventListener('click', handleCancel);
+        dialog
+            .querySelector(SELECTOR_DIALOG_SAVE_BUTTON)
+            ?.addEventListener('click', () => handleSave(true));
+        dialog
+            .querySelector(SELECTOR_DIALOG_APPLY_BUTTON)
+            ?.addEventListener('click', () => handleSave(false));
+        const quickAddInput = dialog.querySelector(
+            SELECTOR_QUICK_ADD_INPUT,
+        );
+        const submitButton = dialog.querySelector(
+            SELECTOR_QUICK_ADD_SUBMIT_BUTTON,
+        );
+        if (!(quickAddInput && submitButton)) {
+            return;
         }
-      }
-    }).render();
-  };
-  main().catch(console.error);
+        const handleQuickAdd = (input) => {
+            const textContent = input.value.trim();
+            input.value = '';
+            const appendData = `${codeContainer.textContent?.trim() ? '\n' : ''}${textContent} {display: none !important;}`;
+            codeContainer.insertAdjacentText('beforeend', appendData);
+            highlightCode(codeContainer);
+        };
+        onKeydown(
+            () => {
+                handleQuickAdd(quickAddInput);
+            },
+            { target: quickAddInput, key: 'Enter' },
+        );
+        submitButton.addEventListener('click', () =>
+            handleQuickAdd(quickAddInput),
+        );
+    };
+    const cssImportOpenButton = (dialog) => {
+        GM_registerMenuCommand('\u4FEE\u6539CSS', () => {
+            const codeContainer = dialog.querySelector(
+                SELECTOR_HIGHLIGHT_CODE,
+            );
+            if (!codeContainer) {
+                return;
+            }
+            codeContainer.textContent = ExtraCSSConfigStorage.get();
+            highlightCode(codeContainer);
+            dialog.showModal();
+        });
+    };
+    const cssImportCreator = () => {
+        const docFrag = uiCreator(
+            cssImportHtmlContent,
+            cssImportStyle,
+        );
+        const dialog = docFrag.find((node) =>
+            node.classList.contains('css-dialog-container'),
+        );
+        if (!dialog) {
+            return;
+        }
+        cssImportDefaultEvent(dialog);
+        cssImportCallback(dialog);
+        cssImportOpenButton(dialog);
+    };
+    const main = async () => {
+        cssImportCreator();
+        CssToPage.load();
+        gmMenuCommand
+            .createToggle({
+                active: {
+                    title: '[On] \u5F15\u5165\u989D\u5916CSS',
+                    onClick: () => {
+                        CssToPage.remove();
+                    },
+                },
+                inactive: {
+                    title: '[Off] \u5F15\u5165\u989D\u5916CSS',
+                    onClick: () => {
+                        CssToPage.load();
+                    },
+                },
+            })
+            .render();
+    };
+    main().catch(console.error);
 })();

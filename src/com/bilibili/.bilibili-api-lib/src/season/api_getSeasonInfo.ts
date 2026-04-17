@@ -17,12 +17,12 @@ import type { ISeasonInfo } from './interface/ISeasonInfo.ts';
  * ```
  */
 export function api_getSeasonInfo(seasonId: number) {
-  return xhrRequest.get<ISeasonInfo>(
-    'https://member.bilibili.com/x2/creative/web/season',
-    {
-      params: {
-        id: seasonId.toString(),
-      },
-    },
-  );
+    return xhrRequest.get<ISeasonInfo>(
+        'https://member.bilibili.com/x2/creative/web/season',
+        {
+            params: {
+                id: seasonId.toString(),
+            },
+        },
+    );
 }

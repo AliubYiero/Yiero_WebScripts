@@ -20,11 +20,11 @@ import type { IRoomInfo } from './interfaces/IRoomInfo.ts';
  * @see [获取直播间信息](https://api.live.bilibili.com/room/v1/Room/get_info)
  */
 export function api_getRoomInfo(roomId: number) {
-  const url = 'https://api.live.bilibili.com/room/v1/Room/get_info';
+    const url = 'https://api.live.bilibili.com/room/v1/Room/get_info';
 
-  return xhrRequest.get<IRoomInfo>(url, {
-    params: { room_id: roomId.toString() },
-  });
+    return xhrRequest.get<IRoomInfo>(url, {
+        params: { room_id: roomId.toString() },
+    });
 }
 
 export type { IRoomInfo };

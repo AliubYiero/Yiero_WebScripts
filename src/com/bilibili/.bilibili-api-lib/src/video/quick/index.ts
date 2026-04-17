@@ -27,7 +27,7 @@
 export { getVideoCid } from './getVideoCid';
 export { getVideoSubtitlesList } from './getVideoSubtitlesList';
 export type {
-  GetVideoSubtitlesListResult,
-  VideoSubtitleItemWithGetContent,
+    GetVideoSubtitlesListResult,
+    VideoSubtitleItemWithGetContent,
 } from './types/GetVideoSubtitlesListResult.ts';
 export type { IVideoCid } from './types/IVideoCid.ts';

@@ -1,85 +1,87 @@
 /* 通用已看样式 */
 .watch-mark {
-	position: relative;
+    position: relative;
 }
 
-.watch-mark.watched, .watch-mark.same-watch {
-	opacity: .6;
+.watch-mark.watched,
+.watch-mark.same-watch {
+    opacity: 0.6;
 }
 
 .watch-mark::after {
-	position: absolute;
-	text-align: center;
-	font-size: 12px;
-	align-items: center;
-	border-radius: 2px;
-	display: flex;
-	height: 18px;
-	padding: 0 5px;
-	pointer-events: none;
-	top: 8px;
-	z-index: 10;
+    position: absolute;
+    text-align: center;
+    font-size: 12px;
+    align-items: center;
+    border-radius: 2px;
+    display: flex;
+    height: 18px;
+    padding: 0 5px;
+    pointer-events: none;
+    top: 8px;
+    z-index: 10;
 }
 
 .watch-mark.watched::after {
-	content: '已看';
-	background-color: #9E9E9EDE;
-	color: #F5F5F5DE;
+    content: "已看";
+    background-color: #9e9e9ede;
+    color: #f5f5f5de;
 }
 
 .watch-mark.same-watch::after {
-	content: '看过类似';
-	background-color: #FF9800DE;
-	color: #F5F5F5DE;
+    content: "看过类似";
+    background-color: #ff9800de;
+    color: #f5f5f5de;
 }
 
 .watch-mark.unwatched::after {
-	content: '未看';
-	background-color: #00BCD4;
-	color: #F5F5F5;
+    content: "未看";
+    background-color: #00bcd4;
+    color: #f5f5f5;
 }
 
 .watch-mark.watching::after {
-	content: '正在看';
-	background-color: #FF9800DE;
-	color: #F5F5F5DE;
+    content: "正在看";
+    background-color: #ff9800de;
+    color: #f5f5f5de;
 }
 
 .watch-mark.ep::after {
-	content: '番剧';
-	background-color: rgba(109, 221, 132);
-	color: #F5F5F5DE;
+    content: "番剧";
+    background-color: rgba(109, 221, 132);
+    color: #f5f5f5de;
 }
 
 .watch-mark.left::after {
-	left: 8px;
+    left: 8px;
 }
 
 .watch-mark.right::after {
-	right: 8px;
+    right: 8px;
 }
 
 /* 浮动时隐藏 */
 .watch-mark:hover::after {
-	opacity: 0;
+    opacity: 0;
 }
-.watch-mark.watched:hover, .watch-mark.same-watch:hover {
-	opacity: 1;
+.watch-mark.watched:hover,
+.watch-mark.same-watch:hover {
+    opacity: 1;
 }
 
 /* 合集列表已看样式 */
 .video-pod__item.simple.watch-mark {
-	display: flex;
-	align-items: center;
-	
-	& > .single-p {
-		flex: 1;
-	}
+    display: flex;
+    align-items: center;
+
+    & > .single-p {
+        flex: 1;
+    }
 }
 .video-pod__item.simple.watch-mark::after {
-	position: static;
-	width: 28px;
-	height: 16px;
-	line-height: 16px;
-	opacity: .9;
+    position: static;
+    width: 28px;
+    height: 16px;
+    line-height: 16px;
+    opacity: 0.9;
 }

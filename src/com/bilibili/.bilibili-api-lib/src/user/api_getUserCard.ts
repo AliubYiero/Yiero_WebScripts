@@ -33,25 +33,27 @@ import type { IUserCard } from './interfaces/IUserCard.ts';
  * @see [用户名片信息](https://socialsisteryi.github.io/bilibili-API-collect/docs/user/info.html#%E7%94%A8%E6%88%B7%E5%90%8D%E7%89%87%E4%BF%A1%E6%81%AF)
  */
 export function api_getUserCard(
-  mid: number,
-  photo: boolean = false,
-  login: boolean = false,
+    mid: number,
+    photo: boolean = false,
+    login: boolean = false,
 ) {
-  const params: Record<string, string> = {
-    mid: mid.toString(),
-  };
+    const params: Record<string, string> = {
+        mid: mid.toString(),
+    };
 
-  if (photo) {
-    params.photo = 'true';
-  }
+    if (photo) {
+        params.photo = 'true';
+    }
 
-  const url = 'https://api.bilibili.com/x/web-interface/card';
+    const url = 'https://api.bilibili.com/x/web-interface/card';
 
-  if (login) {
-    return xhrRequest.getWithCredentials<IUserCard>(url, { params });
-  }
+    if (login) {
+        return xhrRequest.getWithCredentials<IUserCard>(url, {
+            params,
+        });
+    }
 
-  return xhrRequest.get<IUserCard>(url, { params });
+    return xhrRequest.get<IUserCard>(url, { params });
 }
 
 export type { IUserCard };

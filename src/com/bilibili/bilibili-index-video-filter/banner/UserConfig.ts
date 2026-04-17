@@ -1,5 +1,3 @@
 import { ScriptCatUserConfig } from '../types/UserConfig';
 
-export const UserConfig: ScriptCatUserConfig = {
-
-};
+export const UserConfig: ScriptCatUserConfig = {};

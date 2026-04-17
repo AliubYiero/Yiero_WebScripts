@@ -1,14 +1,14 @@
 .bpx-player-video-wrap {
-	position: absolute;
+    position: absolute;
 }
 
 .bpx-player-video-wrap.show-message::after {
-	content: "切换至倍速 " attr(data-playback-rate) "x";
-	position: absolute;
-	top: 0;
-	left: 0;
-	padding: 8px;
-	color: white;
-	background: #00000066;
-	z-index: 99;
+    content: "切换至倍速 " attr(data-playback-rate) "x";
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 8px;
+    color: white;
+    background: #00000066;
+    z-index: 99;
 }
