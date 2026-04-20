@@ -1,13 +1,12 @@
-import { scrollModeStore } from '../store/ConfigStore.ts';
+import { scrollLengthStore, scrollModeStore } from '../store/ConfigStore.ts';
 
 let animationFrameId: number = 0;
 let lastTimestamp: number = 0;
 let scrollHeightPerMs: number = 0;
-let scrollRemainder: number = 0; // 累积未滚动的余数
+let scrollRemainder: number = 0;
 
-/** 触底回调类型 */
-type ReachBottomCallback = () => void;
-let reachBottomCallback: ReachBottomCallback | null = null;
+/** 触底事件 */
+export const REACH_BOTTOM_EVENT = 'scrollDriver:reachBottom';
 
 /** 检测是否到达页面底部 */
 const isAtBottom = (): boolean => {
@@ -15,14 +14,7 @@ const isAtBottom = (): boolean => {
         window.scrollY || document.documentElement.scrollTop;
     const scrollHeight = document.documentElement.scrollHeight;
     const clientHeight = window.innerHeight;
-    return scrollTop + clientHeight >= scrollHeight - 10; // 10px 缓冲
-};
-
-/** 设置触底回调 */
-export const setReachBottomCallback = (
-    callback: ReachBottomCallback | null,
-): void => {
-    reachBottomCallback = callback;
+    return scrollTop + clientHeight >= scrollHeight - 10;
 };
 
 const scroll = (timestamp: number) => {
@@ -38,34 +30,30 @@ const scroll = (timestamp: number) => {
         scrollRemainder = delta;
     }
 
-    // 自动翻页模式：触底检测
     if (
         scrollModeStore.get() === '自动翻页' &&
-        isAtBottom() &&
-        reachBottomCallback
+        isAtBottom()
     ) {
-        reachBottomCallback();
-        return; // 暂停滚动，等待翻页
+        window.dispatchEvent(new CustomEvent(REACH_BOTTOM_EVENT));
+        return;
     }
 
     animationFrameId = requestAnimationFrame(scroll);
 };
 
-/**
- * 开始滚动
- * @param scrollLengthPerSecond 每秒滚动的像素数
- */
-export const startScroll = (scrollLengthPerSecond: number) => {
+/** 开始滚动 */
+export const startScroll = (): void => {
     if (animationFrameId) {
         stopScroll();
     }
-    scrollHeightPerMs = scrollLengthPerSecond / 1000;
-    scrollRemainder = 0; // 重置累积余数
+    scrollHeightPerMs = scrollLengthStore.get() / 1000;
+    scrollRemainder = 0;
     lastTimestamp = performance.now();
     animationFrameId = requestAnimationFrame(scroll);
 };
 
-export const stopScroll = () => {
+/** 停止滚动 */
+export const stopScroll = (): void => {
     if (animationFrameId) {
         cancelAnimationFrame(animationFrameId);
         animationFrameId = 0;

@@ -33,22 +33,28 @@ pnpm coverage
 
 ```
 main.ts (初始化)
-  ├─ eventHandlers.ts     键盘/可见性事件 → scrollStateManager
-  ├─ scrollStateManager.ts 状态机 → scrollController (滚动) / pageTurner (翻页)
-  └─ RuntimeStateStore.ts  跨页持久化翻页恢复状态
+  ├─ eventHandlers.ts          键盘/可见性事件
+  ├─ command/ScrollCommand.ts  命令层（start/stop/pause/resume/调速）
+  ├─ state/ScrollStateMachine.ts  状态机（ScrollStatus / TurnPageStatus）
+  ├─ driver/ScrollDriver.ts     RAF 驱动滚动，触底派发 REACH_BOTTOM_EVENT
+  ├─ lifecycle/PageTurnLifecycle.ts 翻页生命周期（等待延时、自动恢复）
+  └─ store/RuntimeStateStore.ts    跨页持久化状态
 ```
 
 ### 核心模块
 
 | 文件 | 职责 |
 |------|------|
-| `src/main.ts` | 初始化入口，挂载事件监听，恢复翻页后状态 |
+| `src/main.ts` | 初始化入口，挂载事件监听 |
 | `src/module/eventHandlers.ts` | Space 开关/暂停，Shift+PageUp/Down 调速，页面可见性 |
-| `src/module/scrollStateManager.ts` | 状态机（滚动/临时停止/停止），触底时触发翻页 |
-| `src/module/scrollController.ts` | `requestAnimationFrame` 实现平滑滚动 |
-| `src/module/pageTurner.ts` | 执行翻页（默认键盘右箭头，可配置点击或键盘） |
-| `src/store/ConfigStore.ts` | 用户配置读写（来自 `banner/UserConfig.ts`） |
-| `src/store/RuntimeStateStore.ts` | 翻页跨页面状态持久化 |
+| `src/command/ScrollCommand.ts` | 滚动命令（start/stop/pause/resume/调速），协调状态机 |
+| `src/state/ScrollStateMachine.ts` | 状态枚举（ScrollStatus / TurnPageStatus） |
+| `src/driver/ScrollDriver.ts` | `requestAnimationFrame` 实现平滑滚动，触底触发事件 |
+| `src/lifecycle/PageTurnLifecycle.ts` | 翻页流程：等待延时 → 执行翻页 → 等待新页加载 → 自动恢复 |
+| `src/lifecycle/DelayCalculator.ts` | 可取消延时计算 |
+| `src/module/pageTurner.ts` | 执行翻页（默认键盘右箭头，支持点击或键盘配置） |
+| `src/store/ConfigStore.ts` | 用户配置读写（`banner/UserConfig.ts`） |
+| `src/store/RuntimeStateStore.ts` | 翻页跨页面状态持久化（GM_getValue/setValue） |
 
 ### 配置与元数据
 

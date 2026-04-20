@@ -1,15 +1,16 @@
 import { onKeydownMultiple, onKeyup } from '@yiero/gmlib';
 import {
-    adjustScrollSpeed,
-    cancelDelay,
-    isPaused,
-    isScrolling,
-    isStopped,
-    pauseScrolling,
-    resumeScrolling,
-    startScrolling,
-    stopScrolling,
-} from './scrollStateManager.ts';
+    start,
+    stop,
+    pause,
+    resume,
+    adjustSpeed,
+    cancelDelayCmd,
+} from '../command/ScrollCommand.ts';
+import {
+    getStatus,
+    ScrollStatus,
+} from '../state/ScrollStateMachine.ts';
 import { focusModeStore } from '../store/ConfigStore.ts';
 
 /** 设置键盘事件处理 */
@@ -20,21 +21,21 @@ export const setupKeyboardHandlers = (): void => {
             key: ' ',
             callback: (e) => {
                 e.preventDefault();
-                cancelDelay();
+                cancelDelayCmd();
 
                 // 长按空格临时暂停
                 if (e.repeat) {
-                    if (!isPaused()) {
-                        pauseScrolling();
+                    if (getStatus() !== ScrollStatus.TempStop) {
+                        pause();
                     }
                     return;
                 }
 
                 // 空格切换滚动状态
-                if (isStopped()) {
-                    startScrolling();
-                } else if (isScrolling()) {
-                    stopScrolling();
+                if (getStatus() === ScrollStatus.Stop) {
+                    start();
+                } else if (getStatus() === ScrollStatus.Scroll) {
+                    stop();
                 }
             },
         },
@@ -44,8 +45,8 @@ export const setupKeyboardHandlers = (): void => {
             shift: true,
             callback: (e) => {
                 e.preventDefault();
-                cancelDelay();
-                adjustScrollSpeed(1);
+                cancelDelayCmd();
+                adjustSpeed(1);
             },
         },
         // Shift+PageDown 减少滚动速度
@@ -54,8 +55,8 @@ export const setupKeyboardHandlers = (): void => {
             shift: true,
             callback: (e) => {
                 e.preventDefault();
-                cancelDelay();
-                adjustScrollSpeed(-1);
+                cancelDelayCmd();
+                adjustSpeed(-1);
             },
         },
     ]);
@@ -63,8 +64,8 @@ export const setupKeyboardHandlers = (): void => {
     // 松开空格时恢复滚动
     onKeyup(
         () => {
-            if (isPaused()) {
-                resumeScrolling();
+            if (getStatus() === ScrollStatus.TempStop) {
+                resume();
             }
         },
         { key: ' ' },
@@ -78,23 +79,23 @@ export const setupVisibilityHandlers = (): void => {
     if (inFocusMode) {
         // 焦点模式: 监听窗口焦点变化
         window.addEventListener('focus', () => {
-            if (isPaused()) {
-                resumeScrolling();
+            if (getStatus() === ScrollStatus.TempStop) {
+                resume();
             }
         });
 
         window.addEventListener('blur', () => {
-            if (isScrolling()) {
-                pauseScrolling();
+            if (getStatus() === ScrollStatus.Scroll) {
+                pause();
             }
         });
     } else {
         // 非焦点模式: 监听页面可见性变化
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden && isScrolling()) {
-                pauseScrolling();
-            } else if (!document.hidden && isPaused()) {
-                resumeScrolling();
+            if (document.hidden && getStatus() === ScrollStatus.Scroll) {
+                pause();
+            } else if (!document.hidden && getStatus() === ScrollStatus.TempStop) {
+                resume();
             }
         });
     }

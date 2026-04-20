@@ -1,66 +1,8 @@
-import { Message } from '@yiero/gmlib';
 import {
     setupKeyboardHandlers,
     setupVisibilityHandlers,
 } from './module/eventHandlers.ts';
-import {
-    createCancelableDelay,
-    getNewPageDelay,
-    initAutoTurnPage,
-    resumeScrolling,
-    stopScrolling,
-} from './module/scrollStateManager.ts';
-import {
-    clearRuntimeState,
-    isExpired,
-    loadRuntimeState,
-} from './store/RuntimeStateStore.ts';
-
-/** 延迟清理时间 (ms) - 防止翻页成功后立即清理导致后续翻页失效 */
-const CLEANUP_DELAY = 3000;
-
-/**
- * 尝试从存储恢复滚动状态
- * 用于页面跳转后自动恢复滚动
- */
-const tryAutoResumeFromStorage = async (): Promise<void> => {
-    const state = loadRuntimeState();
-
-    // 无存储状态，忽略
-    if (!state) {
-        return;
-    }
-
-    // 状态已过期，清理后忽略
-    if (isExpired(state.timestamp)) {
-        clearRuntimeState();
-        return;
-    }
-
-    // 翻页成功，等待延时后恢复滚动
-    const newPageDelay = getNewPageDelay();
-    Message.info(`翻页成功, 准备滚动 (等待 ${newPageDelay} 秒)`, {
-        position: 'top-left',
-    });
-
-    const cancelled = await createCancelableDelay(
-        newPageDelay * 1000,
-    );
-    if (cancelled) {
-        // 按键取消了延时，停止滚动
-        stopScrolling();
-        Message.info('翻页等待被取消，已停止滚动', {
-            position: 'top-left',
-        });
-        return;
-    }
-
-    // 延时正常结束，恢复滚动
-    resumeScrolling();
-
-    // 延迟清理持久化状态
-    setTimeout(clearRuntimeState, CLEANUP_DELAY);
-};
+import { initScrollCommand, destroyScrollCommand } from './command/ScrollCommand.ts';
 
 /**
  * 主函数
@@ -68,12 +10,12 @@ const tryAutoResumeFromStorage = async (): Promise<void> => {
 const main = async () => {
     setupKeyboardHandlers();
     setupVisibilityHandlers();
+    await initScrollCommand();
 
-    // 初始化自动翻页模式
-    initAutoTurnPage();
-
-    // 尝试从存储恢复滚动状态 (用于页面跳转后自动恢复)
-    await tryAutoResumeFromStorage();
+    // 页面卸载时清理
+    window.addEventListener('unload', () => {
+        destroyScrollCommand();
+    });
 };
 
 main().catch(console.error);
