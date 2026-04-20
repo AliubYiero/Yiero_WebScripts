@@ -1,6 +1,7 @@
 import { onKeydownMultiple, onKeyup } from '@yiero/gmlib';
 import {
     adjustScrollSpeed,
+    cancelDelay,
     isPaused,
     isScrolling,
     isStopped,
@@ -19,6 +20,7 @@ export const setupKeyboardHandlers = (): void => {
             key: ' ',
             callback: (e) => {
                 e.preventDefault();
+                cancelDelay();
 
                 // 长按空格临时暂停
                 if (e.repeat) {
@@ -42,6 +44,7 @@ export const setupKeyboardHandlers = (): void => {
             shift: true,
             callback: (e) => {
                 e.preventDefault();
+                cancelDelay();
                 adjustScrollSpeed(1);
             },
         },
@@ -51,6 +54,7 @@ export const setupKeyboardHandlers = (): void => {
             shift: true,
             callback: (e) => {
                 e.preventDefault();
+                cancelDelay();
                 adjustScrollSpeed(-1);
             },
         },

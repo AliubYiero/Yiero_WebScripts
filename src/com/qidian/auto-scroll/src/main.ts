@@ -4,9 +4,11 @@ import {
     setupVisibilityHandlers,
 } from './module/eventHandlers.ts';
 import {
+    createCancelableDelay,
     getNewPageDelay,
     initAutoTurnPage,
     resumeScrolling,
+    stopScrolling,
 } from './module/scrollStateManager.ts';
 import {
     clearRuntimeState,
@@ -16,10 +18,6 @@ import {
 
 /** 延迟清理时间 (ms) - 防止翻页成功后立即清理导致后续翻页失效 */
 const CLEANUP_DELAY = 3000;
-
-/** 辅助函数：延时 */
-const sleep = (ms: number): Promise<void> =>
-    new Promise((resolve) => setTimeout(resolve, ms));
 
 /**
  * 尝试从存储恢复滚动状态
@@ -44,7 +42,20 @@ const tryAutoResumeFromStorage = async (): Promise<void> => {
     Message.info(`翻页成功, 准备滚动 (等待 ${newPageDelay} 秒)`, {
         position: 'top-left',
     });
-    await sleep(newPageDelay * 1000);
+
+    const cancelled = await createCancelableDelay(
+        newPageDelay * 1000,
+    );
+    if (cancelled) {
+        // 按键取消了延时，停止滚动
+        stopScrolling();
+        Message.info('翻页等待被取消，已停止滚动', {
+            position: 'top-left',
+        });
+        return;
+    }
+
+    // 延时正常结束，恢复滚动
     resumeScrolling();
 
     // 延迟清理持久化状态

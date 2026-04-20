@@ -4,10 +4,10 @@
     "version": "0.1.0",
     "type": "module",
     "scripts": {
-        "build": "tsc && vite build --mode production",
         "dev:base": "tsc && vite build --mode development --watch",
         "dev:sync": "tsc && vite build --mode sync --watch",
         "dev:test": "tsc && vite build --mode test --watch",
+        "build": "tsc && vite build --mode production",
         "test": "vitest",
         "coverage": "vitest run --coverage"
     },

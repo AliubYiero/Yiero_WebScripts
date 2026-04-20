@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           小说自动滚动
 // @description    小说自动滚动脚本, 支持自动翻页/无限滚动模式.\n支持网站: 起点, 微信阅读, QQ阅读, 阅读 \nSpace 开启/关闭滚动, 长按 Space 临时暂停, Shift+PageUp/PageDown 调节速度.
-// @version        1.0.0
+// @version        1.0.1
 // @author         Yiero
 // @match          https://www.qidian.com/chapter/*
 // @match          https://book.qq.com/book-read/*
@@ -729,7 +729,7 @@
         };
     }
     const UserConfig = {
-        '\u6EDA\u52A8\u914D\u7F6E': {
+        \u6EDA\u52A8\u914D\u7F6E: {
             scrollLength: {
                 title: '\u6EDA\u52A8\u8DDD\u79BB (px/s)',
                 description: '\u6EDA\u52A8\u8DDD\u79BB',
@@ -759,7 +759,7 @@
                 type: 'checkbox',
             },
         },
-        '\u81EA\u52A8\u7FFB\u9875\u914D\u7F6E': {
+        \u81EA\u52A8\u7FFB\u9875\u914D\u7F6E: {
             turnPageDelay: {
                 title: '\u7FFB\u9875\u5EF6\u65F6',
                 description: '\u7FFB\u9875\u5EF6\u65F6',
@@ -936,9 +936,21 @@
     };
     let currentStatus = 1;
     let turnPageStatus = 1;
-    let lastScrollHeight = 0;
-    const MAX_CHECK_COUNT = 100;
-    const CHECK_INTERVAL = 50;
+    let cancelResolve = null;
+    const createCancelableDelay = (ms) => {
+        let timeoutId;
+        const delayPromise = new Promise((resolve) => {
+            timeoutId = setTimeout(() => resolve(false), ms);
+        });
+        const cancelPromise = new Promise((resolve) => {
+            cancelResolve = () => resolve(true);
+        });
+        return Promise.race([delayPromise, cancelPromise]).finally(
+            () => {
+                clearTimeout(timeoutId);
+            },
+        );
+    };
     const getTurnPageDelay = () => {
         if (turnPageDelayStore.get() === '\u56FA\u5B9A\u503C') {
             return turnPageDelayValueStore.get();
@@ -955,7 +967,7 @@
         const innerHeight = window.innerHeight;
         return Number((innerHeight / scrollLength).toFixed(2));
     };
-    const sleep$1 = (ms) =>
+    const sleep = (ms) =>
         new Promise((resolve) => setTimeout(resolve, ms));
     const getScrollLength = () => scrollLengthStore.get();
     const isScrolling = () => currentStatus === 0;
@@ -967,7 +979,9 @@
         currentStatus = 0;
         Message.info(
             `\u5F00\u542F\u6EDA\u52A8, \u6EDA\u52A8\u901F\u5EA6\u4E3A ${scrollLength} px/s`,
-            { position: 'top-left' },
+            {
+                position: 'top-left',
+            },
         );
     };
     const stopScrolling = () => {
@@ -992,7 +1006,9 @@
         currentStatus = 0;
         Message.info(
             `\u6062\u590D\u6EDA\u52A8, \u6EDA\u52A8\u901F\u5EA6\u4E3A ${scrollLength} px/s`,
-            { position: 'top-left' },
+            {
+                position: 'top-left',
+            },
         );
     };
     const adjustScrollSpeed = (delta) => {
@@ -1005,7 +1021,9 @@
         const action = delta > 0 ? '\u589E\u52A0' : '\u964D\u4F4E';
         Message.info(
             `${action}\u6EDA\u52A8\u901F\u5EA6, \u6EDA\u52A8\u901F\u5EA6\u4E3A ${scrollLength} px/s`,
-            { position: 'top-left' },
+            {
+                position: 'top-left',
+            },
         );
     };
     const handleReachBottom = async () => {
@@ -1014,38 +1032,42 @@
         }
         stopScroll();
         turnPageStatus = 0;
-        lastScrollHeight = document.documentElement.scrollHeight;
-        const TurnPageDelay = getTurnPageDelay();
+        const turnPageDelay = getTurnPageDelay();
         Message.info(
-            `\u5230\u8FBE\u9875\u9762\u5E95\u90E8\uFF0C\u51C6\u5907\u7FFB\u9875 (\u7B49\u5F85 ${TurnPageDelay} \u79D2)...`,
-            { position: 'top-left' },
+            `\u5230\u8FBE\u9875\u9762\u5E95\u90E8, \u51C6\u5907\u7FFB\u9875 (\u7B49\u5F85 ${turnPageDelay} \u79D2)...`,
+            {
+                position: 'top-left',
+            },
         );
-        await sleep$1(TurnPageDelay * 1e3);
+        await sleep(turnPageDelay * 1e3);
         saveRuntimeState(true);
         turnPage();
-        for (let i = 0; i < MAX_CHECK_COUNT; i++) {
-            await sleep$1(CHECK_INTERVAL);
-            if (
-                document.documentElement.scrollHeight !==
-                lastScrollHeight
-            ) {
-                const newPageDelay = getNewPageDelay();
-                Message.info(
-                    `\u7FFB\u9875\u6210\u529F, \u51C6\u5907\u6EDA\u52A8 (\u7B49\u5F85 ${newPageDelay} \u79D2)`,
-                    { position: 'top-left' },
-                );
-                await sleep$1(newPageDelay * 1e3);
-                turnPageStatus = 1;
-                resumeScrolling();
-                return;
-            }
+        const newPageDelay = getNewPageDelay();
+        Message.info(
+            `\u7FFB\u9875\u6210\u529F, \u51C6\u5907\u6EDA\u52A8 (\u7B49\u5F85 ${newPageDelay} \u79D2)`,
+            {
+                position: 'top-left',
+            },
+        );
+        const cancelled = await createCancelableDelay(
+            newPageDelay * 1e3,
+        );
+        if (cancelled) {
+            turnPageStatus = 1;
+            currentStatus = 1;
+            Message.info(
+                '\u7FFB\u9875\u7B49\u5F85\u88AB\u53D6\u6D88\uFF0C\u5DF2\u505C\u6B62\u6EDA\u52A8',
+                { position: 'top-left' },
+            );
+            return;
         }
         turnPageStatus = 1;
-        currentStatus = 1;
-        Message.info(
-            '\u7FFB\u9875\u8D85\u65F6\uFF0C\u5DF2\u505C\u6B62\u6EDA\u52A8',
-            { position: 'top-left' },
-        );
+        resumeScrolling();
+    };
+    const cancelDelay = () => {
+        if (cancelResolve) {
+            cancelResolve();
+        }
     };
     const initAutoTurnPage = () => {
         if (scrollModeStore.get() === '\u81EA\u52A8\u7FFB\u9875') {
@@ -1061,6 +1083,7 @@
                 key: ' ',
                 callback: (e) => {
                     e.preventDefault();
+                    cancelDelay();
                     if (e.repeat) {
                         if (!isPaused()) {
                             pauseScrolling();
@@ -1080,6 +1103,7 @@
                 shift: true,
                 callback: (e) => {
                     e.preventDefault();
+                    cancelDelay();
                     adjustScrollSpeed(1);
                 },
             },
@@ -1089,6 +1113,7 @@
                 shift: true,
                 callback: (e) => {
                     e.preventDefault();
+                    cancelDelay();
                     adjustScrollSpeed(-1);
                 },
             },
@@ -1126,8 +1151,6 @@
         }
     };
     const CLEANUP_DELAY = 3e3;
-    const sleep = (ms) =>
-        new Promise((resolve) => setTimeout(resolve, ms));
     const tryAutoResumeFromStorage = async () => {
         const state = loadRuntimeState();
         if (!state) {
@@ -1140,9 +1163,21 @@
         const newPageDelay = getNewPageDelay();
         Message.info(
             `\u7FFB\u9875\u6210\u529F, \u51C6\u5907\u6EDA\u52A8 (\u7B49\u5F85 ${newPageDelay} \u79D2)`,
-            { position: 'top-left' },
+            {
+                position: 'top-left',
+            },
         );
-        await sleep(newPageDelay * 1e3);
+        const cancelled = await createCancelableDelay(
+            newPageDelay * 1e3,
+        );
+        if (cancelled) {
+            stopScrolling();
+            Message.info(
+                '\u7FFB\u9875\u7B49\u5F85\u88AB\u53D6\u6D88\uFF0C\u5DF2\u505C\u6B62\u6EDA\u52A8',
+                { position: 'top-left' },
+            );
+            return;
+        }
         resumeScrolling();
         setTimeout(clearRuntimeState, CLEANUP_DELAY);
     };

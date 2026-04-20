@@ -42,12 +42,26 @@ enum TurnPageStatus {
 /** 当前翻页状态 */
 let turnPageStatus: TurnPageStatus = TurnPageStatus.Normal;
 
-/** 上一次翻页前的页面高度 */
-let lastScrollHeight: number = 0;
+/** 按键取消延时 Promise */
+let cancelResolve: (() => void) | null = null;
 
-/** 翻页检测配置 */
-const MAX_CHECK_COUNT = 100; // 最多检测 100 次
-const CHECK_INTERVAL = 50; // 每次间隔 50ms
+/** 创建可取消的延时 Promise
+ * @returns Promise<boolean> - true 表示被取消, false 表示延时正常结束
+ */
+export const createCancelableDelay = (
+    ms: number,
+): Promise<boolean> => {
+    let timeoutId: ReturnType<typeof setTimeout>;
+    const delayPromise = new Promise<boolean>((resolve) => {
+        timeoutId = setTimeout(() => resolve(false), ms);
+    });
+    const cancelPromise = new Promise<boolean>((resolve) => {
+        cancelResolve = () => resolve(true);
+    });
+    return Promise.race([delayPromise, cancelPromise]).finally(() => {
+        clearTimeout(timeoutId);
+    });
+};
 
 /** 计算翻页延时 (秒) */
 const getTurnPageDelay = (): number => {
@@ -156,18 +170,17 @@ const handleReachBottom = async (): Promise<void> => {
     // 暂停滚动
     stopScroll();
     turnPageStatus = TurnPageStatus.Turning;
-    lastScrollHeight = document.documentElement.scrollHeight;
 
-    const TurnPageDelay = getTurnPageDelay();
+    const turnPageDelay = getTurnPageDelay();
     Message.info(
-        `到达页面底部，准备翻页 (等待 ${TurnPageDelay} 秒)...`,
+        `到达页面底部, 准备翻页 (等待 ${turnPageDelay} 秒)...`,
         {
             position: 'top-left',
         },
     );
 
     // 等待翻页延时
-    await sleep(TurnPageDelay * 1000);
+    await sleep(turnPageDelay * 1000);
 
     // 保存运行时状态，用于页面跳转后自动恢复
     saveRuntimeState(true);
@@ -175,31 +188,35 @@ const handleReachBottom = async (): Promise<void> => {
     // 触发翻页
     turnPage();
 
-    // 循环检测翻页是否成功，最多 5 秒
-    for (let i = 0; i < MAX_CHECK_COUNT; i++) {
-        await sleep(CHECK_INTERVAL);
-        if (
-            document.documentElement.scrollHeight !== lastScrollHeight
-        ) {
-            // 翻页成功
-            const newPageDelay = getNewPageDelay();
-            Message.info(
-                `翻页成功, 准备滚动 (等待 ${newPageDelay} 秒)`,
-                {
-                    position: 'top-left',
-                },
-            );
-            await sleep(newPageDelay * 1000);
-            turnPageStatus = TurnPageStatus.Normal;
-            resumeScrolling();
-            return;
-        }
+    // 获取新页面延时并等待
+    const newPageDelay = getNewPageDelay();
+    Message.info(`翻页成功, 准备滚动 (等待 ${newPageDelay} 秒)`, {
+        position: 'top-left',
+    });
+
+    const cancelled = await createCancelableDelay(
+        newPageDelay * 1000,
+    );
+    if (cancelled) {
+        // 按键取消了延时，停止滚动
+        turnPageStatus = TurnPageStatus.Normal;
+        currentStatus = ScrollStatus.Stop;
+        Message.info('翻页等待被取消，已停止滚动', {
+            position: 'top-left',
+        });
+        return;
     }
 
-    // 5 秒后仍未成功，停止滚动
+    // 延时正常结束，恢复滚动
     turnPageStatus = TurnPageStatus.Normal;
-    currentStatus = ScrollStatus.Stop;
-    Message.info('翻页超时，已停止滚动', { position: 'top-left' });
+    resumeScrolling();
+};
+
+/** 取消等待中的延时 */
+export const cancelDelay = (): void => {
+    if (cancelResolve) {
+        cancelResolve();
+    }
 };
 
 /** 初始化自动翻页模式 */

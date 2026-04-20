@@ -6,7 +6,7 @@ const UserScript: ScriptCatUserScript = [
         'description',
         '小说自动滚动脚本, 支持自动翻页/无限滚动模式.\\n支持网站: 起点, 微信阅读, QQ阅读, 阅读 \\nSpace 开启/关闭滚动, 长按 Space 临时暂停, Shift+PageUp/PageDown 调节速度.',
     ],
-    ['version', '1.0.0'],
+    ['version', '1.0.1'],
     ['author', 'Yiero'],
     ['match', 'https://www.qidian.com/chapter/*'],
     ['match', 'https://book.qq.com/book-read/*'],
