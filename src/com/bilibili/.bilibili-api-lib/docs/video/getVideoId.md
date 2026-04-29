@@ -5,10 +5,16 @@
 ## 函数签名
 
 ```typescript
-function getVideoId(): VideoId | undefined
+function getVideoId(url?: string): VideoId | undefined
 function av2bv(aid: number): string
 function bv2av(bvid: string): number
 ```
+
+### 参数说明
+
+| 参数名 | 类型 | 必填 | 默认值 | 描述 |
+|--------|------|------|--------|------|
+| url | string | 否 | - | 指定要解析的 URL。如果不提供，则从当前页面 URL 解析 |
 
 ## 类型定义
 
@@ -34,7 +40,7 @@ B站于 2020-03-23 推出了全新的稿件视频 ID `bvid` 来接替之前的 `
 
 ## 使用示例
 
-### 从 URL 获取视频 ID
+### 从当前页面获取视频 ID
 
 ```typescript
 import { getVideoId } from '@yiero/bilibili-api-lib';
@@ -45,6 +51,18 @@ if (videoId) {
   console.log('av号:', videoId.avId);
   console.log('BV号:', videoId.bvId);
   console.log('分P数:', videoId.part);
+}
+```
+
+### 从指定 URL 获取视频 ID
+
+```typescript
+import { getVideoId } from '@yiero/bilibili-api-lib';
+
+const videoId = getVideoId('https://www.bilibili.com/video/BV1xx411c7mD');
+if (videoId) {
+  console.log('av号:', videoId.avId);
+  console.log('BV号:', videoId.bvId);
 }
 ```
 

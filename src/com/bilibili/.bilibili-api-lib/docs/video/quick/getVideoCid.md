@@ -5,9 +5,16 @@
 ## 函数签名
 
 ```typescript
+// 从当前页面或指定 ID 获取
 function getVideoCid(
   id?: string | number,
   part?: number,
+  login?: boolean
+): Promise<IVideoCid>
+
+// 从指定 URL 获取
+function getVideoCid(
+  url: string,
   login?: boolean
 ): Promise<IVideoCid>
 ```
@@ -17,8 +24,9 @@ function getVideoCid(
 | 参数名 | 类型 | 必填 | 默认值 | 描述 |
 |--------|------|------|--------|------|
 | id | string \| number | 否 | - | 视频 ID，支持 BV 号（字符串，以 BV 开头）或 AV 号（数字）。如果不提供，则从当前页面 URL 自动获取 |
-| part | number | 否 | 1 | 分P序号 |
+| part | number | 否 | 1 | 分P序号（仅在 id 模式时有效） |
 | login | boolean | 否 | false | 是否携带登录信息 |
+| url | string | 否 | - | 视频页面 URL，从该 URL 解析视频 ID |
 
 ## 返回值
 
@@ -65,8 +73,27 @@ const videoCid = await getVideoCid(123456789, 2);
 console.log(videoCid.cid);
 ```
 
+### 从指定 URL 获取
+
+```typescript
+import { getVideoCid } from '@yiero/bilibili-api-lib/video/quick';
+
+const videoCid = await getVideoCid('https://www.bilibili.com/video/BV1xx411c7mD');
+console.log(videoCid.cid);
+```
+
+### 从指定 URL 获取（带登录）
+
+```typescript
+import { getVideoCid } from '@yiero/bilibili-api-lib/video/quick';
+
+const videoCid = await getVideoCid('https://www.bilibili.com/video/BV1xx411c7mD', true);
+console.log(videoCid.cid);
+```
+
 ## 错误处理
 
+- 当使用 URL 模式且无法从 URL 解析视频 ID 时，抛出 `TypeError`
 - 当未提供 `id` 且无法从当前页面 URL 解析视频 ID 时，抛出 `TypeError`
 - 当视频没有分P信息时，抛出 `Error`
 - 当指定的分P不存在时，抛出 `Error`

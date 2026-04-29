@@ -83,28 +83,30 @@ export function bv2av(bvid: string): number {
 }
 
 /**
- * 从 URL 中获取视频 Id
+ * 从 URL 或当前页面获取视频 Id
  *
- * 支持从当前页面的 URL 中解析视频 ID，返回包含 avId 和 bvId 的对象。
+ * 支持从当前页面的 URL 或指定 URL 中解析视频 ID，返回包含 avId 和 bvId 的对象。
  * 如果只解析到一种格式，会自动进行转换。
  *
+ * @param url - 可选，指定要解析的 URL。如果不提供，则从当前页面 URL 解析
  * @returns VideoId 对象，如果未找到则返回 undefined
  *
  * @example
  * ```typescript
- * // URL: https://www.bilibili.com/video/BV1xx411c7mD
+ * // 从当前页面 URL 自动获取视频 ID
  * const videoId = getVideoId();
  * console.log(videoId);
  * // { avId: 2, bvId: 'BV1xx411c7mD' }
  *
- * // URL: https://www.bilibili.com/video/av2
- * const videoId = getVideoId();
- * console.log(videoId);
+ * // 从指定 URL 获取视频 ID
+ * const videoId2 = getVideoId('https://www.bilibili.com/video/BV1xx411c7mD');
+ * console.log(videoId2);
  * // { avId: 2, bvId: 'BV1xx411c7mD' }
  * ```
  */
-export const getVideoId = (): VideoId | undefined => {
-    const videoId = location.pathname
+export const getVideoId = (url?: string): VideoId | undefined => {
+    const pathname = url ? new URL(url).pathname : location.pathname;
+    const videoId = pathname
         .split('/')
         .find((id) => /^(BV1|av)/.test(id));
     if (!videoId) {
@@ -112,7 +114,9 @@ export const getVideoId = (): VideoId | undefined => {
     }
 
     const videoPart = Number(
-        new URLSearchParams(location.search).get('p') || '1',
+        new URLSearchParams(
+            url ? new URL(url).search : location.search,
+        ).get('p') || '1',
     );
 
     if (videoId.startsWith('BV1')) {

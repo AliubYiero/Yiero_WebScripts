@@ -164,4 +164,45 @@ describe('getVideoCid', () => {
         expect(result.part).toBe(2);
         expect(result.cid).toBe(222222222);
     });
+
+    test('URL 模式应该正确解析视频 ID 并获取 cid', async () => {
+        vi.mocked(getVideoId).mockReturnValue({
+            avId: 123456789,
+            bvId: 'BV1xx411c7mD',
+            part: 1,
+        });
+
+        vi.mocked(xhrRequest.get).mockResolvedValueOnce(
+            mockVideoInfoResponse,
+        );
+
+        const result = await getVideoCid('https://www.bilibili.com/video/BV1xx411c7mD');
+
+        expect(getVideoId).toHaveBeenCalledWith('https://www.bilibili.com/video/BV1xx411c7mD');
+        expect(result.cid).toBe(111111111);
+    });
+
+    test('URL 模式应该支持登录态', async () => {
+        vi.mocked(getVideoId).mockReturnValue({
+            avId: 123456789,
+            bvId: 'BV1xx411c7mD',
+            part: 1,
+        });
+
+        vi.mocked(
+            xhrRequest.getWithCredentials,
+        ).mockResolvedValueOnce(mockVideoInfoResponse);
+
+        await getVideoCid('https://www.bilibili.com/video/BV1xx411c7mD', true);
+
+        expect(xhrRequest.getWithCredentials).toHaveBeenCalled();
+    });
+
+    test('URL 模式当无法解析视频 ID 时应该抛出错误', async () => {
+        vi.mocked(getVideoId).mockReturnValue(undefined);
+
+        await expect(
+            getVideoCid('https://www.bilibili.com/home'),
+        ).rejects.toThrow('无法从 URL');
+    });
 });

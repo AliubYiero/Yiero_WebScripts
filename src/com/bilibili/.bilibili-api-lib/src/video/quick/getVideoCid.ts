@@ -31,9 +31,53 @@ import type { IVideoCid } from './types/IVideoCid';
  */
 export async function getVideoCid(
     id?: string | number,
-    part: number = 1,
+    part?: number,
+    login?: boolean,
+): Promise<IVideoCid>;
+/**
+ * 从指定 URL 获取视频 CID 信息
+ *
+ * @param url - 视频页面 URL
+ * @param login - 是否携带登录信息，默认 false
+ * @returns 包含 avId、bvId、part 和 cid 的对象
+ */
+export async function getVideoCid(
+    url: string,
+    login?: boolean,
+): Promise<IVideoCid>;
+export async function getVideoCid(
+    idOrUrl?: string | number,
+    partOrLogin: number | boolean = 1,
     login: boolean = false,
 ): Promise<IVideoCid> {
+    // 重载分发
+    let id: string | number | undefined;
+    let part: number;
+    let actualLogin: boolean;
+
+    if (
+        typeof idOrUrl === 'string' &&
+        (idOrUrl.startsWith('http') || idOrUrl.includes('/'))
+    ) {
+        // URL 模式: getVideoCid(url, login?)
+        const url = idOrUrl;
+        actualLogin =
+            typeof partOrLogin === 'boolean' ? partOrLogin : false;
+        const videoId = getVideoId(url);
+        if (!videoId) {
+            throw new TypeError(
+                `getVideoCid: 无法从 URL "${url}" 中解析出视频 ID`,
+            );
+        }
+        id = videoId.avId;
+        part = videoId.part;
+    } else {
+        // 普通模式: getVideoCid(id?, part?, login?)
+        id = idOrUrl;
+        part = typeof partOrLogin === 'number' ? partOrLogin : 1;
+        actualLogin = login;
+    }
+
     // 如果没有提供 id，从当前页面 URL 获取
     if (!id) {
         const videoId = getVideoId();
@@ -47,7 +91,7 @@ export async function getVideoCid(
     }
 
     // 获取视频信息
-    const videoResponse = await api_getVideoInfo(id, login);
+    const videoResponse = await api_getVideoInfo(id, actualLogin);
     const videoInfo = videoResponse.data;
 
     const { pages, bvid, aid } = videoInfo;
