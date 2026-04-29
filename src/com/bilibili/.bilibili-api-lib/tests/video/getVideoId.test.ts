@@ -104,7 +104,9 @@ describe('getVideoId', () => {
     });
 
     test('应该从指定 URL 中解析出视频 ID', () => {
-        const result = getVideoId('https://www.bilibili.com/video/BV17x411w7KC');
+        const result = getVideoId(
+            'https://www.bilibili.com/video/BV17x411w7KC',
+        );
 
         expect(result).toBeDefined();
         expect(result?.bvId).toBe('BV17x411w7KC');
@@ -113,7 +115,9 @@ describe('getVideoId', () => {
     });
 
     test('应该从指定 URL（av号）中解析出视频 ID', () => {
-        const result = getVideoId('https://www.bilibili.com/video/av170001');
+        const result = getVideoId(
+            'https://www.bilibili.com/video/av170001',
+        );
 
         expect(result).toBeDefined();
         expect(result?.avId).toBe(170001);
@@ -122,7 +126,9 @@ describe('getVideoId', () => {
     });
 
     test('应该从指定 URL 中正确解析分P数', () => {
-        const result = getVideoId('https://www.bilibili.com/video/BV17x411w7KC?p=3');
+        const result = getVideoId(
+            'https://www.bilibili.com/video/BV17x411w7KC?p=3',
+        );
 
         expect(result).toBeDefined();
         expect(result?.bvId).toBe('BV17x411w7KC');

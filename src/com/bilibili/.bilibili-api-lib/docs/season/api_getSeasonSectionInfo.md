@@ -9,7 +9,7 @@
 ## 函数签名
 
 ```typescript
-function api_getSeasonSectionInfo(sectionId: number): Promise<XhrResponse<ISeasonSectionInfo>>
+function api_getSeasonSectionInfo(sectionId: number, login?: boolean): Promise<XhrResponse<ISeasonSectionInfo>>
 ```
 
 ## 参数说明
@@ -17,6 +17,7 @@ function api_getSeasonSectionInfo(sectionId: number): Promise<XhrResponse<ISeaso
 | 参数名 | 类型 | 必填 | 描述 |
 |--------|------|------|------|
 | sectionId | number | 是 | 小节 ID |
+| login | boolean | 否 | 是否携带登录信息（默认 `false`） |
 
 ## 返回值
 

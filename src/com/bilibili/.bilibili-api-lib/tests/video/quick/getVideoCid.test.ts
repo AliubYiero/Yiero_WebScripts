@@ -176,9 +176,13 @@ describe('getVideoCid', () => {
             mockVideoInfoResponse,
         );
 
-        const result = await getVideoCid('https://www.bilibili.com/video/BV1xx411c7mD');
+        const result = await getVideoCid(
+            'https://www.bilibili.com/video/BV1xx411c7mD',
+        );
 
-        expect(getVideoId).toHaveBeenCalledWith('https://www.bilibili.com/video/BV1xx411c7mD');
+        expect(getVideoId).toHaveBeenCalledWith(
+            'https://www.bilibili.com/video/BV1xx411c7mD',
+        );
         expect(result.cid).toBe(111111111);
     });
 
@@ -193,7 +197,10 @@ describe('getVideoCid', () => {
             xhrRequest.getWithCredentials,
         ).mockResolvedValueOnce(mockVideoInfoResponse);
 
-        await getVideoCid('https://www.bilibili.com/video/BV1xx411c7mD', true);
+        await getVideoCid(
+            'https://www.bilibili.com/video/BV1xx411c7mD',
+            true,
+        );
 
         expect(xhrRequest.getWithCredentials).toHaveBeenCalled();
     });

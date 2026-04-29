@@ -7,6 +7,7 @@ import type { ISeasonInfo } from './interface/ISeasonInfo.ts';
  * 获取合集的详细信息和小节列表。
  *
  * @param seasonId - 合集 ID
+ * @param [login=false] - 是否携带登录信息
  * @returns 合集信息，包含基本信息和小节列表
  *
  * @example
@@ -16,8 +17,15 @@ import type { ISeasonInfo } from './interface/ISeasonInfo.ts';
  * console.log(season.data.sections.total);
  * ```
  */
-export function api_getSeasonInfo(seasonId: number) {
-    return xhrRequest.get<ISeasonInfo>(
+export function api_getSeasonInfo(
+    seasonId: number,
+    login: boolean = false,
+) {
+    const request = login
+        ? xhrRequest.getWithCredentials
+        : xhrRequest.get;
+
+    return request<ISeasonInfo>(
         'https://member.bilibili.com/x2/creative/web/season',
         {
             params: {
