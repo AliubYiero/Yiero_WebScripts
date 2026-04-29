@@ -1,4 +1,7 @@
-import { scrollLengthStore, scrollModeStore } from '../store/ConfigStore.ts';
+import {
+    scrollLengthStore,
+    scrollModeStore,
+} from '../store/ConfigStore.ts';
 
 let animationFrameId: number = 0;
 let lastTimestamp: number = 0;
@@ -30,10 +33,7 @@ const scroll = (timestamp: number) => {
         scrollRemainder = delta;
     }
 
-    if (
-        scrollModeStore.get() === '自动翻页' &&
-        isAtBottom()
-    ) {
+    if (scrollModeStore.get() === '自动翻页' && isAtBottom()) {
         window.dispatchEvent(new CustomEvent(REACH_BOTTOM_EVENT));
         return;
     }

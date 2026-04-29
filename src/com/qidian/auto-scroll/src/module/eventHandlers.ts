@@ -92,9 +92,15 @@ export const setupVisibilityHandlers = (): void => {
     } else {
         // 非焦点模式: 监听页面可见性变化
         document.addEventListener('visibilitychange', () => {
-            if (document.hidden && getStatus() === ScrollStatus.Scroll) {
+            if (
+                document.hidden &&
+                getStatus() === ScrollStatus.Scroll
+            ) {
                 pause();
-            } else if (!document.hidden && getStatus() === ScrollStatus.TempStop) {
+            } else if (
+                !document.hidden &&
+                getStatus() === ScrollStatus.TempStop
+            ) {
                 resume();
             }
         });

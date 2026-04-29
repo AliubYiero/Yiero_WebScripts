@@ -6,9 +6,7 @@ import {
     ScrollStatus,
 } from '../state/ScrollStateMachine.ts';
 import { scrollLengthStore } from '../store/ConfigStore.ts';
-import {
-    cancelDelay,
-} from '../lifecycle/DelayCalculator.ts';
+import { cancelDelay } from '../lifecycle/DelayCalculator.ts';
 import {
     initPageTurnLifecycle,
     destroyPageTurnLifecycle,

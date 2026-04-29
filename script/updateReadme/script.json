@@ -196,6 +196,21 @@
 			"autoUpdate": true,
 			"getLastUpdateWay": "git"
 		},
+		"bilibili-video-timeline": {
+			"name": "Bilibili 视频时间轴",
+			"description": "根据视频字幕, 生成视频时间轴.",
+			"version": "1.5.2",
+			"private": false,
+			"archive": false,
+			"lastUpdate": 1777448335204.0854,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/bilibili-video-timeline.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-timeline/backup/bilibili-video-timeline.user.js",
+			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/2613",
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": true,
+			"getLastUpdateWay": "file"
+		},
 		"bilibili-video-watch-sign": {
 			"name": "Bilibili视频观看状态标记",
 			"description": "基于收藏夹内容, 自动标记Bilibili视频的观看状态(已看/未看)",

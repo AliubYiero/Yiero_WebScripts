@@ -14,6 +14,7 @@
 ### bilibili.com
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| Bilibili 视频时间轴 | 根据视频字幕, 生成视频时间轴. | 前台脚本 | 1.5.2 | 2026-04-29 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-timeline/backup/bilibili-video-timeline.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/2613) |  |
 | Bilibili直播评论样式修改 | 修改Bilibili直播间的评论样式弹幕显示样式, 使其按卡片式固定格式显示. 即上面是用户信息, 下面是弹幕.  优化弹幕框顶部的房间观众和大航海显示, 不再固定显示. | 前台脚本 | 1.0.4 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-chat-style/backup/bilibili-live-chat-style.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5757) |  |
 | Bilibili直播时间点标记 | 在Bilibili直播中标记时间, 方便用户查阅 | 前台脚本 | 1.0.2 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-record/backup/bilibili-live-record.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5070) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/561637) |
 | Bilibili直播弹幕刷屏屏蔽 | 用于B站直播间的弹幕净化脚本. 屏蔽独轮车, 屏蔽重复弹幕, 屏蔽刷屏用户. | 前台脚本 | 1.0.3 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-repeat-danmaku-block/backup/bilibili-live-repeat-danmaku-block.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5772) |  |

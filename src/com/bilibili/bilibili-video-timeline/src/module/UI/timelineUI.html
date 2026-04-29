@@ -1,0 +1,60 @@
+<!doctype html>
+<html lang="zh-cn">
+<head>
+	<meta charset="UTF-8">
+	<meta
+		content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+		name="viewport">
+	<title>Timeline UI</title>
+	<link href="timelineUiStyle.css" rel="stylesheet">
+
+</head>
+<body>
+<div class="timeline-container">
+	<header class="timeline-header">
+		<h3 class="timeline-title">
+			时间轴 - 中文（自动生成）
+		</h3>
+		<section class="timeline-sub-title-container">
+			<section class="timeline-sub-button-container">
+				<button
+					class="timeline-sub-button timeline-active-center-button">
+					<span>时间轴锁定</span>
+					<span
+						class="timeline-active-button">(on)</span>
+					<span class="timeline-not-active-button">(off)</span>
+				</button>
+				<button
+					class="timeline-sub-button timeline-jump-blank-button">
+					<span>跳过空白</span>
+					<span
+						class="timeline-active-button">(on)</span>
+					<span class="timeline-not-active-button">(off)</span>
+					<span class="timeline-tip timeline-reduce-time-tip">
+						空白时间 0 s (00:00:00.00)
+					</span>
+				</button>
+			</section>
+			<span class="timeline-video-id">
+				<span class="timeline-video-aid">av00000000</span>
+				<span class="timeline-video-bvid">BV1ABCDERTYG</span>
+			</span>
+		</section>
+		<section class="timeline-close-button-container">
+			<i class="timeline-close-button"></i>
+		</section>
+	</header>
+	<main class="timeline-content-container">
+		<!-- (section.timeline-item>span.timeline-start-time{事件$}+span.timeline-content{内容$})* 100 -->
+		<!-- <section class="timeline-item"> -->
+		<!-- 	<section class="timeline-time-container"> -->
+		<!-- 		<span class="timeline-time timeline-start-time">00:00:00.00</span> -->
+		<!-- 		<span class="timeline-time timeline-end-time">00:00:00.00</span> -->
+		<!-- 	</section> -->
+		<!-- 	<span class="timeline-content">内容</span> -->
+		<!-- </section> -->
+	</main>
+</div>
+
+</body>
+</html>

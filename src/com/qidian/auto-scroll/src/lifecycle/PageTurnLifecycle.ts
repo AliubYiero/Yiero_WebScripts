@@ -1,5 +1,8 @@
 import { Message } from '@yiero/gmlib';
-import { REACH_BOTTOM_EVENT, stopScroll } from '../driver/ScrollDriver.ts';
+import {
+    REACH_BOTTOM_EVENT,
+    stopScroll,
+} from '../driver/ScrollDriver.ts';
 import {
     clearRuntimeState,
     isExpired,
@@ -67,7 +70,9 @@ export const initPageTurnLifecycle = (
             position: 'top-left',
         });
 
-        const cancelled = await createCancelableDelay(newPageDelay * 1000);
+        const cancelled = await createCancelableDelay(
+            newPageDelay * 1000,
+        );
         if (cancelled) {
             setTurnStatus(TurnPageStatus.Normal);
             setStatus(ScrollStatus.Stop);
@@ -91,7 +96,10 @@ export const initPageTurnLifecycle = (
 /** 清理翻页生命周期 */
 export const destroyPageTurnLifecycle = (): void => {
     if (reachBottomListener) {
-        window.removeEventListener(REACH_BOTTOM_EVENT, reachBottomListener);
+        window.removeEventListener(
+            REACH_BOTTOM_EVENT,
+            reachBottomListener,
+        );
         reachBottomListener = null;
     }
 };
@@ -114,7 +122,9 @@ export const tryAutoResumeFromStorage = async (): Promise<void> => {
         position: 'top-left',
     });
 
-    const cancelled = await createCancelableDelay(newPageDelay * 1000);
+    const cancelled = await createCancelableDelay(
+        newPageDelay * 1000,
+    );
     if (cancelled) {
         setStatus(ScrollStatus.Stop);
         Message.info('翻页等待被取消，已停止滚动', {

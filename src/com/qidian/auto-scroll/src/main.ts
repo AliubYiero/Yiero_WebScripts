@@ -2,7 +2,10 @@ import {
     setupKeyboardHandlers,
     setupVisibilityHandlers,
 } from './module/eventHandlers.ts';
-import { initScrollCommand, destroyScrollCommand } from './command/ScrollCommand.ts';
+import {
+    initScrollCommand,
+    destroyScrollCommand,
+} from './command/ScrollCommand.ts';
 
 /**
  * 主函数
