@@ -39,7 +39,7 @@ export interface Section {
     /** 是否有充电付费 */
     has_charging_pay: number;
     /** 视频列表（简略信息） */
-    Episodes: any;
+    Episodes: unknown;
     /** 是否显示 */
     show: number;
     /** 是否有 PUGV 付费 */

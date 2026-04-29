@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test, vi } from 'vitest';
 import { uhash2uid } from '@/utils/uhash2uid';
 import { api_getDanmakuInfo } from '@/video/api_getDanmakuInfo';
+import type { XhrResponse } from '@/xhrRequest';
 import { xhrRequest } from '@/xhrRequest';
 
 // Mock xhrRequest 模块
@@ -29,7 +30,7 @@ describe('api_getDanmakuInfo', () => {
 </i>`;
 
         vi.mocked(xhrRequest.getWithCredentials).mockResolvedValue(
-            mockXmlResponse as any,
+            mockXmlResponse as XhrResponse<string>,
         );
 
         const result = await api_getDanmakuInfo(123456789);
@@ -83,7 +84,7 @@ describe('api_getDanmakuInfo', () => {
 </i>`;
 
         vi.mocked(xhrRequest.getWithCredentials).mockResolvedValue(
-            mockXmlResponse as any,
+            mockXmlResponse as XhrResponse<string>,
         );
 
         const result = await api_getDanmakuInfo(123456789);
@@ -99,7 +100,7 @@ describe('api_getDanmakuInfo', () => {
 </i>`;
 
         vi.mocked(xhrRequest.getWithCredentials).mockResolvedValue(
-            mockXmlResponse as any,
+            mockXmlResponse as XhrResponse<string>,
         );
 
         const result = await api_getDanmakuInfo(123456789);
@@ -116,7 +117,7 @@ describe('api_getDanmakuInfo', () => {
 </i>`;
 
         vi.mocked(xhrRequest.getWithCredentials).mockResolvedValue(
-            mockXmlResponse as any,
+            mockXmlResponse as XhrResponse<string>,
         );
 
         const result = await api_getDanmakuInfo(123456789);
@@ -126,12 +127,12 @@ describe('api_getDanmakuInfo', () => {
     });
 
     test('参数为空时应该抛出错误', async () => {
-        await expect(api_getDanmakuInfo(null as any)).rejects.toThrow(
-            'api_getDanmakuInfo: cid 参数不能为空',
-        );
+        await expect(
+            api_getDanmakuInfo(null as unknown as number),
+        ).rejects.toThrow('api_getDanmakuInfo: cid 参数不能为空');
 
         await expect(
-            api_getDanmakuInfo(undefined as any),
+            api_getDanmakuInfo(undefined as unknown as number),
         ).rejects.toThrow('api_getDanmakuInfo: cid 参数不能为空');
     });
 
@@ -143,7 +144,7 @@ describe('api_getDanmakuInfo', () => {
 </i>`;
 
         vi.mocked(xhrRequest.getWithCredentials).mockResolvedValue(
-            mockXmlResponse as any,
+            mockXmlResponse as XhrResponse<string>,
         );
 
         await expect(api_getDanmakuInfo(123456789)).rejects.toThrow(
@@ -160,7 +161,7 @@ describe('api_getDanmakuInfo', () => {
 </i>`;
 
         vi.mocked(xhrRequest.getWithCredentials).mockResolvedValue(
-            mockXmlResponse as any,
+            mockXmlResponse as XhrResponse<string>,
         );
 
         const result = await api_getDanmakuInfo(123456789);
@@ -177,7 +178,7 @@ describe('api_getDanmakuInfo', () => {
 </i>`;
 
         vi.mocked(xhrRequest.getWithCredentials).mockResolvedValue(
-            mockXmlResponse as any,
+            mockXmlResponse as XhrResponse<string>,
         );
         vi.mocked(uhash2uid).mockReturnValue([12345, 67890]);
 
@@ -197,7 +198,7 @@ describe('api_getDanmakuInfo', () => {
 </i>`;
 
         vi.mocked(xhrRequest.getWithCredentials).mockResolvedValue(
-            mockXmlResponse as any,
+            mockXmlResponse as XhrResponse<string>,
         );
 
         const result = await api_getDanmakuInfo(123456789, false);
@@ -215,7 +216,7 @@ describe('api_getDanmakuInfo', () => {
 </i>`;
 
         vi.mocked(xhrRequest.getWithCredentials).mockResolvedValue(
-            mockXmlResponse as any,
+            mockXmlResponse as XhrResponse<string>,
         );
 
         const result = await api_getDanmakuInfo(123456789);
@@ -234,7 +235,7 @@ describe('api_getDanmakuInfo', () => {
 </i>`;
 
         vi.mocked(xhrRequest.getWithCredentials).mockResolvedValue(
-            mockXmlResponse as any,
+            mockXmlResponse as XhrResponse<string>,
         );
         vi.mocked(uhash2uid)
             .mockReturnValueOnce([11111])

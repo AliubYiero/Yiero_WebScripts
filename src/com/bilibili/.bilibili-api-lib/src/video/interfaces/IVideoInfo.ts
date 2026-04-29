@@ -119,7 +119,7 @@ export interface Dimension {
 }
 
 /** 荣誉回复信息（可能为空） */
-export type HonorReply = {};
+export type HonorReply = object;
 
 /**
  * UP 主信息

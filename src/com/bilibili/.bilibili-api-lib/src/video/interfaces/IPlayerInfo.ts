@@ -57,17 +57,17 @@ export interface IPlayerInfo {
     /** 播放器图标配置 */
     player_icon: PlayerIcon;
     /** 视频看点列表 */
-    view_points: any[];
+    view_points: unknown[];
     /** 预览提示信息 */
     preview_toast: string;
     /** 播放器选项 */
     options: Options;
     /** 引导关注列表 */
-    guide_attention: any[];
+    guide_attention: GuideAttention[];
     /** 跳转卡片列表 */
-    jump_card: any[];
+    jump_card: unknown[];
     /** 运营卡片列表 */
-    operation_card: any[];
+    operation_card: unknown[];
     /** 在线功能开关 */
     online_switch: OnlineSwitch;
     /** Fawkes 配置 */
@@ -199,6 +199,17 @@ export interface PlayerIcon {
 }
 
 /**
+ * 引导关注
+ */
+export interface GuideAttention {
+    from: number;
+    to: number;
+    type: number;
+    pos_x: number;
+    pos_y: number;
+}
+
+/**
  * 显示开关
  */
 export interface ShowSwitch {
@@ -299,7 +310,7 @@ export interface AvatarIcon {
 }
 
 /** 图标资源（可能为空） */
-export type IconResource = {};
+export type IconResource = object;
 
 /**
  * VIP 标签

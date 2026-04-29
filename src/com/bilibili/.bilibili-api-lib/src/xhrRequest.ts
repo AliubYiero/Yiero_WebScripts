@@ -12,7 +12,7 @@ export interface XhrOptions {
     /** 请求头 (Key-Value) */
     headers?: Record<string, string>;
     /** 请求体 (普通对象会被自动序列化为 JSON) */
-    body?: any;
+    body?: unknown;
     /**
      * 查询参数 (普通对象会被自动序列化为 URLSearchParams)
      * */
@@ -54,7 +54,7 @@ const normalizeHeaders = (
  * 辅助：智能处理 Body 和 Content-Type
  */
 const processBody = (
-    body: any,
+    body: unknown,
     headers: Record<string, string>,
 ): BodyInit | null => {
     if (body === undefined || body === null) return null;
@@ -88,7 +88,7 @@ const processBody = (
 /**
  * 主函数：发起 XMLHttpRequest 请求
  */
-export async function xhrRequest<T = any>(
+export async function xhrRequest<T = unknown>(
     url: string,
     options: XhrOptions = {},
 ): Promise<XhrResponse<T>> {
@@ -116,7 +116,7 @@ export async function xhrRequest<T = any>(
     // 如果用户未指定，且 Accept 头包含 json，或者完全未指定，则默认为 json
     let responseType = options.responseType;
     if (!responseType) {
-        const accept = headers['accept'];
+        const accept = headers.accept;
         if (accept?.includes('text/html')) {
             responseType = 'document';
         } else if (accept?.includes('text/')) {
@@ -133,7 +133,7 @@ export async function xhrRequest<T = any>(
         xhr.open(method.toUpperCase(), url, true);
         xhr.timeout = timeout;
         xhr.withCredentials = withCredentials;
-        xhr.responseType = responseType!;
+        xhr.responseType = responseType;
 
         // 设置请求头
         Object.entries(headers).forEach(([key, value]) => {
@@ -186,11 +186,11 @@ export async function xhrRequest<T = any>(
 // --------------------------------------------------------------------------
 
 // 定义静态方法的类型
-type RequestHelper = <T = any>(
+type RequestHelper = <T = unknown>(
     url: string,
     options?: Omit<XhrOptions, 'method'>,
 ) => Promise<XhrResponse<T>>;
-type RequestHelperWithAuth = <T = any>(
+type RequestHelperWithAuth = <T = unknown>(
     url: string,
     options?: Omit<XhrOptions, 'method' | 'withCredentials'>,
 ) => Promise<XhrResponse<T>>;
