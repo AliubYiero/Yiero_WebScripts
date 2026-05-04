@@ -1,0 +1,336 @@
+:root {
+    --header-height: 79px;
+    --time-font-size: 11px;
+    --content-font-size: 14px;
+    --normal-container-width: 411px;
+    --normal-container-height-percent: 70vh;
+    --webScreen-container-width: 411px;
+}
+
+/* ============ TimelineContainer 样式 ============ */
+.timeline-container {
+    position: relative;
+    width: var(--normal-container-width);
+    height: var(--normal-container-height-percent);
+    min-height: 300px;
+    box-shadow: #d8d8d8 0 0 10px;
+    pointer-events: all;
+    margin-bottom: 24px;
+    border-radius: 4px;
+    background-color: #ffffff;
+    scrollbar-width: thin !important;
+    scrollbar-color: #aaa transparent;
+}
+/* 宽屏模式不显示时间轴 */
+[class^="video-container"]:has(.bpx-player-container[data-screen="wide"])
+    .timeline-container {
+    display: none;
+}
+/* 网页全屏模式下的时间轴容器样式 */
+[class^="video-container"]:has(
+        .timeline-container[data-show-in-web-screen="true"]
+    ):has(#bilibili-player.mode-webscreen) {
+    & #bilibili-player.mode-webscreen {
+        width: calc(100vw - var(--webScreen-container-width));
+    }
+
+    & .timeline-container {
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100vh;
+        width: var(--webScreen-container-width);
+        z-index: 2000;
+
+        & > .virtual-list {
+            height: calc(100vh - var(--header-height));
+        }
+    }
+}
+.timeline-item {
+    display: flex;
+    gap: 8px;
+    padding: 4px 16px;
+    border-radius: 4px;
+    font-size: var(--content-font-size);
+    line-height: calc(var(--content-font-size) + 6px);
+    align-items: center;
+    pointer-events: all;
+}
+.timeline-item.active {
+    background-color: #ccffff;
+    padding: 4px 16px;
+    font-size: var(--content-font-size);
+}
+.timeline-item:hover {
+    background: #ddffff;
+}
+.timeline-time-container {
+    display: flex;
+    flex-flow: column;
+    color: #aaa;
+    align-items: center;
+    flex-direction: column;
+    gap: 2px;
+    justify-content: center;
+    height: 100%;
+    pointer-events: all;
+}
+.timeline-time {
+    font-size: var(--time-font-size);
+    line-height: var(--time-font-size);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #aaa;
+    width: fit-content;
+}
+.timeline-end-time {
+    border-top: 1px solid #ccc;
+    color: #9cc8c8;
+    padding-top: 2px;
+}
+.timeline-time-container[data-show-end-time="false"] {
+    & > .timeline-end-time {
+        display: none;
+    }
+
+    & + .timeline-content {
+        border-left: none;
+        padding: 0;
+    }
+}
+.timeline-time-container[data-disable-select-time="false"] {
+    user-select: none;
+}
+.timeline-time-container[data-show-icon="true"] > .timeline-time::before {
+    display: block;
+    text-align: center;
+    vertical-align: middle;
+    padding: 1px;
+    width: calc(var(--time-font-size) - 3px);
+    height: calc(var(--time-font-size) - 3px);
+    font-size: calc(var(--time-font-size) - 3px);
+    line-height: calc(var(--time-font-size) - 3px);
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+.timeline-start-time::before {
+    content: "S";
+}
+.timeline-end-time::before {
+    content: "E";
+    border-color: #9cc8c8;
+}
+.timeline-content {
+    flex: 1;
+    color: #333;
+    border-left: 2px solid #ddd;
+    padding-left: 4px;
+    white-space: pre-line;
+}
+.timeline-content[data-disable-select-content="false"] {
+    user-select: none;
+}
+
+/* ============ TimelineHeader 组件 ============ */
+.timeline-header {
+    padding: 12px;
+    box-sizing: border-box;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    position: relative;
+    overflow: hidden;
+}
+.timeline-header .hide,
+.timeline-header.hide {
+    display: none;
+}
+.timeline-title {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: #1f2937;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+}
+.timeline-meta {
+    display: flex;
+    gap: 8px;
+    justify-content: left;
+    align-items: center;
+    font-size: 12px;
+    height: 22px;
+    color: #6b7280;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.timeline-button-group {
+    display: flex;
+    gap: 4px;
+}
+.timeline-meta-tag {
+    margin-left: auto;
+    background-color: #f3f4f6;
+    padding: 3px 8px;
+    border-radius: 4px;
+    user-select: none;
+    text-wrap: nowrap;
+}
+.timeline-meta-tag[data-ai="true"]::after {
+    content: "ai";
+    font-size: 8px;
+    vertical-align: top;
+    padding-left: 2px;
+}
+.timeline-meta-id {
+    font-family: monospace;
+    background-color: #eff6ff;
+    color: #2563eb;
+    padding: 3px 8px;
+    border-radius: 4px;
+}
+.timeline-close-button-container {
+    position: absolute;
+    top: 0;
+    right: 10px;
+    opacity: 0;
+    transition: opacity 0.15s;
+    z-index: 9;
+    pointer-events: all;
+
+    & > .timeline-close-button::after {
+        content: "×";
+        color: #ccc;
+    }
+}
+
+.timeline-header:not(.hide):hover + .timeline-close-button-container {
+    opacity: 1;
+}
+.timeline-container:has(.timeline-header.hide):hover
+    .timeline-close-button-container {
+    opacity: 1;
+}
+
+/* ============ ToggleButton 组件 ============ */
+.toggle-button-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.toggle-button {
+    padding: 0;
+    width: 22px;
+    height: 22px;
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 6px;
+    background: transparent;
+    cursor: pointer;
+    transition:
+        background-color 0.2s ease,
+        transform 0.1s ease;
+    color: inherit;
+}
+
+.toggle-button:hover {
+    background-color: rgba(0, 0, 0, 0.08);
+}
+.toggle-button.active {
+    color: #00caca;
+}
+.toggle-button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+.toggle-button:focus-visible {
+    outline: 2px solid #4f46e5;
+    outline-offset: 2px;
+}
+.toggle-button svg {
+    width: 18px !important;
+    height: 18px !important;
+}
+.toggle-button__tooltip {
+    position: absolute;
+    top: 100%;
+    left: 50%;
+    transform: translateX(-50%) translateY(8px);
+    padding: 4px 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #fff;
+    background-color: #1f2937;
+    border-radius: 4px;
+    white-space: nowrap;
+    pointer-events: none;
+    z-index: 10;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* ============ MoreMenu 组件 ============ */
+.more-menu {
+    position: fixed;
+    min-width: 150px;
+    background: #fff;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    z-index: 10000;
+    display: none;
+    overflow: hidden;
+}
+.more-menu.open {
+    display: block;
+}
+.more-menu-item {
+    padding: 8px 16px;
+    font-size: 13px;
+    color: #374151;
+    cursor: pointer;
+    white-space: nowrap;
+    user-select: none;
+    transition: background-color 0.15s;
+}
+.more-menu-item:hover {
+    background-color: #f3f4f6;
+}
+.more-menu-item:not(:last-child) {
+    border-bottom: 1px solid #f3f4f6;
+}
+
+/* ============ TimelineContentList 组件 ============ */
+.virtual-list {
+    height: calc(
+        max(var(--normal-container-height-percent), 300px) -
+        var(--header-height)
+    );
+    overflow-y: auto;
+    position: relative;
+    scrollbar-width: thin;
+}
+.phantom {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: -1;
+    pointer-events: none;
+}
+.list-content {
+    position: absolute;
+    left: 0;
+    top: 0;
+    right: 0;
+}
+.list-item {
+    box-sizing: border-box;
+}

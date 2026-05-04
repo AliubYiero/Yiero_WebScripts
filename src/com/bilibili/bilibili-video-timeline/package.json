@@ -31,8 +31,9 @@
         "yamljs": "^0.3.0"
     },
     "dependencies": {
+        "@chenglou/pretext": "^0.0.6",
         "@yiero/bilibili-api-lib": "link:..\\.bilibili-api-lib",
-        "@yiero/gmlib": "^0.3.5",
+        "@yiero/gmlib": "0.4.6",
         "radash": "^12.1.1"
     }
 }

@@ -199,15 +199,15 @@
 		"bilibili-video-timeline": {
 			"name": "Bilibili 视频时间轴",
 			"description": "根据视频字幕, 生成视频时间轴.",
-			"version": "1.5.2",
+			"version": "2.0.0",
 			"private": false,
 			"archive": false,
-			"lastUpdate": 1777448335204.0854,
+			"lastUpdate": 1777881731954.951,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/bilibili-video-timeline.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-timeline/backup/bilibili-video-timeline.user.js",
 			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/2613",
-			"downloadUrlFromGreasyFork": "",
+			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/522993",
 			"autoUpdate": true,
 			"getLastUpdateWay": "file"
 		},

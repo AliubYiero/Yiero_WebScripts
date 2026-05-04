@@ -8,12 +8,15 @@ importers:
 
   .:
     dependencies:
+      '@chenglou/pretext':
+        specifier: ^0.0.6
+        version: 0.0.6
       '@yiero/bilibili-api-lib':
         specifier: link:..\.bilibili-api-lib
         version: link:../.bilibili-api-lib
       '@yiero/gmlib':
-        specifier: ^0.3.5
-        version: 0.3.9
+        specifier: 0.4.6
+        version: 0.4.6
       radash:
         specifier: ^12.1.1
         version: 12.1.1
@@ -98,6 +101,9 @@ packages:
 
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
+
+  '@chenglou/pretext@0.0.6':
+    resolution: {integrity: sha512-U10s4tFeyu3oVHfXuNWwZSKqHXefhaigpcBkGj60qQFRJ+yUoQ+ez3cGJelP7BWDAB58HCgjcTSmOcg+77afBQ==}
 
   '@csstools/color-helpers@5.1.0':
     resolution: {integrity: sha512-S11EXWJyy0Mz5SYvRmY8nJYTFFd1LCNV+7cXyAgQtOOuzb4EsgfqDufL+9esx72/eLhsRdGZwaldu/h+E4t4BA==}
@@ -652,8 +658,8 @@ packages:
   '@vitest/utils@2.1.9':
     resolution: {integrity: sha512-v0psaMSkNJ3A2NMrUEHFRzJtDPFn+/VWZ5WxImB21T9fjucJRmS7xCS3ppEnARb9y11OAzaD+P2Ps+b+BGX5iQ==}
 
-  '@yiero/gmlib@0.3.9':
-    resolution: {integrity: sha512-vE1PaZGndE0s+/Q06PdWOKqIuWlICFiLKh2kNG/F1ZLF0vTxhuEKDN5F7jRATfpM/4n5koUvAP8thfiogoIo6w==}
+  '@yiero/gmlib@0.4.6':
+    resolution: {integrity: sha512-1abcBcZlgDwJZ0tvfD3CDDL602OhNhPqYwYqUkOTzXLTR3CoxUFAsHr1XmDAESempav5nCOuMq4ZUxG5iRPO7w==}
 
   '@yiero/vite-plugin-scriptcat-auto-icon@1.0.0':
     resolution: {integrity: sha512-OAQ4W2KuqwJTROVPKgXr6hq3jx4ssXX9ghX6+b4SUyGCBcJDT5/Q17rFjdtjnioXSiZ2JGs6GbkC6RkaP63Bdg==}
@@ -1410,6 +1416,8 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
+  '@chenglou/pretext@0.0.6': {}
+
   '@csstools/color-helpers@5.1.0': {}
 
   '@csstools/css-calc@2.1.4(@csstools/css-parser-algorithms@3.0.5(@csstools/css-tokenizer@3.0.4))(@csstools/css-tokenizer@3.0.4)':
@@ -1766,7 +1774,7 @@ snapshots:
       loupe: 3.2.1
       tinyrainbow: 1.2.0
 
-  '@yiero/gmlib@0.3.9': {}
+  '@yiero/gmlib@0.4.6': {}
 
   '@yiero/vite-plugin-scriptcat-auto-icon@1.0.0': {}
 

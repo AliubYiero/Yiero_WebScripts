@@ -32,3 +32,5 @@ src/.Test
 
 # ignore local dev file
 **/dist/*.dev.js
+docs/plans/*
+**/.claude/*

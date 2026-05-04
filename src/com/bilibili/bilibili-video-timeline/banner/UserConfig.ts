@@ -1,31 +1,27 @@
 import { ScriptCatUserConfig } from '../types/UserConfig';
 
 export const UserConfig: ScriptCatUserConfig = {
-    配置项: {
-        isJumpTime: {
-            title: '点击时间轴跳转视频',
-            description:
-                '点击某一个时间段后, 会将视频跳转到对应的时间',
-            type: 'select',
-            values: [
-                '点击任意区域跳转',
-                '只点击时间区域跳转',
-                '只点击文本区域跳转',
-                '不跳转',
-            ],
-            default: '点击任意区域跳转',
-        },
+    时间轴配置: {
         alwaysLoad: {
             title: '自动加载时间轴',
             description: '页面载入时, 自动加载时间轴到页面中',
             type: 'checkbox',
-            default: false,
+            default: true,
         },
-        showEndTime: {
-            title: '显示时间轴结束时间',
-            description: '显示时间轴结束时间',
-            type: 'checkbox',
-            default: false,
+        jumpTimeMode: {
+            title: '点击时间轴跳转视频的模式',
+            description:
+                '点击某一行字幕的位置, 会将视频跳转到对应的开始时间',
+            type: 'mult-select',
+            values: ['时间跳转', '文本跳转'],
+            default: ['时间跳转'],
+        },
+        lockHighlightCol: {
+            title: '高亮时间轴锁定位置 (行) ',
+            description: '高亮时间轴锁定位置',
+            type: 'number',
+            default: 2,
+            min: 0,
         },
         showInWebScreen: {
             title: '网页全屏显示时间轴',
@@ -33,35 +29,38 @@ export const UserConfig: ScriptCatUserConfig = {
             type: 'checkbox',
             default: false,
         },
-        lockHighlightPercent: {
-            title: '高亮时间轴锁定位置 (百分比)',
-            description: '高亮时间轴锁定位置',
-            type: 'number',
-            default: 30,
-            min: 0,
-            max: 100,
-        },
-        copyTime: {
+        isCopyTime: {
             title: '自动复制时间',
             description: '点击时间的时候, 自动复制时间到粘贴板',
             type: 'checkbox',
             default: false,
         },
-        copyContent: {
+        isCopyContent: {
             title: '自动复制文本',
             description: '点击文本的时候, 自动复制文本到粘贴板',
             type: 'checkbox',
             default: false,
         },
-        disableSelect: {
-            title: '禁止选中文本',
-            description:
-                '如果勾选 [自动复制时间/文本], 对应内容将变为不可拖动选中状态. ',
+    },
+    时间轴样式: {
+        showEndTime: {
+            title: '显示时间轴结束时间',
+            description: '显示时间轴结束时间',
             type: 'checkbox',
             default: false,
         },
-    },
-    网页样式: {
+        disableSelectTime: {
+            title: '禁止选中时间文本',
+            description: '字幕的时间将无法选中和复制',
+            type: 'checkbox',
+            default: true,
+        },
+        disableSelectContent: {
+            title: '禁止选中字幕文本',
+            description: '字幕的内容将无法选中和复制',
+            type: 'checkbox',
+            default: false,
+        },
         showTitle: {
             title: '显示字幕标题',
             description: '显示字幕标题',
@@ -99,13 +98,6 @@ export const UserConfig: ScriptCatUserConfig = {
             description: '',
             type: 'number',
             default: 14,
-            min: 0,
-        },
-        activeContentFontSize: {
-            title: '高亮文本内容字体大小 (px)',
-            description: '',
-            type: 'number',
-            default: 16,
             min: 0,
         },
         normalContainerWidth: {
