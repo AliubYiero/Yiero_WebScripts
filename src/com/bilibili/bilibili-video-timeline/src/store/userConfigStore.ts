@@ -9,6 +9,7 @@ interface UserConfigStore {
     showInWebScreenStore: boolean;
     isCopyTimeStore: boolean;
     isCopyContentStore: boolean;
+    isSmoothScrollStore: boolean;
     // 网页样式
     showEndTimeStore: boolean;
     disableSelectTimeStore: boolean;
@@ -32,6 +33,7 @@ const {
     showInWebScreenStore,
     isCopyTimeStore,
     isCopyContentStore,
+    isSmoothScrollStore,
 
     // 网页样式
     showEndTimeStore,
@@ -56,6 +58,7 @@ export {
     showInWebScreenStore,
     isCopyTimeStore,
     isCopyContentStore,
+    isSmoothScrollStore,
     // 网页样式
     showEndTimeStore,
     disableSelectTimeStore,

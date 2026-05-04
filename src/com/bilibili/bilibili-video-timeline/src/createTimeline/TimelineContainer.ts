@@ -43,6 +43,8 @@ export class TimelineContainer {
     private buttonConfig: IButtonConfig;
     private storeConfig: IStoreConfig;
 
+    private smoothHebavior: 'smooth' | 'auto' = 'auto';
+
     // ---- 音乐过滤管理 ----
     private musicFilter: MusicFilterManager;
 
@@ -75,6 +77,9 @@ export class TimelineContainer {
         );
         this.isLockHighlight = this.storeConfig.lockTime.get();
         this.isSkipEmptyTime = this.storeConfig.skipEmptyTime.get();
+        this.smoothHebavior = this.buttonConfig.isSmoothScroll
+            ? 'smooth'
+            : 'auto';
         const initialIgnoreMusic =
             this.storeConfig.ignoreMusic?.get() ?? false;
 
@@ -522,9 +527,14 @@ export class TimelineContainer {
         }
 
         this.scrollRAF = requestAnimationFrame(() => {
-            if (this.listContainer) {
-                this.listContainer.scrollTop = targetOffsetY;
+            if (!this.listContainer) {
+                return;
             }
+
+            this.listContainer.scrollTo({
+                top: targetOffsetY,
+                behavior: this.smoothHebavior,
+            });
         });
     }
 

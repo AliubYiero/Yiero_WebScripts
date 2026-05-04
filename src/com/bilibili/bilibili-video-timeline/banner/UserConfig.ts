@@ -41,6 +41,13 @@ export const UserConfig: ScriptCatUserConfig = {
             type: 'checkbox',
             default: false,
         },
+        isSmoothScroll: {
+            title: '平滑滚动',
+            description:
+                '脚本滚动不再是直接渲染, 而是有一个滚动过程才滚动到目标位置',
+            type: 'checkbox',
+            default: false,
+        },
     },
     时间轴样式: {
         showEndTime: {

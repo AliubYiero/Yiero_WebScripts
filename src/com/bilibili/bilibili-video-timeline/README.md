@@ -49,14 +49,15 @@
 
 > 脚本猫用户配置
 
-| 标题 | 类型 | 默认值 | 说明 | 键名 |
-| --- | --- | --- | --- | --- |
-| 自动加载时间轴 | `boolean` | `true` | 页面载入时, 自动加载第一个字幕时间轴到页面中 | `alwaysLoad` |
-| 点击时间轴跳转视频的模式 | `array` | `['时间跳转']` | 可选择"时间跳转"和"文本跳转" | `jumpTimeMode` |
-| 高亮时间轴锁定位置 (行) | `number` | `2` | 高亮字幕固定在容器的第几行 | `lockHighlightCol` |
-| 网页全屏显示时间轴 | `boolean` | `false` | 网页全屏显示时间轴 | `showInWebScreen` |
-| 自动复制时间 | `boolean` | `false` | 点击时间时自动复制时间到粘贴板 | `isCopyTime` |
-| 自动复制文本 | `boolean` | `false` | 点击文本时自动复制文本到粘贴板 | `isCopyContent` |
+| 标题 | 类型 | 默认值 | 说明                        | 键名                 |
+| --- | --- | --- |---------------------------|--------------------|
+| 自动加载时间轴 | `boolean` | `true` | 页面载入时, 自动加载第一个字幕时间轴到页面中   | `alwaysLoad`       |
+| 点击时间轴跳转视频的模式 | `array` | `['时间跳转']` | 可选择"时间跳转"和"文本跳转"          | `jumpTimeMode`     |
+| 高亮时间轴锁定位置 (行) | `number` | `2` | 高亮字幕固定在容器的第几行             | `lockHighlightCol` |
+| 网页全屏显示时间轴 | `boolean` | `false` | 网页全屏显示时间轴                 | `showInWebScreen`  |
+| 自动复制时间 | `boolean` | `false` | 点击时间时自动复制时间到粘贴板           | `isCopyTime`       |
+| 自动复制文本 | `boolean` | `false` | 点击文本时自动复制文本到粘贴板           | `isCopyContent`    |
+| 平滑滚动 | `boolean` | `false` | 锁定时间轴时, 脚本的滚动表现是否呈现出滚动过程  | `isSmoothScroll`   |
 
 ### 时间轴样式
 

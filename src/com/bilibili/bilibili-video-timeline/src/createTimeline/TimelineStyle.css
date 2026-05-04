@@ -332,3 +332,10 @@
 .list-item {
     box-sizing: border-box;
 }
+
+/* ============ 特殊处理 ============ */
+/* 常规模式下, 让联合投稿的视频容器和时间轴齐平 */
+[class^="video-container"]:has(.members-info-container):has(.timeline-container)
+    .left-container:has(.bpx-player-container[data-screen="normal"]) {
+    padding-top: 70px;
+}

@@ -54,6 +54,8 @@ export interface IButtonConfig {
     lockHighlightCol: number;
     /** 点击时间轴跳转视频模式 */
     jumpTimeMode: ('时间跳转' | '文本跳转')[];
+    /** 开启平滑滚动 */
+    isSmoothScroll: boolean;
 }
 
 interface BaseStore<T> {

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Bilibili 视频时间轴
 // @description    根据视频字幕, 生成视频时间轴.
-// @version        2.0.1
+// @version        2.0.2
 // @author         Yiero
 // @match          https://www.bilibili.com/video/*
 // @run-at         document-body
@@ -58,6 +58,11 @@
     isCopyContent:
         title: 自动复制文本
         description: '点击文本的时候, 自动复制文本到粘贴板'
+        type: checkbox
+        default: false
+    isSmoothScroll:
+        title: 平滑滚动
+        description: '脚本滚动不再是直接渲染, 而是有一个滚动过程才滚动到目标位置'
         type: checkbox
         default: false
 时间轴样式:
@@ -5633,6 +5638,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     }
     class TimelineContainer {
         constructor(options) {
+            this.smoothHebavior = 'auto';
             this.startIndex = 0;
             this.endIndex = 0;
             this.scrollRAF = null;
@@ -5757,6 +5763,9 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             this.isLockHighlight = this.storeConfig.lockTime.get();
             this.isSkipEmptyTime =
                 this.storeConfig.skipEmptyTime.get();
+            this.smoothHebavior = this.buttonConfig.isSmoothScroll
+                ? 'smooth'
+                : 'auto';
             const initialIgnoreMusic =
                 this.storeConfig.ignoreMusic?.get() ?? false;
             this.musicFilter = new MusicFilterManager(
@@ -6092,9 +6101,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 cancelAnimationFrame(this.scrollRAF);
             }
             this.scrollRAF = requestAnimationFrame(() => {
-                if (this.listContainer) {
-                    this.listContainer.scrollTop = targetOffsetY;
+                if (!this.listContainer) {
+                    return;
                 }
+                this.listContainer.scrollTo({
+                    top: targetOffsetY,
+                    behavior: this.smoothHebavior,
+                });
             });
         }
         // ============================================================
@@ -6240,6 +6253,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
                 type: 'checkbox',
                 default: false,
             },
+            isSmoothScroll: {
+                title: '\u5E73\u6ED1\u6EDA\u52A8',
+                description:
+                    '\u811A\u672C\u6EDA\u52A8\u4E0D\u518D\u662F\u76F4\u63A5\u6E32\u67D3, \u800C\u662F\u6709\u4E00\u4E2A\u6EDA\u52A8\u8FC7\u7A0B\u624D\u6EDA\u52A8\u5230\u76EE\u6807\u4F4D\u7F6E',
+                type: 'checkbox',
+                default: false,
+            },
         },
         \u65F6\u95F4\u8F74\u6837\u5F0F: {
             showEndTime: {
@@ -6336,6 +6356,7 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         showInWebScreenStore,
         isCopyTimeStore,
         isCopyContentStore,
+        isSmoothScrollStore,
         // 网页样式
         showEndTimeStore,
         disableSelectTimeStore,
@@ -6684,6 +6705,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
 .list-item {
     box-sizing: border-box;
 }
+
+/* ============ \u7279\u6B8A\u5904\u7406 ============ */
+/* \u5E38\u89C4\u6A21\u5F0F\u4E0B, \u8BA9\u8054\u5408\u6295\u7A3F\u7684\u89C6\u9891\u5BB9\u5668\u548C\u65F6\u95F4\u8F74\u9F50\u5E73 */
+[class^="video-container"]:has(.members-info-container):has(.timeline-container)
+    .left-container:has(.bpx-player-container[data-screen="normal"]) {
+    padding-top: 70px;
+}
 `;
     class Logger {
         constructor(prefix) {
@@ -6776,10 +6804,11 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             disableSelectContent: disableSelectContentStore.value,
         },
         buttonConfig: {
-            isCopyTime: isCopyTimeStore.get(),
-            isCopyContent: isCopyContentStore.get(),
-            lockHighlightCol: lockHighlightColStore.get(),
-            jumpTimeMode: jumpTimeModeStore.get(),
+            isCopyTime: isCopyTimeStore.value,
+            isCopyContent: isCopyContentStore.value,
+            lockHighlightCol: lockHighlightColStore.value,
+            jumpTimeMode: jumpTimeModeStore.value,
+            isSmoothScroll: isSmoothScrollStore.value,
         },
         storeConfig: {
             lockTime: {

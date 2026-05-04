@@ -16,6 +16,7 @@ import {
     disableSelectTimeStore,
     isCopyContentStore,
     isCopyTimeStore,
+    isSmoothScrollStore,
     jumpTimeModeStore,
     lockHighlightColStore,
     normalContainerHeightPercentStore,
@@ -125,10 +126,11 @@ const createTimelineBaseConfig = () => ({
         disableSelectContent: disableSelectContentStore.value,
     },
     buttonConfig: {
-        isCopyTime: isCopyTimeStore.get(),
-        isCopyContent: isCopyContentStore.get(),
-        lockHighlightCol: lockHighlightColStore.get(),
-        jumpTimeMode: jumpTimeModeStore.get(),
+        isCopyTime: isCopyTimeStore.value,
+        isCopyContent: isCopyContentStore.value,
+        lockHighlightCol: lockHighlightColStore.value,
+        jumpTimeMode: jumpTimeModeStore.value,
+        isSmoothScroll: isSmoothScrollStore.value,
     },
     storeConfig: {
         lockTime: {
