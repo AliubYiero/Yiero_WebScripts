@@ -100,9 +100,6 @@
         padding: 0;
     }
 }
-.timeline-time-container[data-disable-select-time="false"] {
-    user-select: none;
-}
 .timeline-time-container[data-show-icon="true"] > .timeline-time::before {
     display: block;
     text-align: center;
@@ -129,7 +126,8 @@
     padding-left: 4px;
     white-space: pre-line;
 }
-.timeline-content[data-disable-select-content="false"] {
+.timeline-time-container[data-disable-select-time="true"],
+.timeline-content[data-disable-select-content="true"] {
     user-select: none;
 }
 

@@ -27,7 +27,7 @@ export const UserConfig: ScriptCatUserConfig = {
             title: '网页全屏显示时间轴',
             description: '网页全屏显示将时间轴',
             type: 'checkbox',
-            default: false,
+            default: true,
         },
         isCopyTime: {
             title: '自动复制时间',
