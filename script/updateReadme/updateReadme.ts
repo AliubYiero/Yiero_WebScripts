@@ -383,15 +383,14 @@ class ScriptFileSystem {
 
         try {
             // 读取文件内容，直到找到 ==/UserScript== 或文件结束
-            while (
-                (bytesRead = fs.readSync(
-                    fd,
-                    buffer,
-                    0,
-                    CHUNK_SIZE,
-                    totalRead,
-                )) > 0
-            ) {
+            bytesRead = fs.readSync(
+                fd,
+                buffer,
+                0,
+                CHUNK_SIZE,
+                totalRead,
+            );
+            while (bytesRead > 0) {
                 content += buffer.toString('utf8', 0, bytesRead);
                 totalRead += bytesRead;
 
@@ -399,6 +398,14 @@ class ScriptFileSystem {
                 if (content.includes('==/UserScript==')) {
                     break;
                 }
+
+                bytesRead = fs.readSync(
+                    fd,
+                    buffer,
+                    0,
+                    CHUNK_SIZE,
+                    totalRead,
+                );
             }
         } finally {
             fs.closeSync(fd);
@@ -507,7 +514,7 @@ class ScriptFileSystem {
                                     ),
                                 getLastUpdateWay:
                                     existingDetail.getLastUpdateWay ??
-                                    'git',
+                                    'file',
                             };
                     }
                 } else {
@@ -525,7 +532,7 @@ class ScriptFileSystem {
                             scriptProjectName,
                             userScriptFilepath,
                         ),
-                        getLastUpdateWay: 'git',
+                        getLastUpdateWay: 'file',
                     };
                 }
             }

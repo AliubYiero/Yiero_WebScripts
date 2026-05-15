@@ -16,10 +16,8 @@ const {
     likeClickDelayMinRangeStore,
     likeClickDelayMaxRangeStore,
     onlyLikeFollowStore,
-    maxLikeNumberStore
+    maxLikeNumberStore,
 } = createUserConfigStorage<LikeConfigStore>(UserConfig);
-
-
 
 export {
     showLikeAnimationStore,
@@ -27,5 +25,5 @@ export {
     likeClickDelayMinRangeStore,
     likeClickDelayMaxRangeStore,
     onlyLikeFollowStore,
-    maxLikeNumberStore
+    maxLikeNumberStore,
 };
