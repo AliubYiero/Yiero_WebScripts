@@ -61,6 +61,21 @@
 			"downloadUrlFromGreasyFork": "",
 			"autoUpdate": false
 		},
+		"bilibili-live-auto-like": {
+			"name": "Bilibili直播自动点赞",
+			"description": "Bilibili进入直播间后自动点赞.",
+			"version": "1.3.0",
+			"private": false,
+			"archive": false,
+			"lastUpdate": 1778835468533.8342,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/bilibili-live-auto-like.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-auto-like/backup/bilibili-live-auto-like.user.js",
+			"downloadUrlFromScripCat": "",
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": true,
+			"getLastUpdateWay": "git"
+		},
 		"bilibili-live-chat-style": {
 			"name": "Bilibili直播评论样式修改",
 			"description": "修改Bilibili直播间的评论样式弹幕显示样式, 使其按卡片式固定格式显示. 即上面是用户信息, 下面是弹幕.  优化弹幕框顶部的房间观众和大航海显示, 不再固定显示.",
