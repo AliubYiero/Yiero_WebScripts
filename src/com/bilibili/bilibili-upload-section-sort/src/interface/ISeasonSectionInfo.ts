@@ -1,8 +1,10 @@
+/** API 返回的合集章节原始响应 */
 export default interface ISeasonSectionInfo {
-    section: Required<Section>;
-    episodes: Required<Episodes>[];
+    section: Section;
+    episodes: Episodes[];
 }
 
+/** API 返回的 Section 原始字段（所有字段可能缺失） */
 export interface Section {
     id?: number;
     type?: number;
@@ -22,6 +24,15 @@ export interface Section {
     has_pugv_pay?: number;
 }
 
+/** 通过非空校验后的 Section */
+export interface ValidatedSection {
+    id: number;
+    type: number;
+    seasonId: number;
+    title: string;
+}
+
+/** API 返回的 Episode 原始字段 */
 export interface Episodes {
     id?: number;
     title?: string;
