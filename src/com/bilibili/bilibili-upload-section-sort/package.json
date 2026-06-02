@@ -16,13 +16,13 @@
         "@types/node": "^22.10.2",
         "@types/yamljs": "^0.2.34",
         "@vitest/coverage-v8": "^2.1.8",
-        "@yiero/vite-plugin-scriptcat-backup": "^1.0.2",
+        "@yiero/vite-plugin-scriptcat-backup": "^1.1.0",
         "@yiero/vite-plugin-scriptcat-extract-grant": "^1.0.4",
-        "@yiero/vite-plugin-scriptcat-meta-banner": "^1.1.1",
+        "@yiero/vite-plugin-scriptcat-meta-banner": "^1.1.2",
         "@yiero/vite-plugin-scriptcat-require-self": "^1.0.4",
-        "@yiero/vite-plugin-scriptcat-script-push": "^1.1.0",
+        "@yiero/vite-plugin-scriptcat-script-push": "^1.1.1",
         "jsdom": "^24.0.0",
-        "rollup": "^4.53.3",
+        "rollup": "4.59.0",
         "terser": "^5.37.0",
         "vite": "^5.1.4",
         "vite-plugin-raw": "^1.0.3",
@@ -30,8 +30,8 @@
         "yamljs": "^0.3.0"
     },
     "dependencies": {
-        "@yiero/bilibili-api-lib": "^0.1.0",
-        "@yiero/gmlib": "^0.1.12",
+        "@yiero/bilibili-api-lib": "link:D:/Code/.project/73_web_script/bilibili-api-lib",
+        "@yiero/gmlib": "^0.4.6",
         "radash": "^12.1.1"
     }
 }

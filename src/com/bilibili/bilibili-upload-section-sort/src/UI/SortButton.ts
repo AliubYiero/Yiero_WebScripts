@@ -141,7 +141,9 @@ class SortButton extends HTMLElement {
     }
 
     private updateStatusDisplay(): void {
-        const container = this.shadowRoot?.querySelector('.sort-button-group');
+        const container = this.shadowRoot?.querySelector(
+            '.sort-button-group',
+        );
         if (container) {
             container.className = `sort-button-group ${this._status}`;
         }
@@ -188,11 +190,23 @@ declare global {
 /**
  * 初始化排序按钮 Web Component 并挂载到容器中。
  */
-export const initSortButton = (container: HTMLElement): SortButton => {
+export const initSortButton = (
+    container: HTMLElement,
+): SortButton => {
     if (!customElements.get('sort-button')) {
         customElements.define('sort-button', SortButton);
     }
     const sortButton = document.createElement('sort-button');
     container.appendChild(sortButton);
     return sortButton;
+};
+
+/**
+ * 修改小节页面的按钮位置
+ */
+export const addSortButtonStyle = () => {
+    GM_addStyle(`.ep-section-edit-video-list-nav {
+    justify-content: flex-start !important;
+    gap: 24px;
+}`);
 };

@@ -6,7 +6,7 @@ const UserScript: ScriptCatUserScript = [
         'description',
         '支持按投稿的发布时间排序(升序/降序), 不再只能使用默认的按投稿标题排序. ',
     ],
-    ['version', '1.0.0'],
+    ['version', '1.1.0'],
     ['author', 'Yiero'],
     ['match', 'https://member.bilibili.com/platform/*'],
     ['require', ''],

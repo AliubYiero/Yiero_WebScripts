@@ -154,7 +154,7 @@
 		"bilibili-upload-section-sort": {
 			"name": "Bilibili投稿合集排序辅助",
 			"description": "支持按投稿的发布时间排序(升序/降序), 不再只能使用默认的按投稿标题排序.",
-			"version": "1.0.0",
+			"version": "1.1.0",
 			"private": false,
 			"archive": false,
 			"lastUpdate": 1776437547000,
