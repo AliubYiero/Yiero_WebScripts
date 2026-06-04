@@ -4,7 +4,7 @@
 // @version        1.1.1
 // @author         Yiero
 // @match          https://member.bilibili.com/platform/*
-// @icon           https://member.bilibili.com/favicon.ico
+// @icon           https://www.bilibili.com/favicon.ico
 // @run-at         document-start
 // @tag            bilibili
 // @tag            upload

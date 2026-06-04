@@ -11,7 +11,7 @@ const UserScript: ScriptCatUserScript = [
     ['match', 'https://member.bilibili.com/platform/*'],
     ['require', ''],
     ['resource', ''],
-    ['icon', 'https://member.bilibili.com/favicon.ico'],
+    ['icon', 'https://www.bilibili.com/favicon.ico'],
     ['run-at', 'document-start'],
     ['connect', ''],
     ['tag', 'bilibili'],

@@ -157,7 +157,7 @@
 			"version": "1.1.1",
 			"private": false,
 			"archive": false,
-			"lastUpdate": 1780394044000,
+			"lastUpdate": 1780551892000,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/bilibili-upload-section-sort.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-upload-section-sort/backup/bilibili-upload-section-sort.user.js",
