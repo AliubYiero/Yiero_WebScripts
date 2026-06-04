@@ -58,7 +58,7 @@ const handleSeasonData = async (response: ISeasonSectionInfo) => {
 
     // 校验 section 必要字段
     const { id, type, seasonId, title } = section;
-    if (!id || !type || !seasonId || !title) {
+    if (!id || type == void 0 || !seasonId || !title) {
         logger.info('合集信息不完整，跳过处理');
         return;
     }
