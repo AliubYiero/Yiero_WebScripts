@@ -34,6 +34,12 @@
 | 小说自动滚动 | 小说自动滚动脚本, 支持自动翻页/无限滚动模式.\n支持网站: 起点, 微信阅读, QQ阅读, 阅读 \nSpace 开启/关闭滚动, 长按 Space 临时暂停, Shift+PageUp/PageDown 调节速度. | 前台脚本 | 1.0.1 | 2026-04-20 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qidian/auto-scroll/backup/auto-scroll.user.js) |  |  |
 
 
+### qq.com
+| 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 流放之路2网页市集快速跳转 | 按下空格, 自动点击搜索栏的第一个可跳转的商品藏身处 | 前台脚本 | 1.0.0 | 2026-06-18 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2-market-quick-jump/backup/poe2-market-quick-jump.user.js) |  |  |
+
+
 ### mikannani.me
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |

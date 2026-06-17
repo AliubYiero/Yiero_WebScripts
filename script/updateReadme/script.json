@@ -292,6 +292,21 @@
 		}
 	},
 	"qq.com": {
+		"poe2-market-quick-jump": {
+			"name": "流放之路2网页市集快速跳转",
+			"description": "按下空格, 自动点击搜索栏的第一个可跳转的商品藏身处",
+			"version": "1.0.0",
+			"private": false,
+			"archive": false,
+			"lastUpdate": 1781715990338.9548,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/poe2-market-quick-jump.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2-market-quick-jump/backup/poe2-market-quick-jump.user.js",
+			"downloadUrlFromScripCat": "",
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": true,
+			"getLastUpdateWay": "file"
+		},
 		"poe2_trade_data_match": {
 			"name": "流放之路2批量读取道具信息",
 			"description": "读取道具的名称, 词缀, 价格. 目前仅支持深渊石板",
