@@ -157,7 +157,7 @@
 			"version": "1.1.1",
 			"private": false,
 			"archive": false,
-			"lastUpdate": 1780551892000,
+			"lastUpdate": 1780552078000,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/bilibili-upload-section-sort.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-upload-section-sort/backup/bilibili-upload-section-sort.user.js",
@@ -285,6 +285,23 @@
 			"scriptType": "web",
 			"userScriptFilepath": "backup/auto-scroll.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qidian/auto-scroll/backup/auto-scroll.user.js",
+			"downloadUrlFromScripCat": "",
+			"downloadUrlFromGreasyFork": "",
+			"autoUpdate": true,
+			"getLastUpdateWay": "file"
+		}
+	},
+	"qq.com": {
+		"poe2_trade_data_match": {
+			"name": "流放之路2批量读取道具信息",
+			"description": "读取道具的名称, 词缀, 价格. 目前仅支持深渊石板",
+			"version": "0.1.0",
+			"private": true,
+			"archive": false,
+			"lastUpdate": 1781700716972.4033,
+			"scriptType": "web",
+			"userScriptFilepath": "backup/poe2_trade_data_match.user.js",
+			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2_trade_data_match/backup/poe2_trade_data_match.user.js",
 			"downloadUrlFromScripCat": "",
 			"downloadUrlFromGreasyFork": "",
 			"autoUpdate": true,

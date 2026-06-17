@@ -37,6 +37,12 @@
 | 三角洲数据帝自动计算背包容器性价比 | 三角洲数据帝自动计算背包容器性价比 | 前台脚本 | 0.1.0 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/orzice/package-capacity-calculate/backup/package-capacity-calculate.user.js) |  |  |
 
 
+### qq.com
+| 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 流放之路2批量读取道具信息 | 读取道具的名称, 词缀, 价格. 目前仅支持深渊石板 | 前台脚本 | 0.1.0 | 2026-06-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2_trade_data_match/backup/poe2_trade_data_match.user.js) |  |  |
+
+
 ### dak.gg
 
 > **归档脚本**
