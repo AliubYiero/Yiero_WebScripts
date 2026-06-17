@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           流放之路2网页市集快速跳转
 // @description    按下空格, 自动点击搜索栏的第一个可跳转的商品藏身处
-// @version        1.0.0
+// @version        1.0.1
 // @author         Yiero
 // @match          https://poe.game.qq.com/trade2/*
 // @icon           https://poe.game.qq.com/favicon.ico
@@ -406,7 +406,7 @@
             (e) => {
                 e.preventDefault();
                 const jumpButton = document.querySelector(
-                    '.btn.btn-xs.btn-default.direct-btn:not([disabled])',
+                    '.btns[role="group"]:not([style="display: none;"]) .btn.btn-xs.btn-default.direct-btn:not([disabled])',
                 );
                 if (!jumpButton) {
                     Message.info(

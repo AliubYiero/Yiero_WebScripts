@@ -8,7 +8,7 @@ const main = async () => {
         (e) => {
             e.preventDefault();
             const jumpButton = document.querySelector<HTMLElement>(
-                '.btn.btn-xs.btn-default.direct-btn:not([disabled])',
+                '.btns[role="group"]:not([style="display: none;"]) .btn.btn-xs.btn-default.direct-btn:not([disabled])',
             );
             if (!jumpButton) {
                 Message.info('未找到可以跳转的藏身处');
