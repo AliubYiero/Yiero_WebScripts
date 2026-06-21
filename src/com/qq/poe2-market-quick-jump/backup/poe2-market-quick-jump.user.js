@@ -1,15 +1,16 @@
 // ==UserScript==
 // @name           流放之路2网页市集快速跳转
 // @description    按下空格, 自动点击搜索栏的第一个可跳转的商品藏身处
-// @version        1.0.1
+// @version        1.1.0-beta
 // @author         Yiero
 // @match          https://poe.game.qq.com/trade2/*
 // @icon           https://poe.game.qq.com/favicon.ico
 // @license        GPL-3
 // @namespace      https://github.com/AliubYiero/Yiero_WebScripts
 // @noframes
+// @grant          GM_addStyle
 // ==/UserScript==
-(function () {
+(function (exports) {
     'use strict';
     let messageContainer = null;
     const activeMessages = [];
@@ -323,105 +324,221 @@
                 type,
             });
     });
-    function onKeydown(callback, options) {
+    function onKeydownMultiple(bindings, options) {
         const {
             target = window,
-            once = false,
             capture = false,
             passive = false,
-            key,
-            ctrl = false,
-            alt = false,
-            shift = false,
-            meta = false,
-        } = options || {};
+        } = {};
         const eventOptions = {
             capture,
             passive,
         };
-        const hasShortcutFilter =
-            void 0 !== key || ctrl || alt || shift || meta;
-        let wrappedCallback;
-        wrappedCallback = once
-            ? (event) => {
-                  if (hasShortcutFilter) {
-                      if (void 0 !== key) {
-                          const eventKey = event.key;
-                          const expectedKey = key;
-                          const isMatch =
-                              1 === eventKey.length &&
-                              1 === expectedKey.length
-                                  ? eventKey.toLowerCase() ===
-                                    expectedKey.toLowerCase()
-                                  : eventKey === expectedKey;
-                          if (!isMatch) return;
-                      }
-                      if (event.ctrlKey !== ctrl) return;
-                      if (event.altKey !== alt) return;
-                      if (event.shiftKey !== shift) return;
-                      if (event.metaKey !== meta) return;
-                  }
-                  callback(event);
-                  target.removeEventListener(
-                      'keydown',
-                      wrappedCallback,
-                      eventOptions,
-                  );
-              }
-            : (event) => {
-                  if (hasShortcutFilter) {
-                      if (void 0 !== key) {
-                          const eventKey = event.key;
-                          const expectedKey = key;
-                          const isMatch =
-                              1 === eventKey.length &&
-                              1 === expectedKey.length
-                                  ? eventKey.toLowerCase() ===
-                                    expectedKey.toLowerCase()
-                                  : eventKey === expectedKey;
-                          if (!isMatch) return;
-                      }
-                      if (event.ctrlKey !== ctrl) return;
-                      if (event.altKey !== alt) return;
-                      if (event.shiftKey !== shift) return;
-                      if (event.metaKey !== meta) return;
-                  }
-                  callback(event);
-              };
+        const handleKeydown = (event) => {
+            for (const binding of bindings) {
+                const {
+                    callback,
+                    key,
+                    ctrl = false,
+                    alt = false,
+                    shift = false,
+                    meta = false,
+                } = binding;
+                const hasShortcutFilter =
+                    void 0 !== key || ctrl || alt || shift || meta;
+                if (hasShortcutFilter) {
+                    if (void 0 !== key) {
+                        const eventKey = event.key;
+                        const expectedKey = key;
+                        const isMatch =
+                            1 === eventKey.length &&
+                            1 === expectedKey.length
+                                ? eventKey.toLowerCase() ===
+                                  expectedKey.toLowerCase()
+                                : eventKey === expectedKey;
+                        if (!isMatch) continue;
+                    }
+                    if (event.ctrlKey !== ctrl) continue;
+                    if (event.altKey !== alt) continue;
+                    if (event.shiftKey !== shift) continue;
+                    if (event.metaKey !== meta) continue;
+                }
+                callback(event);
+            }
+        };
         target.addEventListener(
             'keydown',
-            wrappedCallback,
+            handleKeydown,
             eventOptions,
         );
         return () => {
             target.removeEventListener(
                 'keydown',
-                wrappedCallback,
+                handleKeydown,
                 eventOptions,
             );
         };
     }
-    const main = async () => {
-        onKeydown(
-            (e) => {
-                e.preventDefault();
-                const jumpButton = document.querySelector(
-                    '.btns[role="group"]:not([style="display: none;"]) .btn.btn-xs.btn-default.direct-btn:not([disabled])',
+    const sleep = (milliseconds) => {
+        return new Promise((res) => setTimeout(res, milliseconds));
+    };
+    const changeButtonSize = () => {
+        GM_addStyle(`
+.btn-group > .btn.btn-xs.btn-default.direct-btn {
+    font-size: 26px;
+}
+	`);
+    };
+    const getLiveModeStatus = () =>
+        location.pathname.includes('/live');
+    const getJumpButton = () =>
+        document.querySelector(
+            '.btns[role="group"]:not([style="display: none;"]) .btn.btn-xs.btn-default.direct-btn:not([disabled])',
+        );
+    const getLoadButton = () =>
+        document.querySelector('.btn.load-more-btn');
+    const handleLoadData = () => {
+        const loadButton = getLoadButton();
+        if (!loadButton) {
+            return false;
+        }
+        loadButton.click();
+        Message.info(
+            '\u6B63\u5728\u52A0\u8F7D\u65B0\u4E00\u9875\u6570\u636E...',
+        );
+        return true;
+    };
+    const handleFreshPage = () => {
+        const isLiveMode = getLiveModeStatus();
+        if (isLiveMode) {
+            Message.warning(
+                '\u5B9E\u65F6\u641C\u7D22\u6A21\u5F0F\u5F00\u542F\u4E2D, \u65E0\u6CD5\u66F4\u65B0\u9875\u9762\u5185\u5BB9...',
+            );
+            return;
+        }
+        const searchButton = document.querySelector(
+            '.btn.search-btn:not([disabled])',
+        );
+        if (!searchButton) {
+            Message.error(
+                '\u66F4\u65B0\u5931\u8D25...\u65E0\u6CD5\u83B7\u53D6\u641C\u7D22\u6309\u94AE\u6216\u641C\u7D22\u529F\u80FD\u4E0D\u53EF\u7528',
+            );
+            return;
+        }
+        searchButton.click();
+    };
+    const handleJumpHideout = (button) => {
+        button.click();
+        Message.success(
+            '\u8DF3\u8F6C\u6210\u529F, \u8DF3\u8F6C\u4E2D...',
+        );
+    };
+    let doubleTapTimeout = null;
+    const handleQuickJump = async (e) => {
+        e.preventDefault();
+        if (doubleTapTimeout) {
+            Message.info(
+                '\u9650\u5236\u8DF3\u8F6C, \u5DF2\u6210\u529F\u8DF3\u8F6C...',
+            );
+            return;
+        }
+        const jumpButton = getJumpButton();
+        if (!jumpButton) {
+            const isLoad = handleLoadData();
+            if (isLoad) {
+                return;
+            }
+            if (doubleTapTimeout) {
+                clearTimeout(doubleTapTimeout);
+                doubleTapTimeout = null;
+                Message.info(
+                    '\u672A\u627E\u5230\u53EF\u8DF3\u8F6C\u7684\u85CF\u8EAB\u5904, \u6B63\u5728\u5237\u65B0\u641C\u7D22...',
                 );
-                if (!jumpButton) {
-                    Message.info(
-                        '\u672A\u627E\u5230\u53EF\u4EE5\u8DF3\u8F6C\u7684\u85CF\u8EAB\u5904',
-                    );
-                    return;
-                }
-                jumpButton.click();
+                handleFreshPage();
+                return;
+            }
+            doubleTapTimeout = setTimeout(() => {
+                doubleTapTimeout = null;
+            }, 1e3);
+            Message.info(
+                '\u672A\u627E\u5230\u53EF\u4EE5\u8DF3\u8F6C\u7684\u85CF\u8EAB\u5904, \u518D\u6B21\u6309\u4E0B\u7A7A\u683C\u4EE5\u5237\u65B0\u641C\u7D22',
+            );
+            return;
+        }
+        handleJumpHideout(jumpButton);
+        await sleep(200);
+        if (jumpButton.classList.contains('expired')) {
+            if (jumpButton.closest('.details:has(.error)')) {
+                await handleQuickJump(e);
+                await sleep(200);
+                return;
+            }
+            handleJumpHideout(jumpButton);
+        }
+        doubleTapTimeout = setTimeout(() => {
+            doubleTapTimeout = null;
+        }, 1e3);
+        const isFindJumpButton = Boolean(getJumpButton());
+        if (isFindJumpButton) {
+            return;
+        }
+        handleLoadData();
+    };
+    const handleToggleLiveMode = () => {
+        const liveSearchButton = document.querySelector(
+            '.btn.livesearch-btn',
+        );
+        const isLiveMode = getLiveModeStatus();
+        const willToggleLiveModeText = isLiveMode
+            ? '\u53D6\u6D88'
+            : '\u6FC0\u6D3B';
+        if (!liveSearchButton) {
+            Message.error(
+                `${willToggleLiveModeText}\u5B9E\u65F6\u641C\u7D22\u5931\u8D25...\u65E0\u6CD5\u83B7\u53D6\u5207\u6362\u6309\u94AE`,
+            );
+            return;
+        }
+        liveSearchButton.click();
+        Message.success(
+            `\u5B9E\u65F6\u641C\u7D22\u6A21\u5F0F\u5DF2${willToggleLiveModeText}`,
+        );
+    };
+    const main = async () => {
+        changeButtonSize();
+        onKeydownMultiple([
+            {
+                key: ' ',
+                callback: handleQuickJump,
             },
             {
                 key: ' ',
+                shift: true,
+                callback: handleFreshPage,
             },
-        );
+            {
+                key: ' ',
+                ctrl: true,
+                shift: true,
+                callback: handleToggleLiveMode,
+            },
+        ]);
     };
     main().catch((error) => {
         console.error(error);
     });
-})();
+    exports.changeButtonSize = changeButtonSize;
+    exports.getJumpButton = getJumpButton;
+    exports.getLiveModeStatus = getLiveModeStatus;
+    exports.getLoadButton = getLoadButton;
+    exports.handleFreshPage = handleFreshPage;
+    exports.handleJumpHideout = handleJumpHideout;
+    exports.handleLoadData = handleLoadData;
+    exports.handleQuickJump = handleQuickJump;
+    exports.handleToggleLiveMode = handleToggleLiveMode;
+    Object.defineProperty(exports, Symbol.toStringTag, {
+        value: 'Module',
+    });
+})(
+    (this['poe2-market-quick-jump'] =
+        this['poe2-market-quick-jump'] || {}),
+);
