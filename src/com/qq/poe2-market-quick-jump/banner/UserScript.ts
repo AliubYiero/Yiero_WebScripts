@@ -6,7 +6,7 @@ const UserScript: ScriptCatUserScript = [
         'description',
         '按下空格, 自动点击搜索栏的第一个可跳转的商品藏身处',
     ],
-    ['version', '1.1.0-beta'],
+    ['version', '1.1.0'],
     ['author', 'Yiero'],
     ['match', 'https://poe.game.qq.com/trade2/*'],
     ['require', ''],

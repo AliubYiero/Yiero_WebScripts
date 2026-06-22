@@ -1,17 +1,114 @@
 // ==UserScript==
 // @name           流放之路2网页市集快速跳转
 // @description    按下空格, 自动点击搜索栏的第一个可跳转的商品藏身处
-// @version        1.1.0-beta
+// @version        1.1.0
 // @author         Yiero
 // @match          https://poe.game.qq.com/trade2/*
 // @icon           https://poe.game.qq.com/favicon.ico
 // @license        GPL-3
 // @namespace      https://github.com/AliubYiero/Yiero_WebScripts
 // @noframes
+// @grant          GM_getValue
+// @grant          GM_setValue
+// @grant          GM_deleteValue
+// @grant          GM_addValueChangeListener
+// @grant          GM_removeValueChangeListener
 // @grant          GM_addStyle
 // ==/UserScript==
-(function (exports) {
+/* ==UserConfig==
+藏身处跳转配置:
+    isLockTime:
+        title: 时间锁
+        description: '开启时间锁后, 在成功跳转到目标藏身处之后的一定时间内, 防止重新跳转. '
+        type: checkbox
+        default: true
+    lockTimeValue:
+        title: 时间锁的持续时间
+        description: ""
+        type: number
+        default: 1
+        min: 0
+        unit: s
+==/UserConfig== */
+(function () {
     'use strict';
+    class GmStorage {
+        key;
+        defaultValue;
+        listenerId = null;
+        constructor(key, defaultValue) {
+            this.key = key;
+            this.defaultValue = defaultValue;
+        }
+        get value() {
+            return this.get();
+        }
+        get() {
+            return GM_getValue(this.key, this.defaultValue);
+        }
+        set(value) {
+            GM_setValue(this.key, value);
+        }
+        remove() {
+            GM_deleteValue(this.key);
+        }
+        updateListener(callback) {
+            this.removeListener();
+            this.listenerId = GM_addValueChangeListener(
+                this.key,
+                (key, oldValue, newValue, remote) => {
+                    callback({
+                        key,
+                        oldValue,
+                        newValue,
+                        remote,
+                    });
+                },
+            );
+        }
+        removeListener() {
+            if (null !== this.listenerId) {
+                GM_removeValueChangeListener(this.listenerId);
+                this.listenerId = null;
+            }
+        }
+    }
+    function inferDefaultValue(item) {
+        if (void 0 !== item.default) return item.default;
+        switch (item.type) {
+            case 'number':
+                return 0;
+            case 'checkbox':
+                return false;
+            case 'text':
+            case 'textarea':
+                return '';
+            case 'mult-select':
+                return [];
+            case 'select':
+                throw new Error(
+                    `\u914D\u7F6E\u9879 "${item.title}" \u7C7B\u578B\u4E3A select\uFF0C\u5FC5\u987B\u63D0\u4F9B\u9ED8\u8BA4\u503C`,
+                );
+            default:
+                throw new Error(
+                    `\u914D\u7F6E\u9879 "${item.title}" \u7C7B\u578B\u672A\u77E5: ${item.type}`,
+                );
+        }
+    }
+    function createUserConfigStorage(userConfig) {
+        const result = {};
+        for (const [groupName, group] of Object.entries(userConfig))
+            for (const [configKey, item] of Object.entries(group)) {
+                const storageKey = `${groupName}.${configKey}`;
+                const storageName = `${configKey}Store`;
+                const defaultValue = inferDefaultValue(item);
+                result[storageName] = new GmStorage(
+                    storageKey,
+                    defaultValue,
+                );
+            }
+        return result;
+    }
     let messageContainer = null;
     const activeMessages = [];
     const MAX_MESSAGES = 3;
@@ -379,16 +476,6 @@
             );
         };
     }
-    const sleep = (milliseconds) => {
-        return new Promise((res) => setTimeout(res, milliseconds));
-    };
-    const changeButtonSize = () => {
-        GM_addStyle(`
-.btn-group > .btn.btn-xs.btn-default.direct-btn {
-    font-size: 26px;
-}
-	`);
-    };
     const getLiveModeStatus = () =>
         location.pathname.includes('/live');
     const getJumpButton = () =>
@@ -397,58 +484,206 @@
         );
     const getLoadButton = () =>
         document.querySelector('.btn.load-more-btn');
+    const getSearchButton = () =>
+        document.querySelector('.btn.search-btn:not([disabled])');
+    const getLiveSearchButton = () =>
+        document.querySelector('.btn.livesearch-btn');
+    class Logger {
+        constructor(preifx) {
+            this.preifx = preifx;
+        }
+        log(...msg) {
+            /* @__PURE__ */ (() => {})(this.preifx, ...msg);
+        }
+        info(...msg) {
+            console.info(this.preifx, ...msg);
+        }
+        warn(...msg) {
+            console.warn(this.preifx, ...msg);
+        }
+        error(...msg) {
+            console.error(this.preifx, ...msg);
+        }
+    }
+    const logger = new Logger('[PoE2 Market Quick Jump]');
     const handleLoadData = () => {
         const loadButton = getLoadButton();
         if (!loadButton) {
+            logger.log(
+                'handleLoadData: \u6CA1\u6709\u627E\u5230\u52A0\u8F7D\u66F4\u591A\u6309\u94AE',
+            );
             return false;
         }
         loadButton.click();
+        logger.log(
+            'handleLoadData: \u70B9\u51FB\u4E86\u52A0\u8F7D\u66F4\u591A\u6309\u94AE',
+        );
         Message.info(
             '\u6B63\u5728\u52A0\u8F7D\u65B0\u4E00\u9875\u6570\u636E...',
         );
         return true;
     };
     const handleFreshPage = () => {
-        const isLiveMode = getLiveModeStatus();
-        if (isLiveMode) {
+        if (getLiveModeStatus()) {
+            logger.log(
+                'handleFreshPage: \u5B9E\u65F6\u641C\u7D22\u6A21\u5F0F\u5DF2\u5F00\u542F, \u8DF3\u8FC7\u5237\u65B0',
+            );
             Message.warning(
                 '\u5B9E\u65F6\u641C\u7D22\u6A21\u5F0F\u5F00\u542F\u4E2D, \u65E0\u6CD5\u66F4\u65B0\u9875\u9762\u5185\u5BB9...',
             );
             return;
         }
-        const searchButton = document.querySelector(
-            '.btn.search-btn:not([disabled])',
-        );
+        const searchButton = getSearchButton();
         if (!searchButton) {
+            logger.log(
+                'handleFreshPage: \u6CA1\u6709\u627E\u5230\u641C\u7D22\u6309\u94AE',
+            );
             Message.error(
                 '\u66F4\u65B0\u5931\u8D25...\u65E0\u6CD5\u83B7\u53D6\u641C\u7D22\u6309\u94AE\u6216\u641C\u7D22\u529F\u80FD\u4E0D\u53EF\u7528',
             );
             return;
         }
+        logger.log(
+            'handleFreshPage: \u70B9\u51FB\u641C\u7D22\u6309\u94AE\u5237\u65B0\u9875\u9762',
+        );
         searchButton.click();
     };
-    const handleJumpHideout = (button) => {
-        button.click();
+    const handleToggleLiveMode = () => {
+        const liveSearchButton = getLiveSearchButton();
+        const isLiveMode = getLiveModeStatus();
+        const actionText = isLiveMode
+            ? '\u53D6\u6D88'
+            : '\u6FC0\u6D3B';
+        logger.log(
+            'handleToggleLiveMode: \u5F53\u524D\u6A21\u5F0F',
+            isLiveMode ? 'live' : 'normal',
+        );
+        if (!liveSearchButton) {
+            logger.log(
+                `handleToggleLiveMode: \u6CA1\u6709\u627E\u5230${actionText}\u5B9E\u65F6\u641C\u7D22\u6309\u94AE`,
+            );
+            Message.error(
+                `${actionText}\u5B9E\u65F6\u641C\u7D22\u5931\u8D25...\u65E0\u6CD5\u83B7\u53D6\u5207\u6362\u6309\u94AE`,
+            );
+            return;
+        }
+        liveSearchButton.click();
+        logger.log(
+            `handleToggleLiveMode: \u5DF2${actionText}\u5B9E\u65F6\u641C\u7D22\u6A21\u5F0F`,
+        );
         Message.success(
-            '\u8DF3\u8F6C\u6210\u529F, \u8DF3\u8F6C\u4E2D...',
+            `\u5B9E\u65F6\u641C\u7D22\u6A21\u5F0F\u5DF2${actionText}`,
         );
     };
+    const UserConfig = {
+        '\u85CF\u8EAB\u5904\u8DF3\u8F6C\u914D\u7F6E': {
+            isLockTime: {
+                title: '\u65F6\u95F4\u9501',
+                description:
+                    '\u5F00\u542F\u65F6\u95F4\u9501\u540E, \u5728\u6210\u529F\u8DF3\u8F6C\u5230\u76EE\u6807\u85CF\u8EAB\u5904\u4E4B\u540E\u7684\u4E00\u5B9A\u65F6\u95F4\u5185, \u9632\u6B62\u91CD\u65B0\u8DF3\u8F6C. ',
+                type: 'checkbox',
+                default: true,
+            },
+            lockTimeValue: {
+                title: '\u65F6\u95F4\u9501\u7684\u6301\u7EED\u65F6\u95F4',
+                description: '',
+                type: 'number',
+                default: 1,
+                min: 0,
+                unit: 's',
+            },
+        },
+    };
+    const { isLockTimeStore, lockTimeValueStore } =
+        createUserConfigStorage(UserConfig);
+    function waitForClassChange(button, timeout) {
+        return new Promise((resolve) => {
+            let settled = false;
+            const timer = setTimeout(() => {
+                if (settled) return;
+                settled = true;
+                observer.disconnect();
+                resolve('unavailable');
+            }, timeout);
+            const observer = new MutationObserver(() => {
+                if (settled) return;
+                if (button.classList.contains('active')) {
+                    settled = true;
+                    clearTimeout(timer);
+                    observer.disconnect();
+                    resolve('success');
+                    return;
+                }
+                if (button.classList.contains('expired')) {
+                    settled = true;
+                    clearTimeout(timer);
+                    observer.disconnect();
+                    const isRevoked = !!button.closest(
+                        '.details:has(.error)',
+                    );
+                    resolve(isRevoked ? 'revoked' : 'reserved');
+                    return;
+                }
+            });
+            observer.observe(button, {
+                attributes: true,
+                attributeFilter: ['class'],
+            });
+        });
+    }
+    async function executeJump(button) {
+        button.click();
+        const result = await waitForClassChange(button, 1e3);
+        logger.log('\u8DF3\u8F6C\u6309\u94AE\u72B6\u6001:', result);
+        return result;
+    }
     let doubleTapTimeout = null;
+    let jumpLockTimeout = null;
+    const handleJumpHideout = (button) => {
+        button.click();
+    };
+    const setJumpLock = () => {
+        const lockDuration = (lockTimeValueStore.get() ?? 1) * 1e3;
+        jumpLockTimeout = setTimeout(() => {
+            jumpLockTimeout = null;
+        }, lockDuration);
+    };
+    const setDoubleTapDetection = () => {
+        doubleTapTimeout = setTimeout(() => {
+            doubleTapTimeout = null;
+        }, 1e3);
+    };
     const handleQuickJump = async (e) => {
         e.preventDefault();
-        if (doubleTapTimeout) {
+        if (jumpLockTimeout && isLockTimeStore.get()) {
+            logger.log(
+                '\u8DF3\u8F6C\u88AB\u963B\u6B62: \u8DF3\u8F6C\u9501\u5B9A\u4E2D',
+            );
             Message.info(
-                '\u9650\u5236\u8DF3\u8F6C, \u5DF2\u6210\u529F\u8DF3\u8F6C...',
+                '\u8DF3\u8F6C\u9501\u5B9A\u4E2D, \u8BF7\u7A0D\u540E\u518D\u8BD5...',
             );
             return;
         }
         const jumpButton = getJumpButton();
+        logger.log(
+            '\u83B7\u53D6\u8DF3\u8F6C\u6309\u94AE:',
+            jumpButton ? '\u627E\u5230' : '\u672A\u627E\u5230',
+        );
         if (!jumpButton) {
             const isLoad = handleLoadData();
+            logger.log(
+                '\u672A\u627E\u5230\u8DF3\u8F6C\u6309\u94AE, \u5C1D\u8BD5\u52A0\u8F7D\u66F4\u591A\u6570\u636E:',
+                isLoad
+                    ? '\u89E6\u53D1\u52A0\u8F7D'
+                    : '\u65E0\u52A0\u8F7D\u6309\u94AE',
+            );
             if (isLoad) {
                 return;
             }
             if (doubleTapTimeout) {
+                logger.log(
+                    '\u53CC\u51FB\u68C0\u6D4B\u89E6\u53D1: \u5237\u65B0\u641C\u7D22',
+                );
                 clearTimeout(doubleTapTimeout);
                 doubleTapTimeout = null;
                 Message.info(
@@ -457,88 +692,101 @@
                 handleFreshPage();
                 return;
             }
-            doubleTapTimeout = setTimeout(() => {
-                doubleTapTimeout = null;
-            }, 1e3);
+            logger.log(
+                '\u542F\u52A8\u53CC\u51FB\u68C0\u6D4B: \u7B49\u5F85\u7528\u6237\u518D\u6B21\u6309\u4E0B\u7A7A\u683C',
+            );
+            setDoubleTapDetection();
             Message.info(
                 '\u672A\u627E\u5230\u53EF\u4EE5\u8DF3\u8F6C\u7684\u85CF\u8EAB\u5904, \u518D\u6B21\u6309\u4E0B\u7A7A\u683C\u4EE5\u5237\u65B0\u641C\u7D22',
             );
             return;
         }
-        handleJumpHideout(jumpButton);
-        await sleep(200);
-        if (jumpButton.classList.contains('expired')) {
-            if (jumpButton.closest('.details:has(.error)')) {
-                await handleQuickJump(e);
-                await sleep(200);
-                return;
+        logger.log('\u5F00\u59CB\u6267\u884C\u8DF3\u8F6C...');
+        const result = await executeJump(jumpButton);
+        logger.log('\u8DF3\u8F6C\u7ED3\u679C:', result);
+        if (result === 'success') {
+            logger.log(
+                '\u8DF3\u8F6C\u6210\u529F, \u8BBE\u7F6E\u9501\u5B9A\u5E76\u6EDA\u52A8\u5230\u6309\u94AE\u4F4D\u7F6E',
+            );
+            Message.success(
+                '\u8DF3\u8F6C\u6210\u529F, \u8DF3\u8F6C\u4E2D...',
+            );
+            setJumpLock();
+            const targetRow = jumpButton.closest('.row[data-id]');
+            if (targetRow) {
+                const rect = targetRow.getClientRects()[0];
+                if (rect) {
+                    window.scrollBy({
+                        top: rect.top - 40,
+                        behavior: 'smooth',
+                    });
+                }
             }
+        } else if (result === 'revoked') {
+            logger.log(
+                '\u9053\u5177\u5DF2\u64A4\u9500, \u9012\u5F52\u67E5\u627E\u4E0B\u4E00\u4E2A\u53EF\u7528\u6309\u94AE',
+            );
+            await handleQuickJump(e);
+            return;
+        } else if (result === 'reserved') {
+            logger.log(
+                '\u9053\u5177\u88AB\u9884\u5B9A, \u518D\u6B21\u70B9\u51FB\u8DF3\u8F6C\u6309\u94AE',
+            );
             handleJumpHideout(jumpButton);
         }
-        doubleTapTimeout = setTimeout(() => {
-            doubleTapTimeout = null;
-        }, 1e3);
-        const isFindJumpButton = Boolean(getJumpButton());
-        if (isFindJumpButton) {
-            return;
-        }
-        handleLoadData();
-    };
-    const handleToggleLiveMode = () => {
-        const liveSearchButton = document.querySelector(
-            '.btn.livesearch-btn',
-        );
-        const isLiveMode = getLiveModeStatus();
-        const willToggleLiveModeText = isLiveMode
-            ? '\u53D6\u6D88'
-            : '\u6FC0\u6D3B';
-        if (!liveSearchButton) {
-            Message.error(
-                `${willToggleLiveModeText}\u5B9E\u65F6\u641C\u7D22\u5931\u8D25...\u65E0\u6CD5\u83B7\u53D6\u5207\u6362\u6309\u94AE`,
+        if (!getJumpButton()) {
+            logger.log(
+                '\u65E0\u66F4\u591A\u53EF\u8DF3\u8F6C\u6309\u94AE, \u5C1D\u8BD5\u52A0\u8F7D\u4E0B\u4E00\u9875',
             );
-            return;
+            handleLoadData();
+        } else {
+            logger.log('\u4ECD\u6709\u53EF\u8DF3\u8F6C\u6309\u94AE');
         }
-        liveSearchButton.click();
-        Message.success(
-            `\u5B9E\u65F6\u641C\u7D22\u6A21\u5F0F\u5DF2${willToggleLiveModeText}`,
-        );
     };
+    GM_addStyle(`
+.btn-group > .btn.btn-xs.btn-default.direct-btn {
+    font-size: 26px;
+}
+`);
     const main = async () => {
-        changeButtonSize();
+        logger.log(
+            '\u811A\u672C\u521D\u59CB\u5316, \u6CE8\u518C\u5FEB\u6377\u952E...',
+        );
         onKeydownMultiple([
             {
                 key: ' ',
-                callback: handleQuickJump,
+                callback: (e) => {
+                    logger.log(
+                        '\u5FEB\u6377\u952E: \u7A7A\u683C \u2192 \u5FEB\u901F\u8DF3\u8F6C',
+                    );
+                    handleQuickJump(e);
+                },
             },
             {
                 key: ' ',
                 shift: true,
-                callback: handleFreshPage,
+                callback: () => {
+                    logger.log(
+                        '\u5FEB\u6377\u952E: Shift+\u7A7A\u683C \u2192 \u5237\u65B0\u9875\u9762',
+                    );
+                    handleFreshPage();
+                },
             },
             {
                 key: ' ',
                 ctrl: true,
                 shift: true,
-                callback: handleToggleLiveMode,
+                callback: () => {
+                    logger.log(
+                        '\u5FEB\u6377\u952E: Ctrl+Shift+\u7A7A\u683C \u2192 \u5207\u6362\u5B9E\u65F6\u641C\u7D22',
+                    );
+                    handleToggleLiveMode();
+                },
             },
         ]);
+        logger.log('\u811A\u672C\u521D\u59CB\u5316\u5B8C\u6210');
     };
     main().catch((error) => {
-        console.error(error);
+        logger.error('\u811A\u672C\u5F02\u5E38:', error);
     });
-    exports.changeButtonSize = changeButtonSize;
-    exports.getJumpButton = getJumpButton;
-    exports.getLiveModeStatus = getLiveModeStatus;
-    exports.getLoadButton = getLoadButton;
-    exports.handleFreshPage = handleFreshPage;
-    exports.handleJumpHideout = handleJumpHideout;
-    exports.handleLoadData = handleLoadData;
-    exports.handleQuickJump = handleQuickJump;
-    exports.handleToggleLiveMode = handleToggleLiveMode;
-    Object.defineProperty(exports, Symbol.toStringTag, {
-        value: 'Module',
-    });
-})(
-    (this['poe2-market-quick-jump'] =
-        this['poe2-market-quick-jump'] || {}),
-);
+})();
