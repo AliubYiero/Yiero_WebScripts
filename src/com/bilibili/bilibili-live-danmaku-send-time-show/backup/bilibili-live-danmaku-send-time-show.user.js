@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Bilibili 直播弹幕发送时间显示
 // @description    在评论框直播弹幕的最后, 显示弹幕发送的时间
-// @version        1.0.0
+// @version        1.0.1
 // @author         Yiero
 // @match          https://live.bilibili.com/*
 // @icon           https://www.bilibili.com/favicon.ico
@@ -22,28 +22,25 @@
     };
     const normalizeHeaders = (headers) => {
         const normalized = {};
-        for (const key in headers) {
+        for (const key in headers)
             normalized[key.toLowerCase()] = headers[key];
-        }
         return normalized;
     };
     const processBody = (body, headers) => {
-        if (body === void 0 || body === null) return null;
+        if (null == body) return null;
         if (
             body instanceof FormData ||
             body instanceof URLSearchParams ||
             body instanceof Blob ||
             body instanceof ArrayBuffer ||
             body instanceof ReadableStream ||
-            typeof body === 'string'
-        ) {
+            'string' == typeof body
+        )
             return body;
-        }
-        if (typeof body === 'object') {
-            if (!headers['content-type']) {
+        if ('object' == typeof body) {
+            if (!headers['content-type'])
                 headers['content-type'] =
                     'application/json;charset=UTF-8';
-            }
             return JSON.stringify(body);
         }
         return String(body);
@@ -63,14 +60,12 @@
         }
         let responseType = options.responseType;
         if (!responseType) {
-            const accept = headers['accept'];
-            if (accept?.includes('text/html')) {
-                responseType = 'document';
-            } else if (accept?.includes('text/')) {
-                responseType = 'text';
-            } else {
-                responseType = 'json';
-            }
+            const accept = headers.accept;
+            responseType = accept?.includes('text/html')
+                ? 'document'
+                : accept?.includes('text/')
+                  ? 'text'
+                  : 'json';
         }
         return new Promise((resolve, reject) => {
             const xhr = new XMLHttpRequest();
@@ -81,19 +76,17 @@
             Object.entries(headers).forEach(([key, value]) => {
                 xhr.setRequestHeader(key, value);
             });
-            if (onProgress) {
+            if (onProgress)
                 xhr.addEventListener('progress', onProgress);
-            }
             xhr.addEventListener('load', () => {
-                if (xhr.status >= 200 && xhr.status < 300) {
+                if (xhr.status >= 200 && xhr.status < 300)
                     resolve(xhr.response);
-                } else {
+                else
                     reject(
                         new Error(
                             `HTTP Error ${xhr.status}: ${xhr.statusText} @ ${url}`,
                         ),
                     );
-                }
             });
             xhr.addEventListener('error', () => {
                 reject(
@@ -113,31 +106,35 @@
             xhr.send(requestBody);
         });
     }
-    xhrRequest.get = (url, options) => {
-        return xhrRequest(url, { ...options, method: 'GET' });
-    };
-    xhrRequest.getWithCredentials = (url, options) => {
-        return xhrRequest(url, {
+    xhrRequest.get = (url, options) =>
+        xhrRequest(url, {
+            ...options,
+            method: 'GET',
+        });
+    xhrRequest.getWithCredentials = (url, options) =>
+        xhrRequest(url, {
             ...options,
             method: 'GET',
             withCredentials: true,
         });
-    };
-    xhrRequest.post = (url, options) => {
-        return xhrRequest(url, { ...options, method: 'POST' });
-    };
-    xhrRequest.postWithCredentials = (url, options) => {
-        return xhrRequest(url, {
+    xhrRequest.post = (url, options) =>
+        xhrRequest(url, {
+            ...options,
+            method: 'POST',
+        });
+    xhrRequest.postWithCredentials = (url, options) =>
+        xhrRequest(url, {
             ...options,
             method: 'POST',
             withCredentials: true,
         });
-    };
     function api_getRoomInfo(roomId) {
         const url =
             'https://api.live.bilibili.com/room/v1/Room/get_info';
         return xhrRequest.get(url, {
-            params: { room_id: roomId.toString() },
+            params: {
+                room_id: roomId.toString(),
+            },
         });
     }
     const getLiveTimestamp = async (roomId) => {
@@ -345,50 +342,52 @@
     const sendTimeStyle = `/* V1 - \u539F\u59CB\u6837\u5F0F */
 /* \u8BBE\u7F6E\u4E3A\u6D6E\u52A8\u5BB9\u5668 */
 .chat-item.danmaku-item[data-send-time] {
-	display: flow-root;
+    display: flow-root;
 }
 /* \u8868\u60C5\u5F39\u5E55\u4E3A flex \u5E03\u5C40, \u94FA\u6EE1\u5BBD\u5EA6 */
 .chat-item.danmaku-item.chat-emoticon.bulge-emoticon[data-send-time] {
-	width: 96% !important;
+    width: 96% !important;
 }
 .danmaku-item-right.emoticon {
-	flex: 1;
+    flex: 1;
 }
 
 /* \u5F39\u5E55\u53D1\u9001\u7684\u73B0\u5B9E\u65F6\u95F4 */
 .chat-item.danmaku-item[data-send-time]::after {
-	content: attr(data-send-time);
-	float: right;
-	margin-left: 8px; /* \u4E0E\u5DE6\u4FA7\u5143\u7D20\u4FDD\u6301\u95F4\u8DDD */
-	font-size: 10px;
-	color: #9499a0;
+    content: attr(data-send-time);
+    float: right;
+    margin-left: 8px; /* \u4E0E\u5DE6\u4FA7\u5143\u7D20\u4FDD\u6301\u95F4\u8DDD */
+    font-size: 10px;
+    color: #9499a0;
 }
 
 /* \u5F39\u5E55\u53D1\u9001\u7684\u76F4\u64AD\u65F6\u95F4 */
 .chat-item.danmaku-item[data-send-time]:hover::after {
-	content: attr(data-send-time-in-live);
-	color: #00AEEC;
+    content: attr(data-send-time-in-live);
+    color: #00aeec;
 }
 
 /* V2 - \u8054\u52A8\u811A\u672C */
-.danmaku-item-right[data-send-time] {
-	display: flex !important;
+.danmaku-item-right.danmaku-item-right.danmaku-item-right.danmaku-item-right[data-send-time] {
+    position: relative;
+    width: calc(100% - 55px);
 }
 
 /* \u5F39\u5E55\u53D1\u9001\u7684\u73B0\u5B9E\u65F6\u95F4 */
 .danmaku-item-right[data-send-time]::after {
-	content: attr(data-send-time);
-	margin-left: auto;
-	font-size: 10px;
-	color: #9499a0;
-	padding: 0 8px;
-	align-self: end;
+    content: attr(data-send-time);
+    font-size: 10px;
+    color: #9499a0;
+    position: absolute;
+    right: -47px;
+    padding: 0 4px;
+    bottom: 0;
 }
 
 /* \u5F39\u5E55\u53D1\u9001\u7684\u76F4\u64AD\u65F6\u95F4 */
 .chat-item.danmaku-item:hover > .danmaku-item-right[data-send-time]::after {
-	content: attr(data-send-time-in-live);
-	color: #00AEEC;
+    content: attr(data-send-time-in-live);
+    color: #00aeec;
 }
 `;
     const addSendTimeStyle = () => {

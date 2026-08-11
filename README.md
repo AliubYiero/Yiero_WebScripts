@@ -14,6 +14,7 @@
 ### bilibili.com
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+| Bilibili 直播弹幕发送时间显示 | 在评论框直播弹幕的最后, 显示弹幕发送的时间 | 前台脚本 | 1.0.1 | 2026-08-11 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-danmaku-send-time-show/backup/bilibili-live-danmaku-send-time-show.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/2621) |  |
 | Bilibili投稿合集排序辅助 | 支持按投稿的发布时间排序(升序/降序), 不再只能使用默认的按投稿标题排序. | 前台脚本 | 1.1.1 | 2026-06-04 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-upload-section-sort/backup/bilibili-upload-section-sort.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5085) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/561930) |
 | Bilibili直播自动点赞 | Bilibili进入直播间后自动点赞. | 前台脚本 | 1.3.0 | 2026-05-15 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-auto-like/backup/bilibili-live-auto-like.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/2016) |  |
 | Bilibili 视频时间轴 | 根据视频字幕, 生成视频时间轴. | 前台脚本 | 2.0.2 | 2026-05-04 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-timeline/backup/bilibili-video-timeline.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/2613) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/522993) |
@@ -24,7 +25,6 @@
 | BiliBili自动添加视频收藏 | 进入视频页面后, 自动添加视频到收藏夹中. | 前台脚本 | 0.6.2 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-auto-add-favorites/dist/BiliBili自动添加视频收藏.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/1603) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/489644) |
 | Bilibili视频倍速记忆 | 自动记忆视频播放倍速设置，并提供快捷键快速调整播放速度。 | 前台脚本 | 1.2.0 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-playback-rate-remember/backup/bilibili-video-playback-rate-remember.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5800) |  |
 | Bilibili视频观看状态标记 | 基于收藏夹内容, 自动标记Bilibili视频的观看状态(已看/未看) | 前台脚本 | 1.0.2 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-watch-sign/backup/bilibili-video-watch-sign.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/4793) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/557782) |
-| Bilibili 直播弹幕发送时间显示 | 在评论框直播弹幕的最后, 显示弹幕发送的时间 | 前台脚本 | 1.0.0 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-danmaku-send-time-show/backup/bilibili-live-danmaku-send-time-show.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/2621) |  |
 | Bilibili跳过视频广告 | 通过 AI 将 Bilibili 视频中的推广广告移除, 同时移除评论区的广告跳转评论. | 前台脚本 | 0.0.0 | 2026-04-16 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-ad-skipper/backup/bilibili-video-ad-skipper.user.js) |  |  |
 
 
@@ -37,6 +37,7 @@
 ### qq.com
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
+|  |  | 前台脚本 | 0.0.0 | 2026-08-11 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2-price-calculate/backup/poe2-price-calculate.user.js) |  |  |
 | 流放之路2网页市集快速跳转 | 按下空格, 自动点击搜索栏的第一个可跳转的商品藏身处 | 前台脚本 | 1.1.0 | 2026-06-22 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2-market-quick-jump/backup/poe2-market-quick-jump.user.js) |  |  |
 
 

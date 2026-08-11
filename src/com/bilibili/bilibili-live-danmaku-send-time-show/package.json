@@ -31,6 +31,7 @@
         "yamljs": "^0.3.0"
     },
     "dependencies": {
+        "@yiero/bilibili-api-lib": "link:D:/Code/.project/73_web_script/WebScripts/src/com/bilibili/.bilibili-api-lib",
         "@yiero/gmlib": "^0.3.5"
     }
 }

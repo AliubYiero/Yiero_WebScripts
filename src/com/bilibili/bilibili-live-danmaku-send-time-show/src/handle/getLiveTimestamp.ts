@@ -1,4 +1,4 @@
-import { api_getRoomInfo } from '../../../.biliApi/src';
+import { api_getRoomInfo } from '@yiero/bilibili-api-lib';
 
 interface LiveTimestamp {
     inLive: boolean;

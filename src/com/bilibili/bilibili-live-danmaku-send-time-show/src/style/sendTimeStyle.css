@@ -27,18 +27,20 @@
 }
 
 /* V2 - 联动脚本 */
-.danmaku-item-right[data-send-time] {
-    display: flex !important;
+.danmaku-item-right.danmaku-item-right.danmaku-item-right.danmaku-item-right[data-send-time] {
+    position: relative;
+    width: calc(100% - 55px);
 }
 
 /* 弹幕发送的现实时间 */
 .danmaku-item-right[data-send-time]::after {
     content: attr(data-send-time);
-    margin-left: auto;
     font-size: 10px;
     color: #9499a0;
-    padding: 0 8px;
-    align-self: end;
+    position: absolute;
+    right: -47px;
+    padding: 0 4px;
+    bottom: 0;
 }
 
 /* 弹幕发送的直播时间 */
