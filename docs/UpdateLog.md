@@ -1,5 +1,13 @@
 # 更新日志
 
+### 0.4.7 - feat
+
+**Logger 新增:**
+- 新增类: `Logger`, 带样式前缀的控制台日志输出器
+- 支持 `log` / `info` / `warn` / `error` 四种日志方法, 前缀以背景色样式显示
+- 新增测试文件: `tests/UserInteraction/Logger.test.ts`
+- 新增 API 文档: `docs/UserInteraction/Logger.md`
+
 ### 0.4.6 - fix
 
 **gmMenuCommand**

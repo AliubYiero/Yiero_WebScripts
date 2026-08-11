@@ -34,6 +34,7 @@ export type {
 export { uiImporter } from './UI/uiImporter';
 // UserInteraction
 export { gmMenuCommand } from './UserInteraction/gmMenuCommand';
+export { Logger } from './UserInteraction/Logger';
 export { Message } from './UserInteraction/Message';
 export type {
     IKeydownBinding,

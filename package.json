@@ -1,7 +1,7 @@
 {
     "name": "@yiero/gmlib",
     "author": "Yiero",
-    "version": "0.4.6",
+    "version": "0.4.7",
     "description": "GM Lib for Tampermonkey/ScriptCat",
     "type": "module",
     "exports": {

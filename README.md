@@ -63,6 +63,7 @@ Message.success('操作成功');
 | 函数 | 说明 |
 | :--- | :--- |
 | [`Message`](docs/UserInteraction/Message.md) | 消息通知组件 |
+| [`Logger`](docs/UserInteraction/Logger.md) | 带样式前缀的控制台日志输出器 |
 | [`gmMenuCommand`](docs/UserInteraction/gmMenuCommand.md) | 油猴菜单命令管理 |
 | [`onKeydown`](docs/UserInteraction/onKeydown.md) | 监听键盘按下事件 |
 | [`onKeydownMultiple`](docs/UserInteraction/onKeydown.md) | 批量监听多个键盘快捷键 |
