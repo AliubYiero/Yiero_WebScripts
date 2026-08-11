@@ -6,6 +6,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 GmLib 是一个为 Tampermonkey/ScriptCat 脚本提供辅助函数的 TypeScript 库，封装了常用的油猴 API。
 
+## 文档
+
+- [文档索引](./docs/index.md)
+
 ## 开发命令
 
 ```bash
