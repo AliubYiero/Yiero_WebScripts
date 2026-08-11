@@ -10,13 +10,13 @@ import { gmRequest } from '@yiero/gmlib';
 export const api_getEpInfo = async (
     epId: string,
 ): Promise<IEpInfoResponseResultEpisodes> => {
-    const response = (await gmRequest(
+    const response = await gmRequest<IEpInfoResponse>(
         'https://api.bilibili.com/pgc/view/web/season',
         'GET',
         {
             ep_id: epId,
         },
-    )) as IEpInfoResponse;
+    );
     const episode = response.result.episodes.find(
         (item) => item.id === Number(epId),
     );

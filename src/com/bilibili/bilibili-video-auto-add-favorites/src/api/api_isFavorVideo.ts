@@ -1,7 +1,6 @@
-import { getVideoAvId } from '../module/getVideoAvId/getVideoAvId.ts';
 import { gmRequest } from '@yiero/gmlib';
 
-export interface IFavouredResponse {
+export interface IFavouredResponse extends Record<string, unknown> {
     code: number;
     message: string;
     ttl: number;
@@ -13,15 +12,16 @@ export interface IFavouredResponseData {
     favoured: boolean; // true: 已收藏 false: 未收藏
 }
 
-export const api_isFavorVideo = async (): Promise<boolean> => {
-    const aid = await getVideoAvId();
-    const res = (await gmRequest(
+export const api_isFavorVideo = async (
+    aid: string,
+): Promise<boolean> => {
+    const res = await gmRequest<IFavouredResponse>(
         'https://api.bilibili.com/x/v2/fav/video/favoured',
         'GET',
         {
             aid: aid,
         },
-    )) as IFavouredResponse;
+    );
     if (res.code !== 0) {
         throw new Error(res.message);
     }

@@ -7,10 +7,10 @@ import { getVideoEpId } from './getVideoEpId.ts';
  *
  * @return {string} 从URL路径中提取的视频ID。
  */
-export const getVideoAvId = async (): Promise<string> => {
-    const urlPathNameList = new URL(
-        window.location.href,
-    ).pathname.split('/');
+export const getVideoAvId = async (url?: string): Promise<string> => {
+    url ??= window.location.href;
+
+    const urlPathNameList = new URL(url).pathname.split('/');
     let videoId = urlPathNameList.find(
         (urlPathName) =>
             urlPathName.startsWith('BV1') ||

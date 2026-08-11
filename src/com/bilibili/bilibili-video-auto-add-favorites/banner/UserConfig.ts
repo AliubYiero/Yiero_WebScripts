@@ -1,3 +1,3 @@
-import { IUserConfig } from './UserConfig.d';
+import { ScriptCatUserConfig } from '../types/UserConfig';
 
-export const UserConfig: IUserConfig = {};
+export const UserConfig: ScriptCatUserConfig = {};

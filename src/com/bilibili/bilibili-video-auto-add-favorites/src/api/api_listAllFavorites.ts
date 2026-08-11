@@ -1,7 +1,7 @@
 import { gmRequest } from '@yiero/gmlib';
 import { IFavoriteInfo } from '../module/Favourites/Favourites.ts';
 
-export interface IFavourListResponse {
+export interface IFavourListResponse extends Record<string, unknown> {
     code: number;
     message: string;
     ttl: number;
@@ -32,13 +32,13 @@ export interface IFavourListResponseData {
 export const api_listAllFavorites = async (
     upUid: string,
 ): Promise<IFavoriteInfo[]> => {
-    const res = (await gmRequest(
+    const res = await gmRequest<IFavourListResponse>(
         'https://api.bilibili.com/x/v3/fav/folder/created/list-all',
         'GET',
         {
             up_mid: upUid,
         },
-    )) as IFavourListResponse;
+    );
     if (res.code !== 0) {
         throw new Error(res.message);
     }

@@ -8,6 +8,7 @@ import { api_createFavorites } from '../../api/api_createFavorites.ts';
 import { isEqual, sleep } from 'radash';
 import { api_sortFavorites } from '../../api/api_sortFavorites.ts';
 import { getUserUid } from '../getUserUid.ts';
+import { logger } from '../../util/logger.ts';
 
 /**
  * 用户收藏夹信息
@@ -101,7 +102,7 @@ class Favourites {
             !this.latestReadFavourite ||
             this.isFull(this.latestReadFavourite)
         ) {
-            console.log('最新收藏夹已满, 新增收藏夹');
+            logger.log('最新收藏夹已满, 新增收藏夹');
             await this.createNew();
         }
 
@@ -113,10 +114,10 @@ class Favourites {
         );
         const successfullyAdd = res.data.success_num === 0;
         if (!successfullyAdd) {
-            console.error(res.data.toast_msg);
+            logger.error(res.data.toast_msg);
             return;
         }
-        console.info(
+        logger.info(
             `当前视频已添加至收藏夹 [${latestReadFavourite.title}]`,
         );
         // 排序收藏夹
@@ -193,7 +194,7 @@ class Favourites {
         await this.get(true);
         this.getRead(true);
 
-        console.log('收藏夹列表: ', await this.get());
+        logger.log('收藏夹列表: ', await this.get());
     }
 
     /**
@@ -214,7 +215,7 @@ class Favourites {
      */
     private async sortOlderFavoritesToLast() {
         if (this.readFavouriteTitle === '默认收藏夹') {
-            console.log('默认收藏夹不需要排序');
+            logger.log('默认收藏夹不需要排序');
             return;
         }
 
@@ -254,12 +255,12 @@ class Favourites {
 
         // 判断是否需要重新排序
         if (isEqual(favoriteIdList, sortedFavouriteIdList)) {
-            console.log('收藏夹顺序一致, 不需要重新排序');
+            logger.log('收藏夹顺序一致, 不需要重新排序');
             return;
         }
 
         // 将收藏夹重新排序
-        console.log('即将重新排序收藏夹: ', sortedFavouriteList);
+        logger.log('即将重新排序收藏夹: ', sortedFavouriteList);
         await api_sortFavorites(sortedFavouriteIdList);
     }
 }

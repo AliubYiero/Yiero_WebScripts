@@ -1,4 +1,4 @@
-export interface IEpInfoResponse {
+export interface IEpInfoResponse extends Record<string, unknown> {
     code: number;
     message: string;
     result: IEpInfoResponseResult;

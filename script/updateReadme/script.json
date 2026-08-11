@@ -313,7 +313,7 @@
 			"version": "0.0.0",
 			"private": false,
 			"archive": false,
-			"lastUpdate": 1786427904723,
+			"lastUpdate": 1786444595290,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/poe2-price-calculate.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2-price-calculate/backup/poe2-price-calculate.user.js",
