@@ -152,15 +152,13 @@ class gmMenuCommand {
      * @returns gmMenuCommand 实例（支持链式调用）
      */
     static remove(title: string) {
-        gmMenuCommand.list = gmMenuCommand.list.filter(
-            (commandButton) => {
-	            const isRemove = commandButton.title !== title
-	            if ( isRemove ) {
-					gmMenuCommand.unregisterMenuCommand(commandButton.id)
-	            }
-	            return isRemove
-            },
-        );
+        gmMenuCommand.list = gmMenuCommand.list.filter((commandButton) => {
+            const isRemove = commandButton.title !== title;
+            if (isRemove) {
+                gmMenuCommand.unregisterMenuCommand(commandButton.id);
+            }
+            return isRemove;
+        });
         return gmMenuCommand.render();
     }
 
@@ -168,9 +166,9 @@ class gmMenuCommand {
      * 清空所有菜单按钮
      */
     static reset() {
-        gmMenuCommand.list.forEach(({id}) => {
-            gmMenuCommand.unregisterMenuCommand(id)
-        })
+        gmMenuCommand.list.forEach(({ id }) => {
+            gmMenuCommand.unregisterMenuCommand(id);
+        });
         gmMenuCommand.list = [];
         return gmMenuCommand.render();
     }
@@ -270,13 +268,13 @@ class gmMenuCommand {
         });
         return gmMenuCommand;
     }
-	
-	/**
-	 * 清除指定 id 的绑定状态
-	 */
-	private static unregisterMenuCommand(id: number) {
-		GM_unregisterMenuCommand(id);
-	}
+
+    /**
+     * 清除指定 id 的绑定状态
+     */
+    private static unregisterMenuCommand(id: number) {
+        GM_unregisterMenuCommand(id);
+    }
 }
 
 export { gmMenuCommand };
