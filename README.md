@@ -37,7 +37,7 @@
 ### qq.com
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-|  |  | 前台脚本 | 0.0.0 | 2026-08-11 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2-price-calculate/backup/poe2-price-calculate.user.js) |  |  |
+|  |  | 前台脚本 | 0.0.0 | 2026-08-12 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2-price-calculate/backup/poe2-price-calculate.user.js) |  |  |
 | 流放之路2网页市集快速跳转 | 按下空格, 自动点击搜索栏的第一个可跳转的商品藏身处 | 前台脚本 | 1.1.0 | 2026-06-22 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2-market-quick-jump/backup/poe2-market-quick-jump.user.js) |  |  |
 
 
