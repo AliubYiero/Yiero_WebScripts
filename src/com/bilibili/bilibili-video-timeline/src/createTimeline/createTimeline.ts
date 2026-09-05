@@ -2,7 +2,9 @@ import {
     GetVideoSubtitlesListResult,
     VideoSubtitleItemWithGetContent,
 } from '@yiero/bilibili-api-lib';
-import { parseSubtitleResponse } from '../generateSubtitleButton/parseSubtitleResponse.ts';
+import {
+    parseSubtitleResponse,
+} from '../generateSubtitleButton/parseSubtitleResponse.ts';
 import { TimelineContainer } from './TimelineContainer.ts';
 import {
     ignoreMusicStore,
@@ -61,8 +63,8 @@ const injectTimelineContainer = async (
         { parent: rightContainer },
     );
     const danmakuBox =
-        container.querySelector<HTMLElement>('.danmaku-box');
-    if (!danmakuBox) {
+        container.querySelector<HTMLElement>('.video-pod-above-modules');
+    if (!danmakuBox || !danmakuBox.parentElement?.classList.contains('right-container-inner')) {
         logger.warn('无法找到弹幕列表容器, 请重试');
         return;
     }

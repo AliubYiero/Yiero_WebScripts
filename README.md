@@ -22,9 +22,9 @@
 | Bilibili直播时间点标记 | 在Bilibili直播中标记时间, 方便用户查阅 | 前台脚本 | 1.0.2 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-record/backup/bilibili-live-record.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5070) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/561637) |
 | Bilibili直播弹幕刷屏屏蔽 | 用于B站直播间的弹幕净化脚本. 屏蔽独轮车, 屏蔽重复弹幕, 屏蔽刷屏用户. | 前台脚本 | 1.0.3 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-repeat-danmaku-block/backup/bilibili-live-repeat-danmaku-block.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5772) |  |
 | Bilibili独轮车 | Bilibili独轮车, 按照指定间隔发布弹幕 | 前台脚本 | 1.0.0 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-speaker/backup/bilibili-live-speaker.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5519) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/568495) |
-| BiliBili自动添加视频收藏 | 进入视频页面后, 自动添加视频到收藏夹中. | 前台脚本 | 0.6.2 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-auto-add-favorites/dist/BiliBili自动添加视频收藏.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/1603) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/489644) |
 | Bilibili视频倍速记忆 | 自动记忆视频播放倍速设置，并提供快捷键快速调整播放速度。 | 前台脚本 | 1.2.0 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-playback-rate-remember/backup/bilibili-video-playback-rate-remember.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5800) |  |
 | Bilibili视频观看状态标记 | 基于收藏夹内容, 自动标记Bilibili视频的观看状态(已看/未看) | 前台脚本 | 1.0.2 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-watch-sign/backup/bilibili-video-watch-sign.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/4793) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/557782) |
+| BiliBili自动添加视频收藏 | 进入视频页面后, 自动添加视频到收藏夹中. | 前台脚本 | 0.6.2 | 2026-04-17 | [Github 源](https://raw.githubusercontent.com/AliubYiero/Yiero_WebScripts/refs/heads/main/src/com/bilibili/bilibili-video-auto-add-favorites/backup/bilibili-video-auto-add-favorites.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/1603) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/489644) |
 | Bilibili跳过视频广告 | 通过 AI 将 Bilibili 视频中的推广广告移除, 同时移除评论区的广告跳转评论. | 前台脚本 | 0.0.0 | 2026-04-16 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-ad-skipper/backup/bilibili-video-ad-skipper.user.js) |  |  |
 
 
@@ -37,7 +37,7 @@
 ### qq.com
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-|  |  | 前台脚本 | 0.0.0 | 2026-08-12 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2-price-calculate/backup/poe2-price-calculate.user.js) |  |  |
+|  |  | 前台脚本 | 0.0.0 | 2026-09-05 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2-price-calculate/backup/poe2-price-calculate.user.js) |  |  |
 | 流放之路2网页市集快速跳转 | 按下空格, 自动点击搜索栏的第一个可跳转的商品藏身处 | 前台脚本 | 1.1.0 | 2026-06-22 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2-market-quick-jump/backup/poe2-market-quick-jump.user.js) |  |  |
 
 

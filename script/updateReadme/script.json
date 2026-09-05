@@ -187,14 +187,14 @@
 			"version": "0.6.2",
 			"private": false,
 			"archive": false,
-			"lastUpdate": 1776437547000,
+			"lastUpdate": 1776437388152.7427,
 			"scriptType": "web",
 			"userScriptFilepath": "dist/BiliBili自动添加视频收藏.js",
-			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-auto-add-favorites/dist/BiliBili自动添加视频收藏.js",
+			"downloadUrlFromGithub": "https://raw.githubusercontent.com/AliubYiero/Yiero_WebScripts/refs/heads/main/src/com/bilibili/bilibili-video-auto-add-favorites/backup/bilibili-video-auto-add-favorites.user.js",
 			"downloadUrlFromScripCat": "https://scriptcat.org/zh-CN/script-show-page/1603",
 			"downloadUrlFromGreasyFork": "https://greasyfork.org/zh-CN/scripts/489644",
 			"autoUpdate": true,
-			"getLastUpdateWay": "git"
+			"getLastUpdateWay": "file"
 		},
 		"bilibili-video-playback-rate-remember": {
 			"name": "Bilibili视频倍速记忆",
@@ -313,7 +313,7 @@
 			"version": "0.0.0",
 			"private": false,
 			"archive": false,
-			"lastUpdate": 1786508842620,
+			"lastUpdate": 1788594343478,
 			"scriptType": "web",
 			"userScriptFilepath": "backup/poe2-price-calculate.user.js",
 			"downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2-price-calculate/backup/poe2-price-calculate.user.js",
