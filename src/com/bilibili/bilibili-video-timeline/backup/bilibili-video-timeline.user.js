@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Bilibili 视频时间轴
 // @description    根据视频字幕, 生成视频时间轴.
-// @version        2.0.2
+// @version        2.0.3
 // @author         Yiero
 // @match          https://www.bilibili.com/video/*
 // @run-at         document-body
@@ -6734,6 +6734,68 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
     let loadedStyle = false;
     let loadedTimelineContainer = null;
     let handleRemoveVideoEventListener = null;
+    let videoBindingTimer = null;
+    let currentVideo = null;
+    let videoJumpBoundTimeline = null;
+    const stopVideoBindingPoll = () => {
+        if (videoBindingTimer !== null) {
+            clearInterval(videoBindingTimer);
+            videoBindingTimer = null;
+        }
+        handleRemoveVideoEventListener?.();
+        handleRemoveVideoEventListener = null;
+        currentVideo = null;
+    };
+    const bindVideoEventListener = (timeline) => {
+        const video = document.querySelector(
+            '.bpx-player-video-wrap video',
+        );
+        if (!video) {
+            return false;
+        }
+        handleRemoveVideoEventListener?.();
+        currentVideo = video;
+        const handleTimeUpdate = () => {
+            timeline.dispatchEvent(
+                new CustomEvent('videoStep', {
+                    detail: { currentTime: video.currentTime },
+                }),
+            );
+        };
+        video.addEventListener('timeupdate', handleTimeUpdate);
+        handleRemoveVideoEventListener = () => {
+            video.removeEventListener('timeupdate', handleTimeUpdate);
+        };
+        return true;
+    };
+    const startVideoBindingPoll = (timeline) => {
+        stopVideoBindingPoll();
+        videoBindingTimer = setInterval(() => {
+            const isVideoValid =
+                currentVideo &&
+                document.contains(currentVideo) &&
+                document.querySelector(
+                    '.bpx-player-video-wrap video',
+                ) === currentVideo;
+            if (isVideoValid) {
+                return;
+            }
+            if (videoJumpBoundTimeline !== timeline) {
+                videoJumpBoundTimeline = timeline;
+                timeline.addEventListener('videoJump', (e) => {
+                    const { currentTime } = e.detail;
+                    if (currentVideo) {
+                        currentVideo.currentTime = currentTime;
+                    }
+                });
+            }
+            if (bindVideoEventListener(timeline)) {
+                logger.info(
+                    '\u5DF2\u91CD\u65B0\u7ED1\u5B9A\u89C6\u9891\u5BB9\u5668',
+                );
+            }
+        }, 3e3);
+    };
     const injectTimelineContainer = async (timelineContainer) => {
         if (!loadedStyle) {
             GM_addStyle(TimelineStyle);
@@ -6746,8 +6808,15 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
             '.right-container-inner.scroll-sticky',
             { parent: rightContainer },
         );
-        const danmakuBox = container.querySelector('.danmaku-box');
-        if (!danmakuBox) {
+        const danmakuBox = container.querySelector(
+            '.video-pod-above-modules',
+        );
+        if (
+            !danmakuBox ||
+            !danmakuBox.parentElement?.classList.contains(
+                'right-container-inner',
+            )
+        ) {
             logger.warn(
                 '\u65E0\u6CD5\u627E\u5230\u5F39\u5E55\u5217\u8868\u5BB9\u5668, \u8BF7\u91CD\u8BD5',
             );
@@ -6755,35 +6824,13 @@ Format: Layer, Start, End, Style, Name, MarginL, MarginR, MarginV, Effect, Text
         }
         if (loadedTimelineContainer) {
             loadedTimelineContainer.destroy();
-            handleRemoveVideoEventListener?.();
         }
+        stopVideoBindingPoll();
         loadedTimelineContainer = timelineContainer;
         const timeline = timelineContainer.render();
         container.insertBefore(timeline, danmakuBox);
-        const video = document.querySelector(
-            '.bpx-player-video-wrap video',
-        );
-        if (!video) {
-            logger.warn(
-                '\u672A\u68C0\u6D4B\u5230\u89C6\u9891\u5BB9\u5668...',
-            );
-            return;
-        }
-        const handleTimeUpdate = () => {
-            timeline.dispatchEvent(
-                new CustomEvent('videoStep', {
-                    detail: { currentTime: video.currentTime },
-                }),
-            );
-        };
-        video.addEventListener('timeupdate', handleTimeUpdate);
-        handleRemoveVideoEventListener = () => {
-            video.removeEventListener('timeupdate', handleTimeUpdate);
-        };
-        timeline.addEventListener('videoJump', (e) => {
-            const { currentTime } = e.detail;
-            video.currentTime = currentTime;
-        });
+        bindVideoEventListener(timeline);
+        startVideoBindingPoll(timeline);
     };
     const createTimelineBaseConfig = () => ({
         styleConfig: {

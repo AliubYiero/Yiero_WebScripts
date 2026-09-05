@@ -2,9 +2,7 @@ import {
     GetVideoSubtitlesListResult,
     VideoSubtitleItemWithGetContent,
 } from '@yiero/bilibili-api-lib';
-import {
-    parseSubtitleResponse,
-} from '../generateSubtitleButton/parseSubtitleResponse.ts';
+import { parseSubtitleResponse } from '../generateSubtitleButton/parseSubtitleResponse.ts';
 import { TimelineContainer } from './TimelineContainer.ts';
 import {
     ignoreMusicStore,
@@ -44,6 +42,85 @@ let loadedStyle = false;
 let loadedTimelineContainer: TimelineContainer | null = null;
 /** 清除绑定的视频进度更新, 用于销毁 */
 let handleRemoveVideoEventListener: (() => void) | null = null;
+/** 视频容器保活轮询 timer, 用于销毁 */
+let videoBindingTimer: ReturnType<typeof setInterval> | null = null;
+/** 当前绑定的视频容器 */
+let currentVideo: HTMLVideoElement | null = null;
+/** 已注册 videoJump 监听的时间轴元素 */
+let videoJumpBoundTimeline: HTMLElement | null = null;
+
+/** 停止视频容器保活轮询 */
+const stopVideoBindingPoll = () => {
+    if (videoBindingTimer !== null) {
+        clearInterval(videoBindingTimer);
+        videoBindingTimer = null;
+    }
+    handleRemoveVideoEventListener?.();
+    handleRemoveVideoEventListener = null;
+    currentVideo = null;
+};
+
+/**
+ * 绑定视频事件到时间轴
+ * @returns 是否绑定成功
+ */
+const bindVideoEventListener = (timeline: HTMLElement): boolean => {
+    const video = document.querySelector<HTMLVideoElement>(
+        '.bpx-player-video-wrap video',
+    );
+    if (!video) {
+        return false;
+    }
+
+    handleRemoveVideoEventListener?.();
+    currentVideo = video;
+
+    const handleTimeUpdate = () => {
+        timeline.dispatchEvent(
+            new CustomEvent('videoStep', {
+                detail: { currentTime: video.currentTime },
+            }),
+        );
+    };
+    video.addEventListener('timeupdate', handleTimeUpdate);
+    handleRemoveVideoEventListener = () => {
+        video.removeEventListener('timeupdate', handleTimeUpdate);
+    };
+    return true;
+};
+
+/**
+ * 启动视频容器保活轮询
+ * 每 3 秒检测一次视频容器是否存在, 不存在则重新获取并绑定
+ */
+const startVideoBindingPoll = (timeline: HTMLElement) => {
+    stopVideoBindingPoll();
+    videoBindingTimer = setInterval(() => {
+        const isVideoValid =
+            currentVideo &&
+            document.contains(currentVideo) &&
+            document.querySelector('.bpx-player-video-wrap video') ===
+                currentVideo;
+        if (isVideoValid) {
+            return;
+        }
+        // 时间轴容器的 videoJump 监听只注册一次, 通过 currentVideo 引用跳转
+        if (videoJumpBoundTimeline !== timeline) {
+            videoJumpBoundTimeline = timeline;
+            timeline.addEventListener('videoJump', (e) => {
+                const { currentTime } = (
+                    e as CustomEvent<{ currentTime: number }>
+                ).detail;
+                if (currentVideo) {
+                    currentVideo.currentTime = currentTime;
+                }
+            });
+        }
+        if (bindVideoEventListener(timeline)) {
+            logger.info('已重新绑定视频容器');
+        }
+    }, 3_000);
+};
 
 /**
  * 注入时间轴容器到 DOM 并绑定视频事件
@@ -62,9 +139,15 @@ const injectTimelineContainer = async (
         '.right-container-inner.scroll-sticky',
         { parent: rightContainer },
     );
-    const danmakuBox =
-        container.querySelector<HTMLElement>('.video-pod-above-modules');
-    if (!danmakuBox || !danmakuBox.parentElement?.classList.contains('right-container-inner')) {
+    const danmakuBox = container.querySelector<HTMLElement>(
+        '.video-pod-above-modules',
+    );
+    if (
+        !danmakuBox ||
+        !danmakuBox.parentElement?.classList.contains(
+            'right-container-inner',
+        )
+    ) {
         logger.warn('无法找到弹幕列表容器, 请重试');
         return;
     }
@@ -72,39 +155,16 @@ const injectTimelineContainer = async (
     // 销毁旧容器
     if (loadedTimelineContainer) {
         loadedTimelineContainer.destroy();
-        handleRemoveVideoEventListener?.();
     }
+    stopVideoBindingPoll();
 
     loadedTimelineContainer = timelineContainer;
     const timeline = timelineContainer.render();
     container.insertBefore(timeline, danmakuBox);
 
-    // 绑定视频事件
-    const video = document.querySelector<HTMLVideoElement>(
-        '.bpx-player-video-wrap video',
-    )!;
-    if (!video) {
-        logger.warn('未检测到视频容器...');
-        return;
-    }
-
-    const handleTimeUpdate = () => {
-        timeline.dispatchEvent(
-            new CustomEvent('videoStep', {
-                detail: { currentTime: video.currentTime },
-            }),
-        );
-    };
-    video.addEventListener('timeupdate', handleTimeUpdate);
-    handleRemoveVideoEventListener = () => {
-        video.removeEventListener('timeupdate', handleTimeUpdate);
-    };
-    timeline.addEventListener('videoJump', (e) => {
-        const { currentTime } = (
-            e as CustomEvent<{ currentTime: number }>
-        ).detail;
-        video.currentTime = currentTime;
-    });
+    // 绑定视频事件, 失败时由保活轮询接管
+    bindVideoEventListener(timeline);
+    startVideoBindingPoll(timeline);
 };
 
 /**
