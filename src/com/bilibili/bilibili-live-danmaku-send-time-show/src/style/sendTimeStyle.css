@@ -29,7 +29,9 @@
 /* V2 - 联动脚本 */
 .danmaku-item-right.danmaku-item-right.danmaku-item-right.danmaku-item-right[data-send-time] {
     position: relative;
-    width: calc(100% - 55px);
+    width: 100%;
+    padding-right: 46px;
+    box-sizing: border-box;
 }
 
 /* 弹幕发送的现实时间 */
@@ -38,7 +40,7 @@
     font-size: 10px;
     color: #9499a0;
     position: absolute;
-    right: -47px;
+    right: 0;
     padding: 0 4px;
     bottom: 0;
 }

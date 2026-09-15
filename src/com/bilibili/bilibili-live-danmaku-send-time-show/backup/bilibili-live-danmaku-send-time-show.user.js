@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Bilibili 直播弹幕发送时间显示
 // @description    在评论框直播弹幕的最后, 显示弹幕发送的时间
-// @version        1.0.1
+// @version        1.0.2
 // @author         Yiero
 // @match          https://live.bilibili.com/*
 // @icon           https://www.bilibili.com/favicon.ico
@@ -370,7 +370,9 @@
 /* V2 - \u8054\u52A8\u811A\u672C */
 .danmaku-item-right.danmaku-item-right.danmaku-item-right.danmaku-item-right[data-send-time] {
     position: relative;
-    width: calc(100% - 55px);
+    width: 100%;
+    padding-right: 46px;
+    box-sizing: border-box;
 }
 
 /* \u5F39\u5E55\u53D1\u9001\u7684\u73B0\u5B9E\u65F6\u95F4 */
@@ -379,7 +381,7 @@
     font-size: 10px;
     color: #9499a0;
     position: absolute;
-    right: -47px;
+    right: 0;
     padding: 0 4px;
     bottom: 0;
 }
