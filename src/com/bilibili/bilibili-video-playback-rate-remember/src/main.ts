@@ -43,48 +43,41 @@ const main = async () => {
         );
     }
 
-    const inSingleList = uidList.some((uid) =>
-        singleUpListStore.includes(uid),
-    );
-
-    let playbackRate: PlaybackRateBase = new PlaybackRateLocal(
-        videoElement,
-        stepStore.value,
-    );
-    if (syncStore.value) {
-        playbackRate = new PlaybackRateSync(
-            videoElement,
-            stepStore.value,
+    /**
+     * 按优先级创建倍速实例
+     * 独立倍速 > 页面同步 > 本地记忆
+     *
+     * 注意：只创建命中的那一个实例。
+     * `PlaybackRateLocal` 的 `init` 会把存储中的倍速写入 `video.playbackRate`，
+     * 而 `PlaybackRateSingle` 以 `video.playbackRate` 作为初始值，
+     * 若先创建 `PlaybackRateLocal` 会导致独立倍速被存储倍速污染
+     */
+    const createPlaybackRate = (): PlaybackRateBase => {
+        const inSingleList = uidList.some((uid) =>
+            singleUpListStore.includes(uid),
         );
-    }
-    if (inSingleList) {
-        playbackRate = new PlaybackRateSingle(
-            videoElement,
-            stepStore.value,
-        );
-    }
-
-    // 监听单UP列表变化，动态切换策略
-    singleUpListStore.updateListener(() => {
-        // 清理旧实例的资源
-        playbackRate.destroy?.();
-
-        if (uidList.some((uid) => singleUpListStore.includes(uid))) {
-            playbackRate = new PlaybackRateSingle(
-                videoElement,
-                stepStore.value,
-            );
-        } else if (syncStore.value) {
-            playbackRate = new PlaybackRateSync(
-                videoElement,
-                stepStore.value,
-            );
-        } else {
-            playbackRate = new PlaybackRateLocal(
+        if (inSingleList) {
+            return new PlaybackRateSingle(
                 videoElement,
                 stepStore.value,
             );
         }
+        if (syncStore.value) {
+            return new PlaybackRateSync(
+                videoElement,
+                stepStore.value,
+            );
+        }
+        return new PlaybackRateLocal(videoElement, stepStore.value);
+    };
+
+    let playbackRate: PlaybackRateBase = createPlaybackRate();
+
+    // 监听单UP列表变化，动态切换策略
+    singleUpListStore.updateListener(() => {
+        // 清理旧实例的资源（如存储监听器）
+        playbackRate.destroy?.();
+        playbackRate = createPlaybackRate();
     });
 
     let timer: number;

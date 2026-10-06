@@ -9,8 +9,6 @@ import { PlaybackRateBaseClass } from './PlaybackRateBase.ts';
  * 倍速变更会同步到所有页面
  */
 export class PlaybackRateSync extends PlaybackRateBaseClass {
-    private unsubscribe?: () => void;
-
     /**
      * 初始化 - 从存储读取倍速并监听变更
      */
@@ -61,6 +59,6 @@ export class PlaybackRateSync extends PlaybackRateBaseClass {
      * 清理资源 - 注销存储监听器
      */
     destroy(): void {
-        this.unsubscribe?.();
+        playbackRateStore.removeListener();
     }
 }
