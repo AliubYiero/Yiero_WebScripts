@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Bilibili视频倍速记忆
 // @description    自动记忆视频播放倍速设置，并提供快捷键快速调整播放速度。
-// @version        1.2.0
+// @version        1.3.0
 // @author         Yiero
 // @match          https://www.bilibili.com/video/*
 // @tag            bilibili
@@ -15,8 +15,8 @@
 // @grant          GM_deleteValue
 // @grant          GM_addValueChangeListener
 // @grant          GM_removeValueChangeListener
-// @grant          GM_unregisterMenuCommand
 // @grant          GM_registerMenuCommand
+// @grant          GM_unregisterMenuCommand
 // @grant          GM_addStyle
 // ==/UserScript==
 /* ==UserConfig==
@@ -384,6 +384,7 @@
     }
     class gmMenuCommand {
         static list = [];
+        static _renderSuspended = false;
         constructor() {}
         static get(title) {
             const commandButton = gmMenuCommand.list.find(
@@ -395,37 +396,33 @@
                 );
             return commandButton;
         }
-        static createToggle(details) {
-            gmMenuCommand
-                .create(
-                    details.active.title,
-                    () => {
-                        gmMenuCommand.toggleActive(
-                            details.active.title,
-                        );
-                        gmMenuCommand.toggleActive(
-                            details.inactive.title,
-                        );
-                        details.active.onClick();
-                        gmMenuCommand.render();
-                    },
-                    true,
-                )
-                .create(
-                    details.inactive.title,
-                    () => {
-                        gmMenuCommand.toggleActive(
-                            details.active.title,
-                        );
-                        gmMenuCommand.toggleActive(
-                            details.inactive.title,
-                        );
-                        details.inactive.onClick();
-                        gmMenuCommand.render();
-                    },
-                    false,
-                );
-            return gmMenuCommand;
+        static createToggle(details, defaultState = 'active') {
+            const isActiveInitially = 'active' === defaultState;
+            gmMenuCommand.list.push({
+                title: details.active.title,
+                onClick: () => {
+                    gmMenuCommand.toggleActive(details.active.title);
+                    gmMenuCommand.toggleActive(
+                        details.inactive.title,
+                    );
+                    details.active.onClick();
+                },
+                isActive: isActiveInitially,
+                id: 0,
+            });
+            gmMenuCommand.list.push({
+                title: details.inactive.title,
+                onClick: () => {
+                    gmMenuCommand.toggleActive(details.active.title);
+                    gmMenuCommand.toggleActive(
+                        details.inactive.title,
+                    );
+                    details.inactive.onClick();
+                },
+                isActive: !isActiveInitially,
+                id: 0,
+            });
+            return gmMenuCommand.render();
         }
         static click(title) {
             const commandButton = gmMenuCommand.get(title);
@@ -447,13 +444,33 @@
                 isActive,
                 id: 0,
             });
-            return gmMenuCommand;
+            return gmMenuCommand.render();
         }
         static remove(title) {
             gmMenuCommand.list = gmMenuCommand.list.filter(
-                (commandButton) => commandButton.title !== title,
+                (commandButton) => {
+                    const isRemove = commandButton.title !== title;
+                    if (isRemove)
+                        gmMenuCommand.unregisterMenuCommand(
+                            commandButton.id,
+                        );
+                    return isRemove;
+                },
             );
-            return gmMenuCommand;
+            return gmMenuCommand.render();
+        }
+        static reset() {
+            gmMenuCommand.list.forEach(({ id }) => {
+                gmMenuCommand.unregisterMenuCommand(id);
+            });
+            gmMenuCommand.list = [];
+            return gmMenuCommand.render();
+        }
+        static batch(callback) {
+            gmMenuCommand._renderSuspended = true;
+            callback();
+            gmMenuCommand._renderSuspended = false;
+            return gmMenuCommand.render();
         }
         static swap(title1, title2) {
             const index1 = gmMenuCommand.list.findIndex(
@@ -471,7 +488,7 @@
                     gmMenuCommand.list[index2],
                     gmMenuCommand.list[index1],
                 ];
-            return gmMenuCommand;
+            return gmMenuCommand.render();
         }
         static modify(title, details) {
             const commandButton = gmMenuCommand.get(title);
@@ -479,22 +496,27 @@
                 commandButton.onClick = details.onClick;
             if (details.isActive)
                 commandButton.isActive = details.isActive;
-            return gmMenuCommand;
+            return gmMenuCommand.render();
         }
         static toggleActive(title) {
             const commandButton = gmMenuCommand.get(title);
             commandButton.isActive = !commandButton.isActive;
-            return gmMenuCommand;
+            return gmMenuCommand.render();
         }
         static render() {
+            if (gmMenuCommand._renderSuspended) return gmMenuCommand;
             gmMenuCommand.list.forEach((commandButton) => {
-                GM_unregisterMenuCommand(commandButton.id);
+                gmMenuCommand.unregisterMenuCommand(commandButton.id);
                 if (commandButton.isActive)
                     commandButton.id = GM_registerMenuCommand(
                         commandButton.title,
                         commandButton.onClick,
                     );
             });
+            return gmMenuCommand;
+        }
+        static unregisterMenuCommand(id) {
+            GM_unregisterMenuCommand(id);
         }
     }
     function onKeydownMultiple(bindings, options) {
@@ -552,6 +574,130 @@
             );
         };
     }
+    let currentCallback = null;
+    let originalPushState = null;
+    let originalReplaceState = null;
+    let isFallbackInitialized = false;
+    let popstateHandler = null;
+    let hashchangeHandler = null;
+    function isNavigationSupported() {
+        return (
+            'navigation' in window &&
+            window.navigation instanceof window.Navigation
+        );
+    }
+    function triggerCallback(to, type, info, intercept, from) {
+        if (!currentCallback) return;
+        const event = {
+            to,
+            from: from ?? window.location.href,
+            type,
+            info,
+            intercept,
+        };
+        currentCallback(event);
+    }
+    function setupNavigationApi(callback) {
+        currentCallback = callback;
+        const handleNavigate = (event) => {
+            triggerCallback(
+                event.destination.url,
+                event.navigationType,
+                event.info,
+                event.canIntercept
+                    ? (handler) => {
+                          event.intercept({
+                              handler,
+                          });
+                      }
+                    : void 0,
+            );
+        };
+        window.navigation.addEventListener(
+            'navigate',
+            handleNavigate,
+        );
+        return () => {
+            window.navigation.removeEventListener(
+                'navigate',
+                handleNavigate,
+            );
+            currentCallback = null;
+        };
+    }
+    function initFallback() {
+        originalPushState = history.pushState;
+        originalReplaceState = history.replaceState;
+        history.pushState = function (data, unused, url) {
+            const fromUrl = window.location.href;
+            originalPushState?.call(this, data, unused, url);
+            const fullUrl = url
+                ? new URL(url, fromUrl).href
+                : window.location.href;
+            triggerCallback(fullUrl, 'push', void 0, void 0, fromUrl);
+        };
+        history.replaceState = function (data, unused, url) {
+            const fromUrl = window.location.href;
+            originalReplaceState?.call(this, data, unused, url);
+            const fullUrl = url
+                ? new URL(url, fromUrl).href
+                : window.location.href;
+            triggerCallback(
+                fullUrl,
+                'replace',
+                void 0,
+                void 0,
+                fromUrl,
+            );
+        };
+        popstateHandler = () => {
+            triggerCallback(window.location.href, 'traverse');
+        };
+        window.addEventListener('popstate', popstateHandler);
+        hashchangeHandler = () => {
+            triggerCallback(window.location.href, 'hash');
+        };
+        window.addEventListener('hashchange', hashchangeHandler);
+        isFallbackInitialized = true;
+    }
+    function cleanupFallback() {
+        if (originalPushState) {
+            history.pushState = originalPushState;
+            originalPushState = null;
+        }
+        if (originalReplaceState) {
+            history.replaceState = originalReplaceState;
+            originalReplaceState = null;
+        }
+        if (popstateHandler) {
+            window.removeEventListener('popstate', popstateHandler);
+            popstateHandler = null;
+        }
+        if (hashchangeHandler) {
+            window.removeEventListener(
+                'hashchange',
+                hashchangeHandler,
+            );
+            hashchangeHandler = null;
+        }
+        isFallbackInitialized = false;
+    }
+    function setupFallback(callback) {
+        currentCallback = callback;
+        if (!isFallbackInitialized) initFallback();
+        return () => {
+            currentCallback = null;
+            cleanupFallback();
+        };
+    }
+    function onRouteChange(callback) {
+        if (isNavigationSupported())
+            return setupNavigationApi(callback);
+        return setupFallback(callback);
+    }
+    const sleep = (milliseconds) => {
+        return new Promise((res) => setTimeout(res, milliseconds));
+    };
     class PlaybackRateBaseClass {
         constructor(video, step = 0.25) {
             this.video = video;
@@ -659,7 +805,7 @@
          * 清理资源 - 注销存储监听器
          */
         destroy() {
-            this.unsubscribe?.();
+            playbackRateStore.removeListener();
         }
     }
     class PlaybackRateLocal extends PlaybackRateBaseClass {
@@ -700,7 +846,7 @@
         }
     }
     const UserConfig = {
-        '\u500D\u901F\u914D\u7F6E': {
+        \u500D\u901F\u914D\u7F6E: {
             step: {
                 title: '\u500D\u901F\u8DF3\u8F6C\u6B65\u957F',
                 description:
@@ -717,7 +863,7 @@
                 default: false,
             },
         },
-        '\u5FEB\u6377\u952E\u914D\u7F6E': {
+        \u5FEB\u6377\u952E\u914D\u7F6E: {
             addKey: {
                 title: '\u589E\u52A0\u500D\u901F\u952E\u4F4D',
                 description: '',
@@ -1097,145 +1243,154 @@
         }
         return Number(uid);
     };
-    const renderSingleUpButton = async () => {
-        let container = null;
-        const uidList = [];
+    const queryUpUidList = async (
+        containerSelector,
+        linkSelector,
+        timeoutPerSecond,
+    ) => {
         try {
-            container = await elementWaiter('.up-info-container', {
+            const container = await elementWaiter(containerSelector, {
                 delayPerSecond: 0,
-                timeoutPerSecond: 3,
+                timeoutPerSecond,
             });
-            const upLinkContainer =
-                container.querySelector('.up-avatar');
-            if (!upLinkContainer) {
-                return uidList;
-            }
-            const uid = getUpUidFromUrl(upLinkContainer.href);
-            uid && uidList.push(uid);
-        } catch (e) {
-            container = await elementWaiter(
-                '.membersinfo-normal .container',
-                {
-                    delayPerSecond: 0,
-                    timeoutPerSecond: 1,
-                },
+            const linkList = Array.from(
+                container.querySelectorAll(linkSelector),
             );
-            const upLinkContainerList = Array.from(
-                container.querySelectorAll('.avatar'),
-            );
-            const list = upLinkContainerList.reduce(
-                (list2, element) => {
-                    const uid = getUpUidFromUrl(element.href);
-                    if (uid) {
-                        list2.push(uid);
-                    }
-                    return list2;
-                },
-                [],
-            );
-            uidList.push(...list);
+            return linkList
+                .map((element) => getUpUidFromUrl(element.href))
+                .filter((uid) => !!uid);
+        } catch {
+            return null;
         }
-        uidList.forEach((uid) => {
-            const openTitle = `\u8BBE\u7F6E\u72EC\u7ACB\u500D\u901F (uid: ${uid})`;
-            const closeTitle = `\u5173\u95ED\u72EC\u7ACB\u500D\u901F (uid: ${uid})`;
-            gmMenuCommand.createToggle({
-                active: {
-                    title: openTitle,
-                    onClick: () => {
-                        singleUpListStore.push(uid);
+    };
+    const getUpUidList = async () => {
+        const uidList =
+            (await queryUpUidList(
+                '.up-info-container',
+                '.up-avatar',
+                3,
+            )) ??
+            (await queryUpUidList(
+                '.membersinfo-normal .container',
+                '.avatar',
+                1,
+            ));
+        return uidList ?? [];
+    };
+    const renderSingleUpMenu = (uidList) => {
+        gmMenuCommand.reset();
+        gmMenuCommand.batch(() => {
+            uidList.forEach((uid) => {
+                const openTitle = `\u8BBE\u7F6E\u72EC\u7ACB\u500D\u901F (uid: ${uid})`;
+                const closeTitle = `\u5173\u95ED\u72EC\u7ACB\u500D\u901F (uid: ${uid})`;
+                gmMenuCommand.createToggle({
+                    active: {
+                        title: openTitle,
+                        onClick: () => {
+                            singleUpListStore.push(uid);
+                        },
                     },
-                },
-                inactive: {
-                    title: closeTitle,
-                    onClick: () => {
-                        const index = singleUpListStore.indexOf(uid);
-                        if (index !== -1) {
-                            singleUpListStore.removeAt(index);
-                        }
+                    inactive: {
+                        title: closeTitle,
+                        onClick: () => {
+                            const index =
+                                singleUpListStore.indexOf(uid);
+                            if (index !== -1) {
+                                singleUpListStore.removeAt(index);
+                            }
+                        },
                     },
-                },
+                });
+                if (singleUpListStore.includes(uid)) {
+                    gmMenuCommand
+                        .toggleActive(openTitle)
+                        .toggleActive(closeTitle);
+                }
             });
-            if (singleUpListStore.includes(uid)) {
-                gmMenuCommand
-                    .toggleActive(openTitle)
-                    .toggleActive(closeTitle);
-            }
         });
-        gmMenuCommand.render();
+    };
+    const renderSingleUpButton = async () => {
+        const uidList = await getUpUidList();
+        renderSingleUpMenu(uidList);
         return uidList;
     };
     const playbackRateStyle = `.bpx-player-video-wrap {
-	position: absolute;
+    position: absolute;
 }
 
 .bpx-player-video-wrap.show-message::after {
-	content: "\u5207\u6362\u81F3\u500D\u901F " attr(data-playback-rate) "x";
-	position: absolute;
-	top: 0;
-	left: 0;
-	padding: 8px;
-	color: white;
-	background: #00000066;
-	z-index: 99;
+    content: "\u5207\u6362\u81F3\u500D\u901F " attr(data-playback-rate) "x";
+    position: absolute;
+    top: 0;
+    left: 0;
+    padding: 8px;
+    color: white;
+    background: #00000066;
+    z-index: 99;
 }
 `;
     const showPlaybackRateStyle = () => {
         GM_addStyle(playbackRateStyle);
     };
+    const VIDEO_SELECTOR = '.bpx-player-video-wrap video';
+    const VIDEO_CONTAINER_SELECTOR = '.bpx-player-video-wrap';
+    const ROUTE_CHANGE_DELAY = 500;
+    const ROUTE_CHANGE_TIMEOUT = 5;
     const main = async () => {
         initKeyboardListStore();
         showPlaybackRateStyle();
-        const uidList = await renderSingleUpButton();
-        const videoElement = await elementWaiter(
-            '.bpx-player-video-wrap video',
-        );
-        const videoContainer = document.querySelector(
-            '.bpx-player-video-wrap',
-        );
-        if (!videoContainer) {
-            throw new Error(
-                'Video container not found: .bpx-player-video-wrap',
+        let uidList = await renderSingleUpButton();
+        let videoElement;
+        let videoContainer;
+        let playbackRate;
+        const createPlaybackRate = () => {
+            const inSingleList = uidList.some((uid) =>
+                singleUpListStore.includes(uid),
             );
-        }
-        const inSingleList = uidList.some((uid) =>
-            singleUpListStore.includes(uid),
-        );
-        let playbackRate = new PlaybackRateLocal(
-            videoElement,
-            stepStore.value,
-        );
-        if (syncStore.value) {
-            playbackRate = new PlaybackRateSync(
-                videoElement,
-                stepStore.value,
-            );
-        }
-        if (inSingleList) {
-            playbackRate = new PlaybackRateSingle(
-                videoElement,
-                stepStore.value,
-            );
-        }
-        singleUpListStore.updateListener(() => {
-            playbackRate.destroy?.();
-            if (
-                uidList.some((uid) => singleUpListStore.includes(uid))
-            ) {
-                playbackRate = new PlaybackRateSingle(
-                    videoElement,
-                    stepStore.value,
-                );
-            } else if (syncStore.value) {
-                playbackRate = new PlaybackRateSync(
-                    videoElement,
-                    stepStore.value,
-                );
-            } else {
-                playbackRate = new PlaybackRateLocal(
+            if (inSingleList) {
+                return new PlaybackRateSingle(
                     videoElement,
                     stepStore.value,
                 );
             }
+            if (syncStore.value) {
+                return new PlaybackRateSync(
+                    videoElement,
+                    stepStore.value,
+                );
+            }
+            return new PlaybackRateLocal(
+                videoElement,
+                stepStore.value,
+            );
+        };
+        const loadVideoPlaybackRate = async (
+            timeoutPerSecond,
+            resetPlaybackRate = false,
+        ) => {
+            videoElement = await elementWaiter(VIDEO_SELECTOR, {
+                delayPerSecond: 0,
+                timeoutPerSecond,
+            });
+            const container = document.querySelector(
+                VIDEO_CONTAINER_SELECTOR,
+            );
+            if (!container) {
+                throw new Error(
+                    `Video container not found: ${VIDEO_CONTAINER_SELECTOR}`,
+                );
+            }
+            videoContainer = container;
+            if (resetPlaybackRate) {
+                videoElement.playbackRate = 1;
+            }
+            playbackRate?.destroy?.();
+            playbackRate = createPlaybackRate();
+        };
+        await loadVideoPlaybackRate(20);
+        singleUpListStore.updateListener(() => {
+            playbackRate.destroy?.();
+            playbackRate = createPlaybackRate();
         });
         let timer;
         const handlePlaybackChange = (type) => {
@@ -1282,6 +1437,24 @@
                 },
             },
         ]);
+        onRouteChange(async ({ type }) => {
+            if (type !== 'replace') {
+                return;
+            }
+            await sleep(ROUTE_CHANGE_DELAY);
+            uidList = await renderSingleUpButton();
+            try {
+                await loadVideoPlaybackRate(
+                    ROUTE_CHANGE_TIMEOUT,
+                    true,
+                );
+            } catch (error) {
+                console.error(
+                    '[Bilibili\u89C6\u9891\u500D\u901F\u8BB0\u5FC6] \u91CD\u65B0\u8BFB\u53D6\u500D\u901F\u5931\u8D25',
+                    error,
+                );
+            }
+        });
     };
     main().catch((error) => {
         console.error(error);

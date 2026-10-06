@@ -6,7 +6,7 @@ const UserScript: ScriptCatUserScript = [
         'description',
         '自动记忆视频播放倍速设置，并提供快捷键快速调整播放速度。',
     ],
-    ['version', '1.2.0'],
+    ['version', '1.3.0'],
     ['author', 'Yiero'],
     ['match', 'https://www.bilibili.com/video/*'],
     ['require', ''],

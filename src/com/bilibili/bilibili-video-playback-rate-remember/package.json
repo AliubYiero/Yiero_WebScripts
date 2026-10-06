@@ -30,6 +30,7 @@
         "yamljs": "^0.3.0"
     },
     "dependencies": {
-        "@yiero/gmlib": "^0.4.3"
+        "@yiero/gmlib": "^0.4.7",
+        "radash": "^12.1.1"
     }
 }
