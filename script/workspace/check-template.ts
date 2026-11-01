@@ -1,5 +1,6 @@
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { join, relative } from 'node:path';
+import ts from 'typescript';
 import { parseScriptEntries } from './banner-meta';
 import {
     forbiddenEntries,
@@ -23,12 +24,90 @@ export interface CheckOptions {
 
 export { parseScriptEntries };
 
+const ignoredDirs = new Set([
+    'node_modules',
+    'dist',
+    'backup',
+    '.git',
+]);
+
+function collectSources(dir: string): string[] {
+    const files: string[] = [];
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+        if (entry.isDirectory()) {
+            if (!ignoredDirs.has(entry.name)) {
+                files.push(...collectSources(join(dir, entry.name)));
+            }
+            continue;
+        }
+        if (/\.(ts|js)$/.test(entry.name)) {
+            files.push(join(dir, entry.name));
+        }
+    }
+    return files;
+}
+
+/**
+ * 模板与生成物都必须是合法 UTF-8，且 TypeScript 源码能被解析。
+ * biome 的目录模式对非法 UTF-8 只报 internalError，退出码却是 0，这里补一道门。
+ */
+function checkSources(dir: string, errors: string[]): void {
+    if (!existsSync(dir)) {
+        return;
+    }
+
+    for (const file of collectSources(dir)) {
+        const rel = relative(dir, file).replaceAll('\\', '/');
+        let source: string;
+        try {
+            source = new TextDecoder('utf-8', { fatal: true }).decode(
+                readFileSync(file),
+            );
+        } catch {
+            errors.push(`源码不是合法 UTF-8：${rel}`);
+            continue;
+        }
+
+        if (!file.endsWith('.ts')) {
+            continue;
+        }
+
+        const sourceFile = ts.createSourceFile(
+            file,
+            source,
+            ts.ScriptTarget.ESNext,
+            true,
+        ) as ts.SourceFile & {
+            /** TypeScript 未在公开类型里声明，但运行时存在。 */
+            parseDiagnostics?: ts.Diagnostic[];
+        };
+        const firstError = (sourceFile.parseDiagnostics ?? [])[0];
+        if (firstError === undefined) {
+            continue;
+        }
+
+        const { line, character } =
+            sourceFile.getLineAndCharacterOfPosition(
+                firstError.start ?? 0,
+            );
+        const message = ts.flattenDiagnosticMessageText(
+            firstError.messageText,
+            ' ',
+        );
+        errors.push(
+            `源码有语法错误：${rel}:${line + 1}:${character + 1} ${message}`,
+        );
+    }
+}
+
 export function checkTemplate(
     dir: string,
     options: CheckOptions = {},
 ): CheckResult {
     const errors: string[] = [];
     const warnings: string[] = [];
+
+    checkSources(dir, errors);
 
     for (const file of requiredFiles) {
         if (!existsSync(join(dir, file))) {

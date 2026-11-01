@@ -42,3 +42,27 @@ test('new:script 参数不合法时退出码为 2', () => {
     ]);
     equal(status, 2);
 });
+
+test('--dry-run --project 只返回该项目', () => {
+    const project = 'src/com/bilibili/bilibili-video-timeline';
+    const { status, stdout } = runTsx([
+        join('script', 'workspace', 'cli', 'build.ts'),
+        '--dry-run',
+        '--project',
+        project,
+    ]);
+    equal(status, 0);
+
+    const plan = JSON.parse(stdout) as { project: string }[];
+    equal(plan.length, 1);
+    equal(plan[0].project, project);
+});
+
+test('--project 指向已归档项目时退出码为 2', () => {
+    const { status } = runTsx([
+        join('script', 'workspace', 'cli', 'build.ts'),
+        '--project',
+        'src/com/bilibili/bilibili-video-timeline',
+    ]);
+    equal(status, 2);
+});

@@ -1,3 +1,4 @@
+import { rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { checkTemplate } from '../check-template';
 import { copyTemplateTo } from '../copy-template';
@@ -38,6 +39,8 @@ if (check.errors.length > 0) {
     for (const error of check.errors) {
         console.error(`- ${error}`);
     }
+    rmSync(directory, { recursive: true, force: true });
+    console.error(`已清理生成的目录：${directory}`);
     process.exit(1);
 }
 
@@ -45,7 +48,7 @@ console.log(`已生成：${directory}`);
 console.log(`包名：${packageName}`);
 console.log('');
 console.log('下一步：');
-console.log('1. 填 banner/UserScript.ts 的 match / author 等元数据');
+console.log('1. 按需修改 banner/UserScript.ts 的 match / author / description');
 console.log('2. pnpm install');
 console.log(`3. pnpm --filter ${packageName} dev:base`);
 console.log(`4. pnpm --filter ${packageName} build`);

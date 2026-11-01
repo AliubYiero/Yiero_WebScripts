@@ -95,3 +95,44 @@ test('依赖族漂移会被报告', () => {
         rmSync(root, { recursive: true, force: true });
     }
 });
+
+test('非法 UTF-8 源码会被报告', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ws-check-'));
+    try {
+        cpSync(templateDir, root, { recursive: true });
+        writeFileSync(
+            join(root, 'vite.config.ts'),
+            Buffer.from([0x63, 0x6f, 0x6e, 0x73, 0x74, 0xff, 0x3b]),
+        );
+
+        const result = checkTemplate(root, {
+            allowPlaceholders: true,
+        });
+        ok(
+            result.errors.some((error) =>
+                error.startsWith('源码不是合法 UTF-8'),
+            ),
+        );
+    } finally {
+        rmSync(root, { recursive: true, force: true });
+    }
+});
+
+test('TypeScript 语法错误会被报告', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ws-check-'));
+    try {
+        cpSync(templateDir, root, { recursive: true });
+        writeFileSync(join(root, 'src/main.ts'), 'const a = ;', 'utf8');
+
+        const result = checkTemplate(root, {
+            allowPlaceholders: true,
+        });
+        ok(
+            result.errors.some((error) =>
+                error.startsWith('源码有语法错误'),
+            ),
+        );
+    } finally {
+        rmSync(root, { recursive: true, force: true });
+    }
+});
