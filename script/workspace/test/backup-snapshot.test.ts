@@ -76,3 +76,35 @@ test('构建失败时整体还原：丢弃新归档', () => {
         rmSync(root, { recursive: true, force: true });
     }
 });
+
+test('没有 versions.json 时从归档文件名回填历史版本', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ws-snap-'));
+    try {
+        const backupDir = join(root, 'backup');
+        mkdirSync(backupDir, { recursive: true });
+        writeFileSync(join(backupDir, 'old_1.0.0.backup.js'), 'a');
+        writeFileSync(join(backupDir, 'old_1.0.1.backup.js'), 'b');
+        const snapshot = snapshotDirectory(backupDir);
+
+        rmSync(backupDir, { recursive: true, force: true });
+        mkdirSync(backupDir, { recursive: true });
+        writeFileSync(join(backupDir, 'old_1.0.2.backup.js'), 'c');
+        writeFileSync(
+            join(backupDir, 'versions.json'),
+            JSON.stringify({ '1.0.2': 'old_1.0.2.backup.js' }),
+        );
+
+        mergeRestore(snapshot);
+
+        const versions = JSON.parse(
+            readFileSync(join(backupDir, 'versions.json'), 'utf8'),
+        ) as Record<string, string>;
+        deepEqual(Object.keys(versions).sort(), [
+            '1.0.0',
+            '1.0.1',
+            '1.0.2',
+        ]);
+    } finally {
+        rmSync(root, { recursive: true, force: true });
+    }
+});

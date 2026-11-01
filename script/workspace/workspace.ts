@@ -71,7 +71,10 @@ export function readArchivedVersions(scriptDir: string): string[] {
 
     // 老项目没有 versions.json，归档只体现在文件名上。
     for (const entry of readdirSync(backupDir)) {
-        const matched = /_(\d+\.\d+\.\d+)\.backup\.js$/.exec(entry);
+        const matched =
+            /_(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\.backup\.js$/.exec(
+                entry,
+            );
         if (matched) {
             versions.add(matched[1]);
         }

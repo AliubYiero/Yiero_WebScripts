@@ -38,6 +38,27 @@ function removeSnapshot(snapshot: BackupSnapshot): void {
     rmSync(snapshot.parentDir, { recursive: true, force: true });
 }
 
+const archivePattern =
+    /^(.+)_(\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?)\.backup\.js$/;
+
+/** 老项目没有 versions.json，只能从归档文件名反推历史版本。 */
+function collectArchiveVersions(
+    backupDir: string,
+): Record<string, string> {
+    const versions: Record<string, string> = {};
+    if (!existsSync(backupDir)) {
+        return versions;
+    }
+
+    for (const entry of readdirSync(backupDir)) {
+        const match = archivePattern.exec(entry);
+        if (match !== null) {
+            versions[match[2]] = entry;
+        }
+    }
+    return versions;
+}
+
 /** 把备份归档目录整体复制到临时目录。 */
 export function snapshotDirectory(source: string): BackupSnapshot {
     const parentDir = mkdtempSync(
@@ -75,6 +96,7 @@ export function mergeRestore(snapshot: BackupSnapshot): void {
     }
 
     const merged = {
+        ...collectArchiveVersions(snapshot.source),
         ...readVersionMap(snapshot.copyDir),
         ...readVersionMap(snapshot.source),
     };

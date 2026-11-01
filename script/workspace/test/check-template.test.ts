@@ -122,7 +122,11 @@ test('TypeScript 语法错误会被报告', () => {
     const root = mkdtempSync(join(tmpdir(), 'ws-check-'));
     try {
         cpSync(templateDir, root, { recursive: true });
-        writeFileSync(join(root, 'src/main.ts'), 'const a = ;', 'utf8');
+        writeFileSync(
+            join(root, 'src/main.ts'),
+            'const a = ;',
+            'utf8',
+        );
 
         const result = checkTemplate(root, {
             allowPlaceholders: true,

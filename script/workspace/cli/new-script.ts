@@ -48,7 +48,9 @@ console.log(`已生成：${directory}`);
 console.log(`包名：${packageName}`);
 console.log('');
 console.log('下一步：');
-console.log('1. 按需修改 banner/UserScript.ts 的 match / author / description');
+console.log(
+    '1. 按需修改 banner/UserScript.ts 的 match / author / description',
+);
 console.log('2. pnpm install');
 console.log(`3. pnpm --filter ${packageName} dev:base`);
 console.log(`4. pnpm --filter ${packageName} build`);

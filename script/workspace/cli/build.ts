@@ -37,7 +37,9 @@ if (projectFilter !== null && targetPlan.length === 0) {
     process.exit(2);
 }
 
-const pending = targetPlan.filter((entry) => entry.action === 'build');
+const pending = targetPlan.filter(
+    (entry) => entry.action === 'build',
+);
 
 if (pending.length === 0) {
     if (projectFilter !== null) {
