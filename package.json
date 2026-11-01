@@ -1,12 +1,17 @@
 {
     "name": "yiero_web_scripts",
+    "private": true,
     "version": "1.0.0",
     "description": "",
     "scripts": {
+        "build": "tsx script/workspace/cli/build.ts",
+        "build:all": "tsx script/workspace/cli/build.ts --all",
+        "new:script": "tsx script/workspace/cli/new-script.ts",
+        "check:template": "tsx script/workspace/cli/check-template.ts",
+        "test": "tsx --test script/workspace/test/build-plan.test.ts script/workspace/test/check-template.test.ts script/workspace/test/scaffold.test.ts",
         "update:readme": "npx tsx script/updateReadme/updateReadme.ts",
         "format": "biome format --write "
     },
-    "main": "script/updateReadme/updateReadme.ts",
     "keywords": [],
     "author": "Yiero",
     "license": "LGPL-3.0-or-later",
