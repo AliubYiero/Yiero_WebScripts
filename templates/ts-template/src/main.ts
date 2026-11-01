@@ -1,9 +1,8 @@
 /**
  * 主函数
  */
-const main = async () => {
-};
+const main = async () => {};
 
-main().catch( error => {
-	console.error( error );
-} );
+main().catch((error) => {
+    console.error(error);
+});
