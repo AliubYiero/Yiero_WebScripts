@@ -4,16 +4,23 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-这是一个油猴/脚本猫用户脚本合集。所有脚本项目位于 `src/` 目录下，按域名分层组织（如 `src/com/bilibili/`、`src/me/mikannani/`）。每个脚本项目是独立的 Vite + TypeScript 项目，拥有自己的 `package.json`、`vite.config.ts` 和 `tsconfig.json`。
+这是一个油猴/脚本猫用户脚本合集。所有脚本项目位于 `src/` 目录下，按域名分层组织（如 `src/com/bilibili/`、`src/me/mikannani/`）。仓库是 pnpm workspace monorepo：依赖与锁文件只有仓库根一份，每个脚本项目是独立的 Vite + TypeScript 包（包名 `@webscripts/<目录名>`、`package.json` 的 `version` 恒为 `0.0.0`）；脚本版本号只写在 `banner/UserScript.ts` 的 `version` 里。
 
 ## 通用命令
 
 在根目录执行：
 
 - `pnpm format` — 使用 Biome 格式化代码
-- `pnpm update:readme` — 重新生成根目录 README.md 的脚本列表表格
+- `pnpm update:readme` — 重新生成 README.md 与 docs/README.md
+- `pnpm install` — 安装整个 workspace 的依赖（增删项目后重跑）
+- `pnpm build` — 只构建「banner 版本号尚未归档」的项目
+- `pnpm build:all` — 全量构建（会临时移走 `backup/`，避免同版本重复归档报错）
+- `pnpm build --dry-run` — 打印构建计划（JSON）
+- `pnpm new:script 域/子域/项目名` — 用 `templates/ts-template` 生成新脚本项目
+- `pnpm check:template` — 体检模板（必备文件、依赖族、元数据键）
+- `pnpm test` — 运行 workspace 工具脚本自测
 
-在每个脚本项目目录下执行（如 `src/com/bilibili/bilibili-video-timeline/`）：
+对单个脚本项目执行（进项目目录，或在根目录用 `pnpm --filter @webscripts/<目录名> ...`）：
 
 - `pnpm build` — 生产构建（运行 TypeScript 检查后，用 Vite production 模式打包）
 - `pnpm dev:base` — 开发构建（development 模式，带 `--watch` 监听）
@@ -44,7 +51,7 @@ vite.config.ts        — 构建配置
 ### 核心依赖
 
 - **`@yiero/gmlib`** — GM 工具库，提供 `createUserConfigStorage`（配置持久化）、`gmMenuCommand`（菜单管理）、`elementWaiter`/`elementGetter`（DOM 等待）、`onRouteChange`（路由变化监听）
-- **`@yiero/bilibili-api-lib`** — B 站 API 封装库，通过 link 协议本地引用：`"@yiero/bilibili-api-lib": "link:..\\.bilibili-api-lib"`。该库位于 `src/com/bilibili/.bilibili-api-lib/`
+- **`@yiero/bilibili-api-lib`** — B 站 API 封装库，通过 workspace 协议引用：`"@yiero/bilibili-api-lib": "workspace:*"`。该库位于 `src/com/bilibili/.bilibili-api-lib/`
 - **Vite 插件体系** (`@yiero/vite-plugin-scriptcat-*`) — 处理脚本猫元数据 banner、@grant 自动提取、备份生成、图标自动获取、开发热推送
 
 ### Vite 构建模式

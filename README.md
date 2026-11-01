@@ -62,14 +62,14 @@
 
 1. 以 `/src/<顶级域名>/<二级域名>/<项目>` 为命名格式的项目.
 2. 以 `/src/.<特殊功能>/<项目>` 为命名格式的项目:
-	- `/src/.global/<项目>`: 所有网站匹配的脚本
+	- `/src/.Global/<项目>`: 所有网站匹配的脚本
 
 **示例**
 
 ```
 .
 └─src	
-	└─.global	
+	└─.Global	
 	|	└─global-css-import
 	|
     └─com	
@@ -80,42 +80,39 @@
 
 ### Build
 
-> 下载当前仓库文件
+> 下载当前仓库文件（monorepo, 一次安装依赖即可）
 
 ```bash
-git clone git@github.com:AliubYiero/TamperMonkeyScripts.git
+git clone git@github.com:AliubYiero/Yiero_WebScripts.git
+cd ./Yiero_WebScripts
 ```
 
-> 进入对应的脚本项目, 以 `./src/com/bilibili/bilibili-video-timeline` 举例:
+> 安装依赖（在仓库根执行, pnpm workspace 会统一链接所有脚本项目）
 
 ```bash
-cd ./src/com/bilibili/bilibili-video-timeline
-```
-
-> 安装依赖
-
-```bash
-npm install
-# or
-yarn install
-# or
 pnpm install
 ```
 
 > 修改脚本内容
 
-项目模板的使用见 [WebScriptProjectTemplate](https://github.com/AliubYiero/WebScriptProjectTemplate/blob/master/README.md) .
+项目模板收在仓库内 templates/ts-template, 新建脚本项目用脚手架: pnpm new:script 域/子域/项目名
 
-> 打包开发版本进行测试
+> 开发某个脚本项目（示例）
 
 ```bash
-npm run dev
+pnpm --filter @webscripts/bilibili-video-timeline dev:base
 ```
 
-> 打包生产环境脚本
+> 生产构建: 只构建版本号尚未归档的项目
 
 ```bash
-npm run build
+pnpm build
+```
+
+> 全量构建: 覆盖所有项目, 会临时移走 backup 目录, 避免同版本重复归档报错
+
+```bash
+pnpm build:all
 ```
 
 
