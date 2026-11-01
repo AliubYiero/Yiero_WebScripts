@@ -7,7 +7,7 @@ packages:
     - 'src/.Global/*'
     - 'src/.Crontab/*'
 
-# 本地实验目录 src/.WIP、模板目录、未入库的孤儿目录都不在 workspace 内
+# src/.WIP 等点开头目录被上面的 [!.] 通配排除；没有 package.json 的孤儿目录不会被 pnpm 当作 workspace 包
 
 allowBuilds:
     esbuild: true
