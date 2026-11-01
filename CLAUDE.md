@@ -16,9 +16,13 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm build` — 只构建「banner 版本号尚未归档」的项目
 - `pnpm build:all` — 全量构建（会临时移走 `backup/`，避免同版本重复归档报错）
 - `pnpm build --dry-run` — 打印构建计划（JSON）
+- `pnpm build --all`（别名 `--force`）— 含例外项目在内全量构建
+- `pnpm build --project src/com/bilibili/xxx` — 只构建计划里的某个项目
 - `pnpm new:script 域/子域/项目名` — 用 `templates/ts-template` 生成新脚本项目
 - `pnpm check:template` — 体检模板（必备文件、依赖族、元数据键）
 - `pnpm test` — 运行 workspace 工具脚本自测
+- `pnpm typecheck` — 对 `script/` 做 TypeScript 类型检查
+- `pnpm verify` — 依次跑 typecheck、模板体检与自测
 
 对单个脚本项目执行（进项目目录，或在根目录用 `pnpm --filter @webscripts/<目录名> ...`）：
 
@@ -45,7 +49,12 @@ src/
   store/              — 用户配置存储（基于 @yiero/gmlib 的 createUserConfigStorage）
   util/               — 工具函数
   interfaces/         — 类型定义
+types/
+  UserScript.d.ts     — banner 元数据的类型
+  UserConfig.d.ts     — 脚本猫用户配置的类型
+  scriptcat.d.ts      — 脚本猫 GM API 类型（vendored）
 vite.config.ts        — 构建配置
+vite.config.utils.ts  — 入口文件探测（getEntryFileName）
 ```
 
 ### 核心依赖

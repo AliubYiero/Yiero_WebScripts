@@ -1,5 +1,5 @@
-import { deepEqual, equal } from 'node:assert/strict';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { deepEqual, equal, throws } from 'node:assert/strict';
+import { mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { test } from 'node:test';
@@ -23,9 +23,27 @@ test('生成物可以独立体检通过', () => {
             description: '演示项目',
             version: '0.1.0',
             namespace: NAMESPACE,
+            author: 'Yiero',
+            match: 'https://example.com/*',
         });
 
-        deepEqual(checkTemplate(target).errors, []);
+        deepEqual(
+            checkTemplate(target, { strictMeta: true }).errors,
+            [],
+        );
+    } finally {
+        rmSync(root, { recursive: true, force: true });
+    }
+});
+
+test('目标目录已存在时拒绝生成', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ws-scaffold-'));
+    const target = join(root, 'demo-project');
+    try {
+        mkdirSync(target);
+        throws(() =>
+            copyTemplateTo(templateDir, target, 'demo-project'),
+        );
     } finally {
         rmSync(root, { recursive: true, force: true });
     }
@@ -34,12 +52,14 @@ test('生成物可以独立体检通过', () => {
 const NAMESPACE = 'https://github.com/AliubYiero/Yiero_WebScripts';
 
 test('新建参数校验', () => {
-    deepEqual(parseTarget('com/bilibili/demo'), [
-        'com',
-        'bilibili',
-        'demo',
-    ]);
-    deepEqual(parseTarget('.Global/demo'), ['.Global', 'demo']);
+    deepEqual(parseTarget('com/bilibili/demo'), {
+        parts: ['com', 'bilibili', 'demo'],
+        projectName: 'demo',
+    });
+    deepEqual(parseTarget('.Global/demo'), {
+        parts: ['.Global', 'demo'],
+        projectName: 'demo',
+    });
     equal(parseTarget('demo'), null);
     equal(parseTarget('com/.bilibili/demo'), null);
 });

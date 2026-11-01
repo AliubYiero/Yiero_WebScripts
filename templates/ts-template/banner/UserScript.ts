@@ -1,11 +1,11 @@
-import { ScriptCatUserScript } from '../types/UserScript';
+import type { ScriptCatUserScript } from '../types/UserScript';
 
 const UserScript: ScriptCatUserScript = [
     ['name', '{{name}}'],
     ['description', '{{description}}'],
     ['version', '{{version}}'],
-    ['author', ''],
-    ['match', ''],
+    ['author', '{{author}}'],
+    ['match', '{{match}}'],
     ['require', ''],
     ['resource', ''],
     ['icon', ''],

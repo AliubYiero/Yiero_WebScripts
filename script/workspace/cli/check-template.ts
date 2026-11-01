@@ -6,16 +6,14 @@ const result = checkTemplate(templateDir, {
 });
 
 for (const warning of result.warnings) {
-    console.warn('警告：' + warning);
+    console.warn(`警告：${warning}`);
 }
 for (const error of result.errors) {
-    console.error('错误：' + error);
+    console.error(`错误：${error}`);
 }
 
 if (result.errors.length > 0) {
-    console.error(
-        '模板体检失败：' + result.errors.length + ' 个错误。',
-    );
+    console.error(`模板体检失败：${result.errors.length} 个错误。`);
     process.exit(1);
 }
 

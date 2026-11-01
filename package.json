@@ -8,9 +8,11 @@
         "build:all": "tsx script/workspace/cli/build.ts --all",
         "new:script": "tsx script/workspace/cli/new-script.ts",
         "check:template": "tsx script/workspace/cli/check-template.ts",
-        "test": "tsx --test script/workspace/test/build-plan.test.ts script/workspace/test/check-template.test.ts script/workspace/test/scaffold.test.ts",
+        "test": "tsx --test script/workspace/test/*.test.ts",
+        "typecheck": "tsc -p tsconfig.json --noEmit",
+        "verify": "pnpm typecheck && pnpm check:template && pnpm test",
         "update:readme": "npx tsx script/updateReadme/updateReadme.ts",
-        "format": "biome format --write "
+        "format": "biome format --write ."
     },
     "keywords": [],
     "author": "Yiero",

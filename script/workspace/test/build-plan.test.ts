@@ -29,7 +29,7 @@ function makeProject(
     );
     const banner = [
         "[ 'name', 'Demo' ],",
-        "[ 'version', '" + scriptVersion + "' ],",
+        `[ 'version', '${scriptVersion}' ],`,
         '',
     ].join('\n');
     writeFileSync(join(dir, 'banner/UserScript.ts'), banner, 'utf8');
@@ -37,7 +37,7 @@ function makeProject(
         mkdirSync(join(dir, 'backup'), { recursive: true });
         writeFileSync(
             join(dir, 'backup/versions.json'),
-            JSON.stringify({ [archived]: archived + '.js' }),
+            JSON.stringify({ [archived]: `${archived}.js` }),
             'utf8',
         );
     }
@@ -74,7 +74,12 @@ test('有脚本但没有备份目录的项目被标记为例外', () => {
         equal(plan.length, 1);
         equal(plan[0].exception, true);
         equal(plan[0].archived, false);
-        equal(plan[0].action, 'build');
+        equal(plan[0].action, 'skip');
+
+        const forced = createBuildPlan(discoverPackages(root), {
+            all: true,
+        });
+        equal(forced[0].action, 'build');
     } finally {
         rmSync(root, { recursive: true, force: true });
     }

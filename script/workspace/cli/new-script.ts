@@ -1,20 +1,21 @@
 import { join } from 'node:path';
+import { checkTemplate } from '../check-template';
 import { copyTemplateTo } from '../copy-template';
 import { fillPlaceholders } from '../fill-tokens';
-import { templateDir } from '../template';
 import { parseTarget } from '../target-path';
+import { templateDir } from '../template';
 import { repoRoot } from '../workspace';
 
-const parts = parseTarget(process.argv[2] ?? '');
+const target = parseTarget(process.argv[2] ?? '');
 
-if (parts === null) {
+if (target === null) {
     console.error(
         '用法：pnpm new:script 域/子域/项目名（特殊目录用 .Global/项目名）',
     );
     process.exit(2);
 }
 
-const projectName = parts[parts.length - 1];
+const { parts, projectName } = target;
 const directory = join(repoRoot, 'src', ...parts);
 const packageName = copyTemplateTo(
     templateDir,
@@ -27,7 +28,24 @@ fillPlaceholders(directory, {
     description: projectName,
     version: '0.1.0',
     namespace: 'https://github.com/AliubYiero/Yiero_WebScripts',
+    author: 'Yiero',
+    match: 'https://example.com/*',
 });
 
-console.log('已生成：' + directory);
-console.log('包名：' + packageName);
+const check = checkTemplate(directory, { strictMeta: true });
+if (check.errors.length > 0) {
+    console.error('生成后校验失败：');
+    for (const error of check.errors) {
+        console.error(`- ${error}`);
+    }
+    process.exit(1);
+}
+
+console.log(`已生成：${directory}`);
+console.log(`包名：${packageName}`);
+console.log('');
+console.log('下一步：');
+console.log('1. 填 banner/UserScript.ts 的 match / author 等元数据');
+console.log('2. pnpm install');
+console.log(`3. pnpm --filter ${packageName} dev:base`);
+console.log(`4. pnpm --filter ${packageName} build`);

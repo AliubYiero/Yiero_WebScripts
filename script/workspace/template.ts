@@ -19,10 +19,12 @@ export const requiredFiles = [
     'types/scriptcat.d.ts',
 ];
 
+/** 模板里不该出现的东西：复制时也用它过滤。 */
 export const forbiddenEntries = [
     'pnpm-lock.yaml',
     'node_modules',
     'dist',
+    '.idea',
 ];
 
 /** 模板必须携带的脚本元数据键：部署前必须被替换成真实值。 */

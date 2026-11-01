@@ -1,3 +1,3 @@
-import { ScriptCatUserConfig } from '../types/UserConfig';
+import type { ScriptCatUserConfig } from '../types/UserConfig';
 
 export const UserConfig: ScriptCatUserConfig = {};

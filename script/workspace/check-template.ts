@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { parseScriptEntries } from './banner-meta';
 import {
     forbiddenEntries,
     recommendedScriptKeys,
@@ -16,22 +17,11 @@ export interface CheckResult {
 export interface CheckOptions {
     /** 模板本身允许保留 {{placeholder}} 占位符；生成物不允许。 */
     allowPlaceholders?: boolean;
+    /** 生成物校验：match / author 等建议键为空时也算错误。 */
+    strictMeta?: boolean;
 }
 
-interface ScriptEntry {
-    key: string;
-    value: string | null;
-}
-
-export function parseScriptEntries(text: string): ScriptEntry[] {
-    const entries: ScriptEntry[] = [];
-    const entryPattern = /\[\s*'([^']+)'\s*(?:,\s*'([^']*)')?\s*\]/g;
-    let match: RegExpExecArray | null;
-    while ((match = entryPattern.exec(text)) !== null) {
-        entries.push({ key: match[1], value: match[2] ?? null });
-    }
-    return entries;
-}
+export { parseScriptEntries };
 
 export function checkTemplate(
     dir: string,
@@ -108,7 +98,17 @@ export function checkTemplate(
             if (value === undefined) {
                 warnings.push(`脚本元数据缺少建议键：${key}`);
             } else if ((value ?? '').trim() === '') {
-                warnings.push(`脚本元数据 ${key} 为空`);
+                const message = `脚本元数据 ${key} 为空`;
+                if (options.strictMeta) {
+                    errors.push(message);
+                } else {
+                    warnings.push(message);
+                }
+            } else if (
+                !options.allowPlaceholders &&
+                /\{\{.+?\}\}/.test(value ?? '')
+            ) {
+                errors.push(`脚本元数据 ${key} 仍是占位符：${value}`);
             }
         }
     }

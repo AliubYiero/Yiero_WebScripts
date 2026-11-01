@@ -5,12 +5,11 @@ import {
     writeFileSync,
 } from 'node:fs';
 import { basename, join } from 'node:path';
-
-const excluded = ['pnpm-lock.yaml', 'node_modules', 'dist', '.idea'];
+import { forbiddenEntries } from './template';
 
 /**
  * 把模板复制到目标目录，并把包名与 README 标题改成项目实际值。
- * 返回目标目录的绝对路径。
+ * 返回新项目的包名。
  */
 export function copyTemplateTo(
     templateDir: string,
@@ -23,7 +22,8 @@ export function copyTemplateTo(
 
     cpSync(templateDir, directory, {
         recursive: true,
-        filter: (source) => !excluded.includes(basename(source)),
+        filter: (source) =>
+            !forbiddenEntries.includes(basename(source)),
     });
 
     const packageName = `@webscripts/${projectName}`;

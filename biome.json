@@ -12,6 +12,9 @@
         "clientKind": "git",
         "useIgnoreFile": true
     },
+    "files": {
+        "includes": ["**", "!**/types/scriptcat.d.ts"]
+    },
     "formatter": {
         "indentStyle": "space",
         "indentWidth": 4

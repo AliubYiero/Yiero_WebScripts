@@ -1,4 +1,4 @@
-import { ScriptInfo, ScriptDetail } from './updateReadme';
+import type { ScriptDetail, ScriptInfo } from './types.ts';
 
 /**
  * 将时间戳转换为北京时间 yyyy-mm-dd 格式

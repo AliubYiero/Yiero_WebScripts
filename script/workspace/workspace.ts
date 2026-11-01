@@ -1,14 +1,18 @@
 import {
     existsSync,
-    readFileSync,
     readdirSync,
+    readFileSync,
     statSync,
 } from 'node:fs';
 import { join, resolve } from 'node:path';
+import { readScriptVersion } from './banner-meta';
+
+export { readScriptVersion };
 
 export const repoRoot = resolve(__dirname, '..', '..');
 
-const SPECIAL_DOMAINS = ['.Global', '.Crontab'];
+/** 两个特殊目录：跨站脚本与定时脚本。 */
+export const SPECIAL_DOMAINS = ['.Global', '.Crontab'];
 
 export interface PackageInfo {
     /** 绝对目录 */
@@ -29,6 +33,10 @@ export interface PackageInfo {
     isLibrary: boolean;
     /** 例外项目：有脚本但没有备份归档目录 */
     isException: boolean;
+    /** package.json 的 build 脚本；没有则为 null */
+    buildScript: string | null;
+    /** build 脚本里是否包含 tsc 类型检查 */
+    hasTypecheck: boolean;
 }
 
 function listDirectories(dir: string): string[] {
@@ -40,40 +48,36 @@ function listDirectories(dir: string): string[] {
         .sort();
 }
 
-export function readScriptVersion(scriptDir: string): string | null {
-    for (const file of [
-        'banner/UserScript.ts',
-        'banner/UserScript.js',
-    ]) {
-        const path = join(scriptDir, file);
-        if (!existsSync(path)) {
-            continue;
-        }
-        const text = readFileSync(path, 'utf8');
-        const match =
-            /\[\s*['"]version['"]\s*,\s*['"]([^'"]*)['"]\s*\]/.exec(
-                text,
-            );
-        return match ? match[1] : null;
-    }
-    return null;
-}
-
 export function readArchivedVersions(scriptDir: string): string[] {
-    const path = join(scriptDir, 'backup', 'versions.json');
-    if (!existsSync(path)) {
+    const backupDir = join(scriptDir, 'backup');
+    if (!existsSync(backupDir)) {
         return [];
     }
-    try {
-        return Object.keys(
-            JSON.parse(readFileSync(path, 'utf8')) as Record<
-                string,
-                string
-            >,
-        );
-    } catch {
-        return [];
+
+    const versions = new Set<string>();
+    const manifest = join(backupDir, 'versions.json');
+    if (existsSync(manifest)) {
+        try {
+            const parsed = JSON.parse(
+                readFileSync(manifest, 'utf8'),
+            ) as Record<string, string>;
+            for (const version of Object.keys(parsed)) {
+                versions.add(version);
+            }
+        } catch {
+            // versions.json 损坏时退回按文件名扫描
+        }
     }
+
+    // 老项目没有 versions.json，归档只体现在文件名上。
+    for (const entry of readdirSync(backupDir)) {
+        const matched = /_(\d+\.\d+\.\d+)\.backup\.js$/.exec(entry);
+        if (matched) {
+            versions.add(matched[1]);
+        }
+    }
+
+    return [...versions];
 }
 
 export function discoverPackages(
@@ -125,6 +129,7 @@ export function discoverPackages(
                 ) as {
                     name: string;
                     version: string;
+                    scripts?: Record<string, string>;
                 };
             } catch {
                 throw new Error(`package.json 解析失败：${manifest}`);
@@ -133,6 +138,7 @@ export function discoverPackages(
         const scriptVersion = readScriptVersion(dir);
         const backupDir = join(dir, 'backup');
         const hasBackup = existsSync(backupDir);
+        const buildScript = manifestJson.scripts?.build ?? null;
         result.push({
             dir,
             relDir: ['src', ...parts].join('/'),
@@ -145,6 +151,10 @@ export function discoverPackages(
             backupDir: hasBackup ? backupDir : null,
             isLibrary: scriptVersion === null,
             isException: scriptVersion !== null && !hasBackup,
+            buildScript,
+            hasTypecheck:
+                buildScript !== null &&
+                /(^|\s|&)tsc(\s|$)/.test(buildScript),
         });
     }
 

@@ -2,7 +2,7 @@ import { elementWaiter, gmMenuCommand } from '@yiero/gmlib';
 import { handleLike } from './module/handleLike.ts';
 import { onlyLikeFollowStore } from './store/userConfig.ts';
 import { addBlockStyle } from './module/addBlockStyle.ts';
-import { getRoomId } from '../../.bilibili-api-lib';
+import { getRoomId } from '@yiero/bilibili-api-lib';
 import { maxLikeCounterStore } from './store/maxLikeCounter.ts';
 
 // 获取房间信息
