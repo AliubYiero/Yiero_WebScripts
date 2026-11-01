@@ -63,3 +63,17 @@ vite.config.ts        — 构建配置
 - TypeScript 配置启用 `noUnusedLocals` 和 `noUnusedParameters`，存在未使用变量时会编译报错
 - `.gitignore` 忽略所有 `.dev.js` 构建产物
 - 根目录 `src/.ui`、`src/.WIP`、`src/.Test` 被 git 忽略
+
+## Agent skills
+
+### Issue tracker
+
+Issue 与 spec 以 markdown 文件存放在仓库内 `.scratch/<feature-slug>/`，不依赖任何 CLI。详见 `docs/agents/issue-tracker.md`。
+
+### Triage labels
+
+沿用五个默认 triage 标签：`needs-triage`、`needs-info`、`ready-for-agent`、`ready-for-human`、`wontfix`。详见 `docs/agents/triage-labels.md`。
+
+### Domain docs
+
+单 context 布局：根目录 `GLOSSARY.md` + `docs/adr/`。详见 `docs/agents/domain.md`。
