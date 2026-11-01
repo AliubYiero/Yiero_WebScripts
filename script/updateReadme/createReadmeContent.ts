@@ -209,6 +209,10 @@ pnpm build
 pnpm build:all
 \`\`\`
 
+> 已知问题: 仍在用 vite 5 的脚本项目, 在当前插件版本下构建会报
+> \`is not a function\`（配置打包时插件默认导出丢失）, 待依赖统一到 vite 7 后消失;
+> 用 vite 7 的项目不受影响.
+
 
 
 ## 问题反馈 / Issue

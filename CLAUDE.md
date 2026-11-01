@@ -68,6 +68,7 @@ vite.config.ts        — 构建配置
 ### 通用注意事项
 
 - TypeScript 配置启用 `noUnusedLocals` 和 `noUnusedParameters`，存在未使用变量时会编译报错
+- 已知问题：仍用 vite 5 的项目在当前插件版本下构建会报 `is not a function`（配置打包时插件默认导出丢失）；vite 7 项目正常，待依赖统一后消失
 - `.gitignore` 忽略所有 `.dev.js` 构建产物
 - 根目录 `src/.ui`、`src/.WIP`、`src/.Test` 被 git 忽略
 
