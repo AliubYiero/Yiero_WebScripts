@@ -24,12 +24,17 @@ function getElement(
     return new Promise((resolve) => {
         let result = parent.querySelector(selector);
         if (result) return resolve(result);
-        let timer: NodeJS.Timeout;
-        // @ts-ignore
+        let timer: ReturnType<typeof setTimeout>;
+        // 老浏览器只有带前缀的构造函数，Window 类型里没有它们
+        const vendorWindow = window as unknown as {
+            MutationObserver?: typeof MutationObserver;
+            WebkitMutationObserver?: typeof MutationObserver;
+            MozMutationObserver?: typeof MutationObserver;
+        };
         const mutationObserver =
-            window.MutationObserver ||
-            window.WebkitMutationObserver ||
-            window.MozMutationObserver;
+            vendorWindow.MutationObserver ||
+            vendorWindow.WebkitMutationObserver ||
+            vendorWindow.MozMutationObserver;
         if (mutationObserver) {
             const observer = new mutationObserver((mutations) => {
                 for (let mutation of mutations) {
