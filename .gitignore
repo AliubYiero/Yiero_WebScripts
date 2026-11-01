@@ -13,6 +13,7 @@ node_modules
 dist-ssr
 *.local
 .scratch/
+.browser-harness/
 
 # Editor directories and files
 .vscode/*

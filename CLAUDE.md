@@ -31,6 +31,30 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm dev:sync` — 开发构建并推送至脚本猫客户端（sync 模式，带 `--watch`）
 - `pnpm dev:test` — 测试构建（test 模式，会覆盖脚本元数据用于本地测试，带 `--watch`）
 
+## 浏览器验证（独立配置）
+
+需要真实浏览器里验证脚本效果时用这套，不要碰日常浏览器的配置。
+完整说明见 `docs/agents/browser-harness.md`。
+
+- `pnpm browser:doctor` — 12 项前置件体检（缺什么、怎么补）
+- `pnpm browser:setup` — 建目录、写 SETUP.md
+- `pnpm browser:launch [--url <地址>]` — 起独立 profile 的浏览器实例
+- `pnpm browser:stop` — 关掉实例
+- `pnpm browser:serve` — 起隔离的 sctl daemon（数据目录也独立）
+- `pnpm browser:pair` — 生成一次性配对码（脚本猫 / sctl Browser 各一次）
+- `pnpm browser:status` — 实例、扩展、daemon、两条通道的接入状态
+- `pnpm browser:attach [--url <地址>] [--screenshot]` — Playwright 接管页面
+
+两条通道别混：`sctl status` 的 `extension connected` 指脚本猫
+（脚本管理，可选）；`sctl browsers` 里的实例才是 sctl Browser
+（页面通道，Playwright 靠它）。多实例时加 `--browser <实例名>`。
+
+三条硬规则：
+
+- 只用 `.browser-harness/` 这套独立配置，不改日常浏览器的 Profile
+- 配对码只在终端里出现时手填进扩展，别写进对话、日志或 MCP 配置
+- 动手前先 `pnpm browser:doctor`，红项按提示补齐再往下走
+
 ## 代码风格
 
 - 使用 Biome 格式化，配置见 `biome.json`：空格缩进（4 空格）、单引号、总是分号、行宽 70
