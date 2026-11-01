@@ -1,7 +1,7 @@
-{
-    "name": "tampermonkey-scripts",
+﻿{
+    "name": "@webscripts/auto-scroll",
     "private": true,
-    "version": "0.1.0",
+    "version": "0.0.0",
     "type": "module",
     "scripts": {
         "dev:base": "tsc && vite build --mode development --watch",

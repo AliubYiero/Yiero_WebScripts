@@ -1,7 +1,7 @@
-{
-    "name": "tampermonkey-scripts",
+﻿{
+    "name": "@webscripts/bilibili-live-danmaku-send-time-show",
     "private": true,
-    "version": "0.1.0",
+    "version": "0.0.0",
     "type": "module",
     "scripts": {
         "build": "tsc && vite build --mode production",
@@ -31,7 +31,7 @@
         "yamljs": "^0.3.0"
     },
     "dependencies": {
-        "@yiero/bilibili-api-lib": "link:D:/Code/.project/73_web_script/WebScripts/src/com/bilibili/.bilibili-api-lib",
+        "@yiero/bilibili-api-lib": "workspace:*",
         "@yiero/gmlib": "^0.3.5"
     }
 }

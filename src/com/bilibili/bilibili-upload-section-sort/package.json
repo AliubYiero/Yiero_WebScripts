@@ -1,7 +1,7 @@
-{
-    "name": "tampermonkey-scripts",
+﻿{
+    "name": "@webscripts/bilibili-upload-section-sort",
     "private": true,
-    "version": "0.1.0",
+    "version": "0.0.0",
     "type": "module",
     "scripts": {
         "build": "tsc && vite build --mode production",
@@ -30,7 +30,7 @@
         "yamljs": "^0.3.0"
     },
     "dependencies": {
-        "@yiero/bilibili-api-lib": "link:D:/Code/.project/73_web_script/bilibili-api-lib",
+        "@yiero/bilibili-api-lib": "workspace:*",
         "@yiero/gmlib": "^0.4.6",
         "radash": "^12.1.1"
     }

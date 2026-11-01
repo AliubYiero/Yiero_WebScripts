@@ -1,6 +1,8 @@
 packages:
     # 域名分层布局下的脚本项目：src/<顶级域>/<二级域>/<项目>
     - 'src/[!.]*/[!.]*/*'
+    # 链接库以点开头的目录（.bilibili-api-lib）
+    - 'src/[!.]*/[!.]*/.*'
     # 两个特殊目录：跨站脚本与定时脚本
     - 'src/.Global/*'
     - 'src/.Crontab/*'
@@ -9,3 +11,6 @@ packages:
 
 allowBuilds:
     esbuild: true
+
+# 不要在每个 pnpm run/exec 之前自动重装依赖（会重建子项目锁文件）
+verifyDepsBeforeRun: false

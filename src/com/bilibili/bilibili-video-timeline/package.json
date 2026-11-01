@@ -1,7 +1,7 @@
-{
-    "name": "tampermonkey-scripts",
+﻿{
+    "name": "@webscripts/bilibili-video-timeline",
     "private": true,
-    "version": "0.1.0",
+    "version": "0.0.0",
     "type": "module",
     "scripts": {
         "build": "tsc && vite build --mode production",
@@ -32,7 +32,7 @@
     },
     "dependencies": {
         "@chenglou/pretext": "^0.0.6",
-        "@yiero/bilibili-api-lib": "link:..\\.bilibili-api-lib",
+        "@yiero/bilibili-api-lib": "workspace:*",
         "@yiero/gmlib": "0.4.6",
         "radash": "^12.1.1"
     }
