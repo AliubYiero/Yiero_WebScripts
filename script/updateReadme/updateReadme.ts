@@ -302,30 +302,12 @@ class ScriptFileSystem {
             `backup/${scriptProjectName}.user.js`;
         const userJsPath = path.join(scriptPath, userScriptFilepath);
 
-        // 如果脚本文件不存在，创建空对象让用户填写
+        // 如果脚本文件不存在，跳过该脚本（不写入 script.json，也不出现在 README 中）
         if (!fs.existsSync(userJsPath)) {
             console.warn(
-                `[警告] 未找到脚本文件: ${userJsPath}，将创建空对象`,
+                `[跳过] 未找到脚本文件: ${userJsPath}，已跳过该脚本`,
             );
-            return {
-                name: '',
-                description: '',
-                version: '0.0.0',
-                private: existingDetail?.private ?? false,
-                archive: existingDetail?.archive ?? false,
-                lastUpdate: Date.now(),
-                scriptType: 'web',
-                userScriptFilepath: userScriptFilepath,
-                downloadUrlFromGithub:
-                    existingDetail?.downloadUrlFromGithub || '',
-                downloadUrlFromScripCat:
-                    existingDetail?.downloadUrlFromScripCat ?? '',
-                downloadUrlFromGreasyFork:
-                    existingDetail?.downloadUrlFromGreasyFork ?? '',
-                autoUpdate: existingDetail?.autoUpdate ?? true,
-                getLastUpdateWay:
-                    existingDetail?.getLastUpdateWay ?? 'file',
-            };
+            return null;
         }
 
         try {
