@@ -1,2 +1,11 @@
+packages:
+    # 域名分层布局下的脚本项目：src/<顶级域>/<二级域>/<项目>
+    - 'src/[!.]*/[!.]*/*'
+    # 两个特殊目录：跨站脚本与定时脚本
+    - 'src/.Global/*'
+    - 'src/.Crontab/*'
+
+# 本地实验目录 src/.WIP、模板目录、未入库的孤儿目录都不在 workspace 内
+
 allowBuilds:
-  esbuild: true
+    esbuild: true
