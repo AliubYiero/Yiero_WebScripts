@@ -16,6 +16,8 @@ function pkg(relDir: string): PackageInfo {
         isException: false,
         buildScript: null,
         hasTypecheck: false,
+        testScript: null,
+        workspaceDependencies: [],
     };
 }
 

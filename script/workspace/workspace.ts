@@ -14,6 +14,13 @@ export const repoRoot = resolve(__dirname, '..', '..');
 /** 两个特殊目录：跨站脚本与定时脚本。 */
 export const SPECIAL_DOMAINS = ['.Global', '.Crontab'];
 
+/**
+ * 库域：跨域复用的链接库放在 `src/.Libs/<库名>`，两层布局。
+ * 与特殊目录同级，但**不**并入 `SPECIAL_DOMAINS`——
+ * 特殊目录清单同时驱动脚手架的目标解析，库域不可被选中。
+ */
+export const LIBRARY_DOMAIN = '.Libs';
+
 export interface PackageInfo {
     /** 绝对目录 */
     dir: string;
@@ -37,6 +44,40 @@ export interface PackageInfo {
     buildScript: string | null;
     /** build 脚本里是否包含 tsc 类型检查 */
     hasTypecheck: boolean;
+    /** package.json 的 test 脚本；没有则为 null */
+    testScript: string | null;
+    /** dependencies 与 devDependencies 里的 workspace: 依赖包名，按声明顺序去重 */
+    workspaceDependencies: string[];
+}
+
+interface PackageManifest {
+    name: string;
+    version: string;
+    scripts?: Record<string, string>;
+    dependencies?: Record<string, string>;
+    devDependencies?: Record<string, string>;
+}
+
+/** `workspace:` 协议的依赖包名：依赖与开发依赖都算，按声明顺序去重。 */
+function readWorkspaceDependencies(
+    manifest: PackageManifest,
+): string[] {
+    const names: string[] = [];
+    for (const field of [
+        'dependencies',
+        'devDependencies',
+    ] as const) {
+        const deps = manifest[field] ?? {};
+        for (const [name, spec] of Object.entries(deps)) {
+            if (
+                spec.startsWith('workspace:') &&
+                !names.includes(name)
+            ) {
+                names.push(name);
+            }
+        }
+    }
+    return names;
 }
 
 function listDirectories(dir: string): string[] {
@@ -89,8 +130,24 @@ export function discoverPackages(
     const srcDir = join(root, 'src');
     const result: PackageInfo[] = [];
 
-    const candidates: { dir: string; parts: string[] }[] = [];
+    const candidates: {
+        dir: string;
+        parts: string[];
+        inLibraryDomain: boolean;
+    }[] = [];
     for (const top of listDirectories(srcDir)) {
+        if (top === LIBRARY_DOMAIN) {
+            for (const project of listDirectories(
+                join(srcDir, top),
+            )) {
+                candidates.push({
+                    dir: join(srcDir, top, project),
+                    parts: [top, project],
+                    inLibraryDomain: true,
+                });
+            }
+            continue;
+        }
         if (top.startsWith('.') && !SPECIAL_DOMAINS.includes(top)) {
             continue;
         }
@@ -101,6 +158,7 @@ export function discoverPackages(
                 candidates.push({
                     dir: join(srcDir, top, project),
                     parts: [top, project],
+                    inLibraryDomain: false,
                 });
             }
             continue;
@@ -112,12 +170,13 @@ export function discoverPackages(
                 candidates.push({
                     dir: join(srcDir, top, second, third),
                     parts: [top, second, third],
+                    inLibraryDomain: false,
                 });
             }
         }
     }
 
-    for (const { dir, parts } of candidates) {
+    for (const { dir, parts, inLibraryDomain } of candidates) {
         const manifest = join(dir, 'package.json');
         if (!existsSync(manifest)) {
             continue;
@@ -129,16 +188,15 @@ export function discoverPackages(
                         /^\uFEFF/,
                         '',
                     ),
-                ) as {
-                    name: string;
-                    version: string;
-                    scripts?: Record<string, string>;
-                };
+                ) as PackageManifest;
             } catch {
                 throw new Error(`package.json 解析失败：${manifest}`);
             }
         })();
-        const scriptVersion = readScriptVersion(dir);
+        // 库域内一律没有脚本版本，即使目录里误放了 banner。
+        const scriptVersion = inLibraryDomain
+            ? null
+            : readScriptVersion(dir);
         const backupDir = join(dir, 'backup');
         const hasBackup = existsSync(backupDir);
         const buildScript = manifestJson.scripts?.build ?? null;
@@ -152,12 +210,15 @@ export function discoverPackages(
                 scriptVersion !== null &&
                 readArchivedVersions(dir).includes(scriptVersion),
             backupDir: hasBackup ? backupDir : null,
-            isLibrary: scriptVersion === null,
+            isLibrary: inLibraryDomain || scriptVersion === null,
             isException: scriptVersion !== null && !hasBackup,
             buildScript,
             hasTypecheck:
                 buildScript !== null &&
                 /(^|\s|&)tsc(\s|$)/.test(buildScript),
+            testScript: manifestJson.scripts?.test ?? null,
+            workspaceDependencies:
+                readWorkspaceDependencies(manifestJson),
         });
     }
 

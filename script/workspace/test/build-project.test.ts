@@ -19,6 +19,8 @@ function fakePackage(
         isException: false,
         buildScript: 'build',
         hasTypecheck: true,
+        testScript: null,
+        workspaceDependencies: [],
         ...overrides,
     };
 }
