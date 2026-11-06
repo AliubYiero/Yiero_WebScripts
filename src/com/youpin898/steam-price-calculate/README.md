@@ -44,7 +44,9 @@
 
 - `pnpm build` — 生产构建，输出到 `dist/steam-price-calculate.user.js`（构建前会先跑 TypeScript 检查）
 - `pnpm test` — 运行共享折扣计算的单元测试（Vitest）
-- `pnpm test:browser` — 通过父仓库的 `.browser-harness` 跑真实浏览器回归；首次运行需要在浏览器里手动确认脚本猫（ScriptCat）的安装，按提示点「允许」即可
+- `pnpm test:browser` — 通过父仓库的 `.browser-harness` 跑真实浏览器回归
+
+跑浏览器回归前，先 `pnpm build`，再用脚本猫（ScriptCat）安装 `dist/steam-price-calculate.user.js`（第一次安装要在浏览器弹窗里点「允许」），最后执行 `pnpm test:browser`。脚本会核对脚本猫里已安装的版本与 `banner/UserScript.ts` 是否一致，不一致会提示重新构建并安装。
 
 浏览器验证用的是仓库根那套独立配置，动手前先 `pnpm browser:doctor` 体检，完整流程见 `docs/agents/browser-harness.md`。
 

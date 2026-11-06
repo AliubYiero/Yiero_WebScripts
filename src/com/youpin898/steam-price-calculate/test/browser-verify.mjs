@@ -13,16 +13,16 @@
  */
 
 import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-/** 项目根目录（本文件上一级） */
+/** 脚本项目目录：src/com/youpin898/steam-price-calculate */
 const PROJECT_DIR = resolve(
     fileURLToPath(new URL('..', import.meta.url)),
 );
 
-/** 仓库根目录：src/com/youpin898/steam-price-calculate */
+/** 仓库根目录（worktree 顶层） */
 const REPO_ROOT = resolve(PROJECT_DIR, '../../../..');
 
 /** CS2 在悠悠有品的 gameId，用于拼详情页 URL */
@@ -38,6 +38,16 @@ const MARKET_URL = 'https://www.youpin898.com/market';
 
 /** 本脚本 console 的统一前缀 */
 const SCRIPT_TAG = '[steam-price-calculate]';
+
+/** 脚本猫里安装的脚本名称 */
+const SCRIPT_NAME = '悠悠有品饰品折扣率计算';
+
+/** banner 版本来源，和安装到脚本猫的版本比对 */
+const BANNER_FILE = join(PROJECT_DIR, 'banner', 'UserScript.ts');
+
+/** 无在售价时的警告文案，Case F 用它计数 */
+const NO_SALE_PRICE_WARNING =
+    '未查询到商品信息或暂时无法读取在售价格';
 
 /** 正常 case 等待 `.discount-info` 的上限 */
 const NORMAL_TIMEOUT = 20_000;
@@ -185,6 +195,95 @@ function closeEndpoint() {
         });
     } catch {
         // 端点可能已经过期或被别的客户端关掉
+    }
+}
+
+/** 从 `banner/UserScript.ts` 读期望版本 */
+function readExpectedVersion() {
+    const source = readFileSync(BANNER_FILE, 'utf8');
+    const matched = source.match(
+        /\[\s*'version'\s*,\s*'([^']+)'\s*\]/,
+    );
+    if (!matched) {
+        throw new Error(`没能从 ${BANNER_FILE} 解析出版本号`);
+    }
+    return matched[1];
+}
+
+/**
+ * 校验脚本猫里安装的就是当前 banner 版本
+ *
+ * 浏览器验证跑的是真实安装的脚本，装旧 dist 会得到误导性结果。
+ */
+function assertInstalledScript() {
+    const expectedVersion = readExpectedVersion();
+    const dataDir = join(HARNESS_HOME, 'sctl-data');
+    const installCommand =
+        `SCTL_DATA_DIR=${dataDir} ${SCTL_PATH} ` +
+        'install dist/steam-price-calculate.user.js';
+    const reinstallHint = [
+        '重新构建并安装：',
+        '  1. pnpm --filter @webscripts/steam-price-calculate build',
+        '  2. 在脚本项目目录执行：',
+        `     ${installCommand}`,
+        '首次安装时浏览器会弹出脚本猫的确认页，点「允许」即可。',
+    ].join('\n');
+
+    if (!existsSync(SCTL_PATH)) {
+        throw new Error(
+            `没有找到 sctl：${SCTL_PATH}\n${reinstallHint}`,
+        );
+    }
+
+    let output = '';
+    try {
+        output = execFileSync(SCTL_PATH, ['get', '-o', 'json'], {
+            cwd: REPO_ROOT,
+            env: { ...process.env, SCTL_DATA_DIR: dataDir },
+            encoding: 'utf8',
+            timeout: 20_000,
+            windowsHide: true,
+        });
+    } catch (error) {
+        const stdout = String(error?.stdout ?? '').trim();
+        const stderr = String(error?.stderr ?? '').trim();
+        const detail =
+            [stdout, stderr].filter(Boolean).join('\n') ||
+            error?.message ||
+            String(error);
+        throw new Error(`读取脚本猫安装列表失败：${detail}`);
+    }
+
+    let installedList;
+    try {
+        installedList = JSON.parse(output).scripts;
+    } catch {
+        throw new Error(
+            `sctl get -o json 的输出不是合法 JSON：${output.trim()}`,
+        );
+    }
+
+    const scripts = Array.isArray(installedList) ? installedList : [];
+    const installed = scripts.find(
+        (item) => item?.name === SCRIPT_NAME,
+    );
+
+    if (!installed) {
+        throw new Error(
+            `脚本猫里没有安装「${SCRIPT_NAME}」。\n${reinstallHint}`,
+        );
+    }
+    if (installed.enabled !== true) {
+        throw new Error(
+            `「${SCRIPT_NAME}」在脚本猫里被禁用了，` +
+                '请先启用再重试。',
+        );
+    }
+    if (installed.version !== expectedVersion) {
+        throw new Error(
+            `「${SCRIPT_NAME}」已安装 ${installed.version}，` +
+                `期望 ${expectedVersion}。\n${reinstallHint}`,
+        );
     }
 }
 
@@ -527,6 +626,9 @@ const CASES = [
                 ).length,
             }));
             const warnings = scriptWarnings(log);
+            const noPriceWarnings = warnings.filter((message) =>
+                message.text.includes(NO_SALE_PRICE_WARNING),
+            );
 
             assert(
                 pageState.salePanels === 0,
@@ -537,11 +639,19 @@ const CASES = [
                 `租赁页渲染了 ${pageState.discountCount} 个折扣`,
             );
             assert(
+                noPriceWarnings.length === 1,
+                `「${NO_SALE_PRICE_WARNING}」警告 ` +
+                    `${noPriceWarnings.length} 次，期望 1 次；` +
+                    '实际脚本警告：' +
+                    (warnings.map((item) => item.text).join(' / ') ||
+                        '无'),
+            );
+            assert(
                 log.errors.length === 0,
                 `出现 pageerror：${log.errors.join(' / ')}`,
             );
 
-            return `无折扣、无在售面板（警告 ${warnings.length} 次）`;
+            return `无折扣、无在售面板（无在售价警告 ${noPriceWarnings.length} 次）`;
         },
     },
     {
@@ -796,6 +906,14 @@ async function main() {
 
     const resolved = resolveEndpoint();
     const artifactsDir = join(HARNESS_HOME, 'artifacts');
+
+    try {
+        assertInstalledScript();
+    } catch (error) {
+        if (resolved.source === 'sctl') closeEndpoint();
+        throw error;
+    }
+
     const chromium = await loadChromium();
 
     console.log(`CDP 端点: ${resolved.endpoint}`);

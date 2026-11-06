@@ -29,7 +29,7 @@ export interface DiscountCalculation {
 /**
  * 解析后的折扣数据
  */
-export interface ParsedDiscountData {
+export interface ParsedDiscountData extends DiscountCalculation {
     name: string;
     id: number;
     listType: number;
@@ -37,10 +37,6 @@ export interface ParsedDiscountData {
     onSaleCount: number;
     buyPrice: number;
     sellPrice: number;
-    sellNetPrice: number;
-    discount: number;
-    discountText: string;
-    discountType: DiscountType;
     url: string;
 }
 
