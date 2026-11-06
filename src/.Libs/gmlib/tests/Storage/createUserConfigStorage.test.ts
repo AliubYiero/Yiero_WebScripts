@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@rstest/core';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { createUserConfigStorage } from '../../src/Storage/createUserConfigStorage';
 import type { ScriptCatUserConfig } from '../../src/Storage/types/ScriptCatUserConfig';
 import { gmApiMock, setupGlobalGmApi } from '../__mocks__/gmApi';

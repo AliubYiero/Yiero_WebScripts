@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, rs } from '@rstest/core';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { setValue } from '../../src/DOM/setValue';
 
 describe('setValue', () => {
@@ -52,7 +52,7 @@ describe('setValue', () => {
 
     describe('events', () => {
         it('should dispatch input event', () => {
-            const inputSpy = rs.fn();
+            const inputSpy = vi.fn();
             input.addEventListener('input', inputSpy);
 
             setValue(input, 'test');
@@ -61,7 +61,7 @@ describe('setValue', () => {
         });
 
         it('should dispatch change event', () => {
-            const changeSpy = rs.fn();
+            const changeSpy = vi.fn();
             input.addEventListener('change', changeSpy);
 
             setValue(input, 'test');
@@ -70,8 +70,8 @@ describe('setValue', () => {
         });
 
         it('should dispatch events with bubbles: true', () => {
-            const inputSpy = rs.fn();
-            const changeSpy = rs.fn();
+            const inputSpy = vi.fn();
+            const changeSpy = vi.fn();
 
             container.addEventListener('input', inputSpy);
             container.addEventListener('change', changeSpy);
@@ -85,8 +85,8 @@ describe('setValue', () => {
 
     describe('triggerFocusBlur option', () => {
         it('should not trigger focus/blur by default', () => {
-            const focusSpy = rs.fn();
-            const blurSpy = rs.fn();
+            const focusSpy = vi.fn();
+            const blurSpy = vi.fn();
 
             input.addEventListener('focus', focusSpy);
             input.addEventListener('blur', blurSpy);
@@ -98,8 +98,8 @@ describe('setValue', () => {
         });
 
         it('should trigger focus/blur when triggerFocusBlur is true', () => {
-            const focusSpy = rs.fn();
-            const blurSpy = rs.fn();
+            const focusSpy = vi.fn();
+            const blurSpy = vi.fn();
 
             input.addEventListener('focus', focusSpy);
             input.addEventListener('blur', blurSpy);
@@ -135,7 +135,7 @@ describe('setValue', () => {
 
         it('should not dispatch events on disabled input', () => {
             input.disabled = true;
-            const inputSpy = rs.fn();
+            const inputSpy = vi.fn();
             input.addEventListener('input', inputSpy);
 
             setValue(input, 'test');
@@ -163,7 +163,7 @@ describe('setValue', () => {
 
         it('should not dispatch events on readOnly input', () => {
             input.readOnly = true;
-            const changeSpy = rs.fn();
+            const changeSpy = vi.fn();
             input.addEventListener('change', changeSpy);
 
             setValue(input, 'test');
@@ -175,7 +175,7 @@ describe('setValue', () => {
     describe('type validation', () => {
         it('should do nothing for non-input elements', () => {
             const div = document.createElement('div');
-            const changeSpy = rs.fn();
+            const changeSpy = vi.fn();
             div.addEventListener('change', changeSpy);
 
             // TypeScript would prevent this, but testing runtime behavior

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, rs } from '@rstest/core';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { simulateKeyboard } from '../../src/DOM/simulateKeyboard';
 
 describe('simulateKeyboard', () => {
@@ -19,8 +19,8 @@ describe('simulateKeyboard', () => {
 
     describe('basic keyboard functionality', () => {
         it('should dispatch keydown and keyup events', () => {
-            const keydownSpy = rs.fn();
-            const keyupSpy = rs.fn();
+            const keydownSpy = vi.fn();
+            const keyupSpy = vi.fn();
 
             input.addEventListener('keydown', keydownSpy);
             input.addEventListener('keyup', keyupSpy);
@@ -39,7 +39,7 @@ describe('simulateKeyboard', () => {
         it('should use document.activeElement when no target provided', () => {
             input.focus();
 
-            const keydownSpy = rs.fn();
+            const keydownSpy = vi.fn();
             input.addEventListener('keydown', keydownSpy);
 
             simulateKeyboard({ key: 'a' });
@@ -50,7 +50,7 @@ describe('simulateKeyboard', () => {
         it('should use document.body when no element is focused', () => {
             (document.activeElement as HTMLElement)?.blur();
 
-            const keydownSpy = rs.fn();
+            const keydownSpy = vi.fn();
             document.body.addEventListener('keydown', keydownSpy);
 
             simulateKeyboard({ key: 'Escape' });
@@ -273,7 +273,7 @@ describe('simulateKeyboard', () => {
 
     describe('keypress event', () => {
         it('should dispatch keypress for printable characters', () => {
-            const keypressSpy = rs.fn();
+            const keypressSpy = vi.fn();
 
             input.addEventListener('keypress', keypressSpy);
 
@@ -283,7 +283,7 @@ describe('simulateKeyboard', () => {
         });
 
         it('should not dispatch keypress for non-printable keys', () => {
-            const keypressSpy = rs.fn();
+            const keypressSpy = vi.fn();
 
             input.addEventListener('keypress', keypressSpy);
 
@@ -293,7 +293,7 @@ describe('simulateKeyboard', () => {
         });
 
         it('should not dispatch keypress when modifier keys are pressed', () => {
-            const keypressSpy = rs.fn();
+            const keypressSpy = vi.fn();
 
             input.addEventListener('keypress', keypressSpy);
 
@@ -335,7 +335,7 @@ describe('simulateKeyboard', () => {
 
     describe('function overloads', () => {
         it('should work with target and options', () => {
-            const keydownSpy = rs.fn();
+            const keydownSpy = vi.fn();
             input.addEventListener('keydown', keydownSpy);
 
             simulateKeyboard(input, { key: 'a' });
@@ -346,7 +346,7 @@ describe('simulateKeyboard', () => {
         it('should work with only options (no target)', () => {
             input.focus();
 
-            const keydownSpy = rs.fn();
+            const keydownSpy = vi.fn();
             input.addEventListener('keydown', keydownSpy);
 
             simulateKeyboard({ key: 'b' });

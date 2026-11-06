@@ -20,19 +20,17 @@
         "build": "rslib build",
         "check": "biome check --write",
         "format": "biome format --write",
-        "test": "rstest",
-        "test:watch": "rstest --watch",
+        "test": "vitest run",
+        "test:watch": "vitest",
         "pack": "npm pack"
     },
     "devDependencies": {
         "@biomejs/biome": "^2.4.9",
         "@rslib/core": "^0.18.3",
-        "@rstest/adapter-rslib": "^0.2.1",
-        "@rstest/core": "^0.9.5",
         "@types/node": "^24.10.1",
-        "jsdom": "^29.0.1",
+        "happy-dom": "^20.9.0",
         "typescript": "^5.9.3",
-        "vitest": "^4.0.14"
+        "vitest": "^4.1.4"
     },
     "license": "MIT",
     "keywords": [

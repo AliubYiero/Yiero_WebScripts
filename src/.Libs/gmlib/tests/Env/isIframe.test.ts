@@ -1,4 +1,4 @@
-import { afterEach, describe, expect, it } from '@rstest/core';
+import { afterEach, describe, expect, it } from 'vitest';
 import { isIframe } from '../../src/Env/isIframe';
 
 describe('isIframe', () => {

@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, rs } from '@rstest/core';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { Message } from '../../src/UserInteraction/Message';
 
 describe('Message', () => {
@@ -21,7 +21,7 @@ describe('Message', () => {
         if (container) {
             container.innerHTML = '';
         }
-        rs.useRealTimers();
+        vi.useRealTimers();
     });
 
     describe('basic functionality', () => {
@@ -57,7 +57,7 @@ describe('Message', () => {
         });
 
         it('should auto close after duration', () => {
-            rs.useFakeTimers();
+            vi.useFakeTimers();
 
             Message({ message: 'auto close', type: 'info', duration: 1000 });
 
@@ -68,7 +68,7 @@ describe('Message', () => {
             expect(messageEl).toBeTruthy();
 
             // 推进时间: 1000ms (duration) + 400ms (关闭动画)
-            rs.advanceTimersByTime(1500);
+            vi.advanceTimersByTime(1500);
 
             // 消息元素应该被移除
             messageEl = container?.querySelector('div');
@@ -76,7 +76,7 @@ describe('Message', () => {
         });
 
         it('should close on click', () => {
-            rs.useFakeTimers();
+            vi.useFakeTimers();
 
             Message({
                 message: 'click to close',
@@ -94,7 +94,7 @@ describe('Message', () => {
             messageEl.click();
 
             // 推进时间让关闭动画完成
-            rs.advanceTimersByTime(400);
+            vi.advanceTimersByTime(400);
 
             // 消息元素应该被移除
             const removedEl = container?.querySelector('div');
@@ -165,7 +165,7 @@ describe('Message', () => {
         });
 
         it('should manually close message via instance.close()', () => {
-            rs.useFakeTimers();
+            vi.useFakeTimers();
 
             const instance = Message({
                 message: 'manual close',
@@ -182,7 +182,7 @@ describe('Message', () => {
             instance.close();
 
             // 等待关闭动画
-            rs.advanceTimersByTime(400);
+            vi.advanceTimersByTime(400);
 
             messageEl = container?.querySelector('div');
             expect(messageEl).toBeFalsy();
@@ -289,7 +289,7 @@ describe('Message', () => {
         });
 
         it('should close on Escape key', () => {
-            rs.useFakeTimers();
+            vi.useFakeTimers();
 
             const instance = Message({
                 message: 'escape test',
@@ -300,7 +300,7 @@ describe('Message', () => {
             const event = new KeyboardEvent('keydown', { key: 'Escape' });
             instance.element.dispatchEvent(event);
 
-            rs.advanceTimersByTime(400);
+            vi.advanceTimersByTime(400);
 
             const container = document.querySelector(
                 'div[style*="position: fixed"]',
@@ -377,7 +377,7 @@ describe('Message', () => {
 
     describe('message limit', () => {
         it('should limit to 3 messages maximum', () => {
-            rs.useFakeTimers();
+            vi.useFakeTimers();
 
             const instance1 = Message('message 1');
             const _instance2 = Message('message 2');
@@ -385,7 +385,7 @@ describe('Message', () => {
             Message('message 4'); // 第4条消息
 
             // 等待关闭动画完成 (300ms)
-            rs.advanceTimersByTime(400);
+            vi.advanceTimersByTime(400);
 
             const container = document.querySelector(
                 'div[style*="position: fixed"]',
@@ -400,7 +400,7 @@ describe('Message', () => {
         });
 
         it('should close oldest message when limit reached', () => {
-            rs.useFakeTimers();
+            vi.useFakeTimers();
 
             const instance1 = Message('oldest');
             const instance2 = Message('middle');
@@ -410,7 +410,7 @@ describe('Message', () => {
             Message('new');
 
             // 等待关闭动画完成
-            rs.advanceTimersByTime(400);
+            vi.advanceTimersByTime(400);
 
             // 最老的消息应该被关闭
             expect(instance1.element.parentNode).toBeFalsy();
@@ -423,7 +423,7 @@ describe('Message', () => {
 
     describe('position recalculation on removal', () => {
         it('should recalculate positions when message is removed', () => {
-            rs.useFakeTimers();
+            vi.useFakeTimers();
 
             const instance1 = Message({ message: 'first', position: 'top' });
             const instance2 = Message({ message: 'second', position: 'top' });
@@ -437,7 +437,7 @@ describe('Message', () => {
             instance1.close();
 
             // 推进时间让关闭动画完成
-            rs.advanceTimersByTime(400);
+            vi.advanceTimersByTime(400);
 
             // 第二条消息应该移动到第一条消息的位置
             expect(instance2.element.style.top).toBe('20px');
@@ -454,7 +454,7 @@ describe('Message', () => {
         });
 
         it('should not affect messages at different positions', () => {
-            rs.useFakeTimers();
+            vi.useFakeTimers();
 
             const instanceTop = Message({ message: 'top', position: 'top' });
             const instanceBottom = Message({
@@ -464,14 +464,14 @@ describe('Message', () => {
 
             // 关闭 top 位置的消息
             instanceTop.close();
-            rs.advanceTimersByTime(400);
+            vi.advanceTimersByTime(400);
 
             // bottom 位置的消息不受影响
             expect(instanceBottom.element.style.bottom).toBe('20px');
         });
 
         it('should handle removing middle message', () => {
-            rs.useFakeTimers();
+            vi.useFakeTimers();
 
             const instance1 = Message({ message: 'first', position: 'top' });
             const instance2 = Message({ message: 'second', position: 'top' });
@@ -479,7 +479,7 @@ describe('Message', () => {
 
             // 关闭中间的消息
             instance2.close();
-            rs.advanceTimersByTime(400);
+            vi.advanceTimersByTime(400);
 
             // 第一条消息位置不变
             expect(instance1.element.style.top).toBe('20px');

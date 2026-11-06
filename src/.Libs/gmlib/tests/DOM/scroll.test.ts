@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@rstest/core';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { scroll } from '../../src/DOM/scroll';
 
 describe('scroll', () => {
@@ -164,5 +164,5 @@ describe('scroll', () => {
 
 // 辅助函数,用于清理
 function afterEach(_fn: () => void) {
-    // 在 rstest 中,可以在 beforeEach 中重置状态
+    // 在 vitest 中,可以在 beforeEach 中重置状态
 }

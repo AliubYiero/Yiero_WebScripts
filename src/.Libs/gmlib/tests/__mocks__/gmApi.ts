@@ -1,4 +1,4 @@
-import { rs } from '@rstest/core';
+import { vi } from 'vitest';
 
 // 存储模拟器
 const storage = new Map<string, unknown>();
@@ -25,7 +25,7 @@ export const gmApiMock = {
         storage.delete(key);
     },
 
-    GM_addValueChangeListener: rs.fn(
+    GM_addValueChangeListener: vi.fn(
         (key: string, callback: (...args: unknown[]) => unknown) => {
             const id = ++listenerIdCounter;
             listeners.set(id, { key, callback });
@@ -33,26 +33,26 @@ export const gmApiMock = {
         },
     ),
 
-    GM_removeValueChangeListener: rs.fn((id: number) => {
+    GM_removeValueChangeListener: vi.fn((id: number) => {
         listeners.delete(id);
     }),
 
     // Request API
-    GM_xmlhttpRequest: rs.fn(),
+    GM_xmlhttpRequest: vi.fn(),
 
     // Download API
-    GM_download: rs.fn(),
+    GM_download: vi.fn(),
 
     // Menu API
-    GM_registerMenuCommand: rs.fn(() => ++listenerIdCounter),
+    GM_registerMenuCommand: vi.fn(() => ++listenerIdCounter),
 
-    GM_unregisterMenuCommand: rs.fn(),
+    GM_unregisterMenuCommand: vi.fn(),
 
     // Cookie API
-    GM_cookie: rs.fn(),
+    GM_cookie: vi.fn(),
 
     // Style API
-    GM_addStyle: rs.fn(() => document.createElement('style')),
+    GM_addStyle: vi.fn(() => document.createElement('style')),
 
     // Info
     GM_info: {

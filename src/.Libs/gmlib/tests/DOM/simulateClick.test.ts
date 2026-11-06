@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it, rs } from '@rstest/core';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { simulateClick } from '../../src/DOM/simulateClick';
 
 describe('simulateClick', () => {
@@ -19,9 +19,9 @@ describe('simulateClick', () => {
 
     describe('basic click functionality', () => {
         it('should dispatch mousedown, click, and mouseup events', () => {
-            const mousedownSpy = rs.fn();
-            const clickSpy = rs.fn();
-            const mouseupSpy = rs.fn();
+            const mousedownSpy = vi.fn();
+            const clickSpy = vi.fn();
+            const mouseupSpy = vi.fn();
 
             button.addEventListener('mousedown', mousedownSpy);
             button.addEventListener('click', clickSpy);
@@ -43,7 +43,7 @@ describe('simulateClick', () => {
             const div = document.createElement('div');
             container.appendChild(div);
 
-            const clickSpy = rs.fn();
+            const clickSpy = vi.fn();
             div.addEventListener('click', clickSpy);
 
             simulateClick(div);

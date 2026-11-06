@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, it } from '@rstest/core';
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { uiImporter } from '../../src/UI/uiImporter';
 import { gmApiMock, setupGlobalGmApi } from '../__mocks__/gmApi';
 

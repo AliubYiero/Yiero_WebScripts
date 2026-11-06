@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from '@rstest/core';
+import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 
 // 保存原始 XMLHttpRequest.prototype.open（在模块级别）
 const originalXhrOpen = XMLHttpRequest.prototype.open;

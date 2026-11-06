@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it } from '@rstest/core';
+import { beforeEach, describe, expect, it } from 'vitest';
 import { gmRequest } from '../../src/API/gmRequest.ts';
 import {
     gmApiMock,
@@ -32,7 +32,10 @@ describe('gmRequest', () => {
                 'https://example.com/page',
             );
 
-            expect(result).toBeInstanceOf(Document);
+            // happy-dom 中每个 Window 都有独立的 Document 子类，
+            // DOMParser 返回的文档不满足 `instanceof Document`，
+            // 因此改用 nodeType 判断（9 = DOCUMENT_NODE）
+            expect(result.nodeType).toBe(9);
         });
 
         it('should append params to URL for GET request', async () => {
