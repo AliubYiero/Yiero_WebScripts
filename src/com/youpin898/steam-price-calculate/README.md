@@ -23,7 +23,7 @@
 
 折扣率越低越划算：`60%` 表示花 0.6 元人民币能换到 1 元 Steam 余额；超过 `100%` 则说明这笔倒余额是亏的。
 
-> 档位阈值见 `src/module/marketPage/parseDiscountData.ts` 中的 `LOWER_DROP_PRICE_PERCENT = 0.8`。
+> 档位阈值见 `src/module/discount.ts` 中的 `LOWER_DROP_PRICE_PERCENT = 0.8`，详情页与市场页共用这个模块。
 
 ## 使用方法
 
@@ -34,8 +34,19 @@
 ## 说明
 
 - 匹配范围：`https://www.youpin898.com/*`，在 `document-body` 阶段运行
-- 详情页的悠悠有品售价取自「外观」筛选中当前外观对应的价格；若该价格为 0，则回退读取页面价格区域显示的第一个价格
+- 详情页的悠悠有品售价优先取「外观」筛选中当前外观对应的价格；若页面没有「外观」筛选、筛选列表为空、找不到当前外观，或外观价不是有限正数（包括 0），则回退读取「在售」列表的第一个价格；两种取法都取不到时跳过该饰品，只在控制台输出一条警告，不显示折扣
+- 在售价与 Steam 价都必须是有限正数，否则同样跳过渲染，不会出现 `0%` 或 `NaN`
 - 折扣率仅供参考，Steam 市场价格波动、交易冷却与挂单成交速度都会影响实际到手余额
+
+## 开发与测试
+
+在脚本项目目录 `src/com/youpin898/steam-price-calculate/` 下执行：
+
+- `pnpm build` — 生产构建，输出到 `dist/steam-price-calculate.user.js`（构建前会先跑 TypeScript 检查）
+- `pnpm test` — 运行共享折扣计算的单元测试（Vitest）
+- `pnpm test:browser` — 通过父仓库的 `.browser-harness` 跑真实浏览器回归；首次运行需要在浏览器里手动确认脚本猫（ScriptCat）的安装，按提示点「允许」即可
+
+浏览器验证用的是仓库根那套独立配置，动手前先 `pnpm browser:doctor` 体检，完整流程见 `docs/agents/browser-harness.md`。
 
 ## 许可证
 

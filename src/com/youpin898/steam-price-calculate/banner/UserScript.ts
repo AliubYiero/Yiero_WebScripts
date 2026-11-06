@@ -6,7 +6,7 @@ const UserScript: ScriptCatUserScript = [
         'description',
         '在首页访问时, 直接显示当前饰品可以倒余额的折扣率.',
     ],
-    ['version', '1.0.0'],
+    ['version', '1.0.1'],
     ['author', 'Yiero'],
     ['match', 'https://www.youpin898.com/*'],
     ['require', ''],
