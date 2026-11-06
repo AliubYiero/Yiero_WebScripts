@@ -336,6 +336,21 @@ function scriptWarnings(log) {
     );
 }
 
+/**
+ * 等待脚本发出指定 warning。
+ *
+ * 租赁页没有在售面板，`getFirstSalePrice` 会等满 5 秒才失败关闭；
+ * 用固定等待容易卡在 API + 5 秒边界上，改为等事件更确定。
+ */
+function waitForScriptWarning(page, text, timeout = 20_000) {
+    return page.waitForEvent('console', {
+        predicate: (message) =>
+            message.type() === 'warning' &&
+            message.text().includes(text),
+        timeout,
+    });
+}
+
 /** 断言 */
 function assert(condition, message) {
     if (!condition) throw new Error(message);
@@ -614,8 +629,18 @@ const CASES = [
         id: 'F',
         title: '108492 租赁页不误读租金',
         run: async (page, log) => {
+            const warningSeen = waitForScriptWarning(
+                page,
+                NO_SALE_PRICE_WARNING,
+            );
             await openDetail(page, 108492, 30);
-            await page.waitForTimeout(ABSENCE_TIMEOUT);
+
+            let warningTimedOut = false;
+            await warningSeen.catch(() => {
+                warningTimedOut = true;
+            });
+            // 等 render 里的 sleep(50) 与 DOM 稳定
+            await page.waitForTimeout(500);
 
             const pageState = await page.evaluate(() => ({
                 discountCount:
@@ -641,8 +666,9 @@ const CASES = [
             assert(
                 noPriceWarnings.length === 1,
                 `「${NO_SALE_PRICE_WARNING}」警告 ` +
-                    `${noPriceWarnings.length} 次，期望 1 次；` +
-                    '实际脚本警告：' +
+                    `${noPriceWarnings.length} 次，期望 1 次` +
+                    (warningTimedOut ? '（等待超时）' : '') +
+                    '；实际脚本警告：' +
                     (warnings.map((item) => item.text).join(' / ') ||
                         '无'),
             );
