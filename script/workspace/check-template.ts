@@ -8,7 +8,9 @@ import {
     recommendedScriptKeys,
     requiredFiles,
     requiredScriptKeys,
+    standardDependencies,
     standardDevDependencies,
+    standardScripts,
 } from './template';
 
 export interface CheckResult {
@@ -128,7 +130,10 @@ export function checkTemplate(
             readFileSync(manifestPath, 'utf8').replace(/^\uFEFF/, ''),
         ) as {
             devDependencies?: Record<string, string>;
+            dependencies?: Record<string, string>;
+            scripts?: Record<string, string>;
         };
+
         const devDependencies = manifest.devDependencies ?? {};
         for (const [name, version] of Object.entries(
             standardDevDependencies,
@@ -139,6 +144,34 @@ export function checkTemplate(
             } else if (actual !== version) {
                 errors.push(
                     `模板依赖族漂移：${name} 期望 ${version}，实际 ${actual}`,
+                );
+            }
+        }
+
+        const dependencies = manifest.dependencies ?? {};
+        for (const [name, version] of Object.entries(
+            standardDependencies,
+        )) {
+            const actual = dependencies[name];
+            if (actual === undefined) {
+                errors.push(`模板缺少运行期依赖：${name}@${version}`);
+            } else if (actual !== version) {
+                errors.push(
+                    `模板运行期依赖漂移：${name} 期望 ${version}，实际 ${actual}`,
+                );
+            }
+        }
+
+        const scripts = manifest.scripts ?? {};
+        for (const [name, command] of Object.entries(
+            standardScripts,
+        )) {
+            const actual = scripts[name];
+            if (actual === undefined) {
+                errors.push(`模板缺少委托命令：${name}`);
+            } else if (actual !== command) {
+                errors.push(
+                    `模板委托命令被改动：${name} 期望 ${command}，实际 ${actual}`,
                 );
             }
         }

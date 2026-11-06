@@ -18,6 +18,14 @@
 
 banner 里用 `@crontab` 声明运行频率、不带 `@match` 的脚本，位于 `src/.Crontab/<项目名>/`。`@crontab` 的默认值是 `* * once * *`（每天最多执行一次）。`@match`、`@background`、`@crontab` 三者互斥，且必须有一个非空。
 
+## 委托命令
+
+在脚本项目目录里发起、实际由仓库根执行的命令：`pnpm commit`、`pnpm release:tag`、`pnpm push`。项目 `package.json` 里只写一行 `pnpm -w run <同名命令>`，实现只有根仓库一份；根脚本靠 pnpm 传入的 `INIT_CWD` 认出「调用者属于哪个项目」，也可以 `--project` 显式指定。见 `docs/adr/0004-delegated-commands.md`。
+
+## 提交范围
+
+一次委托提交要包含哪些路径：项目目录里调用时只暂存该项目目录，仓库根调用时是整仓。注意 git 索引是整仓一份，「范围」只决定命令**新增**哪些暂存项，不影响别人已经暂存的改动。
+
 ## 版本号唯一来源
 
 脚本的版本号只存在于 `banner/UserScript.ts` 的 `@version`。`package.json` 的 `version` 固定为 `0.0.0`，不参与任何语义。

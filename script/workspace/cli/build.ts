@@ -1,12 +1,6 @@
-import { execFileSync } from 'node:child_process';
-import { rmSync } from 'node:fs';
-import {
-    mergeRestore,
-    restoreDirectory,
-    snapshotDirectory,
-} from '../backup-snapshot';
 import { createBuildPlan } from '../build-plan';
-import { discoverPackages, repoRoot } from '../workspace';
+import { buildPackage } from '../build-project';
+import { discoverPackages } from '../workspace';
 
 const args = process.argv.slice(2);
 const dryRun = args.includes('--dry-run');
@@ -17,8 +11,6 @@ const projectFilter =
     projectArg === undefined || projectArg === null
         ? null
         : projectArg.replaceAll('\\', '/').replace(/\/+$/, '');
-const pnpmCommand =
-    process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm';
 
 const packages = discoverPackages();
 const plan = createBuildPlan(packages, { all });
@@ -66,36 +58,14 @@ for (const entry of pending) {
         );
     }
 
-    const snapshot = pkg?.backupDir
-        ? snapshotDirectory(pkg.backupDir)
-        : null;
-    if (pkg?.backupDir) {
-        rmSync(pkg.backupDir, { recursive: true, force: true });
+    if (pkg === undefined) {
+        failures.push(entry.project);
+        console.error(`构建失败：${entry.project}（找不到包信息）`);
+        continue;
     }
-
-    let built = true;
-    try {
-        execFileSync(
-            pnpmCommand,
-            ['--filter', entry.package, 'build'],
-            {
-                cwd: repoRoot,
-                stdio: 'inherit',
-                shell: true,
-            },
-        );
-    } catch {
-        built = false;
+    if (!buildPackage(pkg).ok) {
         failures.push(entry.project);
         console.error(`构建失败：${entry.project}`);
-    }
-
-    if (snapshot) {
-        if (built) {
-            mergeRestore(snapshot);
-        } else {
-            restoreDirectory(snapshot);
-        }
     }
 }
 

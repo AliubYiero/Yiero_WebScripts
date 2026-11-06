@@ -13,13 +13,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm format` — 使用 Biome 格式化代码
 - `pnpm update:readme` — 重新生成 README.md 与 docs/README.md
 - `pnpm install` — 安装整个 workspace 的依赖（增删项目后重跑）
+- `pnpm commit <提交信息>` — 暂存当前项目（根目录调用则整仓）并提交；默认先按需构建
+- `pnpm push` — 推当前分支 + 当前项目的标签（根目录调用则推全部分支标签）
 - `pnpm build` — 只构建「banner 版本号尚未归档」的项目
 - `pnpm build:all` — 全量构建（会临时移走 `backup/`，避免同版本重复归档报错）
 - `pnpm build --dry-run` — 打印构建计划（JSON）
 - `pnpm build --all`（别名 `--force`）— 含例外项目在内全量构建
 - `pnpm build --project src/com/bilibili/xxx` — 只构建计划里的某个项目
 - `pnpm new:script 域/子域/项目名` — 用 `templates/ts-template` 生成新脚本项目
-- `pnpm check:template` — 体检模板（必备文件、依赖族、元数据键）
+- `pnpm check:template` — 体检模板（必备文件、依赖族、运行期依赖、委托命令、元数据键）
 - `pnpm check:tags` — 校验 git 标签是否符合「域/子域/项目/v版本」（`--remote` 一并比对远程）
 - `pnpm release:tag <项目>` — 给某项目的当前版本打标签（`--push` 顺手推远程）
 - `pnpm release:retag` — 标签命名迁移：默认只打印计划，`--apply` 建新名、`--push` 推远程、`--delete-old-local`/`--delete-old-remote` 清理旧名（须配 `--confirm`）
@@ -33,6 +35,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm dev:base` — 开发构建（development 模式，带 `--watch` 监听）
 - `pnpm dev:sync` — 开发构建并推送至脚本猫客户端（sync 模式，带 `--watch`）
 - `pnpm dev:test` — 测试构建（test 模式，会覆盖脚本元数据用于本地测试，带 `--watch`）
+- `pnpm commit <提交信息>` — 提交当前项目目录（默认先按需构建、打标签前也走同一套归档）
+- `pnpm release:tag` — 用 banner 版本号给当前项目打标签（先构建归档；同名标签指向同一 commit 时静默通过）
+- `pnpm push` — 推当前分支 + 当前项目前缀下的标签
+
+这三条是**委托命令**：项目里只有一行 `pnpm -w run ...`，实现在根仓库，靠 `INIT_CWD` 认出当前项目；也可用 `--project <路径>` 显式指定。见 `docs/adr/0004-delegated-commands.md`。
 
 ## 浏览器验证（独立配置）
 
@@ -63,6 +70,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 标签名与工作区目录同构：`<域>/<子域>/<项目名>/v<版本>`（省略 `src/`，段首的点目录写成下划线，如 `_Global/`、`com/bilibili/_bilibili-api-lib/`）。标签是轻量标签。见 `docs/adr/0003-tag-naming.md`。
 
 发版时用 `pnpm release:tag <项目> --push`；`pnpm check:tags --remote` 校验本地与 GitHub 两侧一致。标签名的解析与生成集中在 `script/release/tag-name.ts`，不要在别处自己 `split('/')`。
+
+在项目目录里可以直接 `pnpm release:tag`（不带项目参数）：版本号取 `banner/UserScript.ts` 的 `@version`，先构建归档再打标签。同名标签已指向同一 commit 时静默通过，指向别的 commit 才报错。
 
 ## 代码风格
 

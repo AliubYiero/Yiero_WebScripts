@@ -10,7 +10,10 @@
         "dev:test": "tsc && vite build --mode test --watch",
         "build": "tsc && vite build --mode production",
         "test": "vitest",
-        "coverage": "vitest run --coverage"
+        "coverage": "vitest run --coverage",
+        "commit": "pnpm -w run commit",
+        "release:tag": "pnpm -w run release:tag",
+        "push": "pnpm -w run push"
     },
     "devDependencies": {
         "@rollup/plugin-replace": "^6.0.2",

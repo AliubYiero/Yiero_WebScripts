@@ -43,6 +43,29 @@ export const recommendedScriptKeys = [
  */
 export const exclusiveScriptKeys = ['match', 'background', 'crontab'];
 
+/**
+ * 模板运行期依赖的标准值。
+ *
+ * 与 devDependencies 分开看守：`dependencies` 里的库会被
+ * 复制进每个新项目，漂移比工具链更难被发现。
+ */
+export const standardDependencies: Record<string, string> = {
+    '@yiero/gmlib': '^0.4.7',
+    radash: '^12.1.1',
+};
+
+/**
+ * 子仓库委托命令：模板里必须原样带上。
+ *
+ * 它们只是转发到仓库根执行，命令本身在 `script/` 下，
+ * 模板里不新增任何脚本文件。
+ */
+export const standardScripts: Record<string, string> = {
+    commit: 'pnpm -w run commit',
+    'release:tag': 'pnpm -w run release:tag',
+    push: 'pnpm -w run push',
+};
+
 /** 模板依赖族的标准值：模板与它漂移即视为腐烂。 */
 export const standardDevDependencies: Record<string, string> = {
     '@rollup/plugin-replace': '^6.0.2',

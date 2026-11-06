@@ -10,7 +10,10 @@
         "dev:sync": "tsc && vite build --mode sync --watch",
         "dev:test": "tsc && vite build --mode test --watch",
         "test": "vitest",
-        "coverage": "vitest run --coverage"
+        "coverage": "vitest run --coverage",
+        "commit": "pnpm -w run commit",
+        "release:tag": "pnpm -w run release:tag",
+        "push": "pnpm -w run push"
     },
     "devDependencies": {
         "@rollup/plugin-replace": "^6.0.2",
@@ -32,6 +35,7 @@
         "yamljs": "^0.3.0"
     },
     "dependencies": {
-        "@yiero/gmlib": "^0.3.4"
+        "@yiero/gmlib": "^0.4.7",
+        "radash": "^12.1.1"
     }
 }

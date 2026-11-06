@@ -2,6 +2,15 @@ import {
     discoverPackages,
     type PackageInfo,
 } from '../../workspace/workspace';
+import { parseArgs } from '../../workspace/args';
+import {
+    buildPackage,
+    needsArchiveBuild,
+} from '../../workspace/build-project';
+import {
+    lookupProject,
+    projectFromInitCwd,
+} from '../../workspace/project-context';
 import {
     commitsAhead,
     createTag,
@@ -10,101 +19,105 @@ import {
     pathExistsAtCommit,
     pushTags,
     revOf,
+    runGit,
 } from '../git-tags';
 import { formatTag, isValidTagName, toTagPrefix } from '../tag-name';
 
-const args = process.argv.slice(2);
-
-function takeFlagValue(flag: string): string | null {
-    const index = args.indexOf(flag);
-    if (index === -1) {
-        return null;
-    }
-    const value = args[index + 1];
-    if (value === undefined || value.startsWith('--')) {
-        return null;
-    }
-    return value;
-}
-
-function positionalArgs(): string[] {
-    const consumed = new Set<number>();
-    for (const flag of ['--commit']) {
-        const index = args.indexOf(flag);
-        if (index !== -1) {
-            consumed.add(index);
-            consumed.add(index + 1);
-        }
-    }
-    return args.filter(
-        (arg, index) => !arg.startsWith('--') && !consumed.has(index),
-    );
-}
-
-const has = (flag: string): boolean => args.includes(flag);
-const dryRun = has('--dry-run');
-const shouldPush = has('--push');
-const force = has('--force');
-const commitArg = takeFlagValue('--commit');
-const targets = positionalArgs();
-
-function basename(relDir: string): string {
-    const index = relDir.lastIndexOf('/');
-    return index === -1 ? relDir : relDir.slice(index + 1);
-}
-
-function resolveProjects(
-    target: string,
-    packages: readonly PackageInfo[],
-): PackageInfo[] {
-    const normalized = target
-        .replaceAll('\\', '/')
-        .replace(/\/+$/, '')
-        .replace(/^\.\//, '');
-    return packages.filter((pkg) => {
-        const relDir = pkg.relDir;
-        if (normalized === relDir || normalized === pkg.name) {
-            return true;
-        }
-        if (normalized === basename(relDir)) {
-            return true;
-        }
-        return normalized === relDir.replace(/^src\//, '');
-    });
-}
+const parsed = parseArgs(process.argv.slice(2), [
+    '--commit',
+    '--project',
+]);
+const dryRun = parsed.flags.has('--dry-run');
+const shouldPush = parsed.flags.has('--push');
+const force = parsed.flags.has('--force');
+const skipBuild = parsed.flags.has('--no-build');
+const commitArg = parsed.values.get('--commit') ?? null;
+const projectSpec = parsed.values.get('--project') ?? null;
+const targets = parsed.positionals;
 
 function fail(message: string): number {
     console.error(`✖ ${message}`);
     return 2;
 }
 
-function main(): number {
+/** 运行期失败（构建中止等）用 1，与用法错误的 2 区分。 */
+function abort(message: string): number {
+    console.error(`✖ ${message}`);
+    return 1;
+}
+
+const usage =
+    'pnpm release:tag <项目> [--commit <rev>] [--push] ' +
+    '[--dry-run] [--force] [--no-build]';
+
+/**
+ * 项目来源：`--project` > 子仓库委托（INIT_CWD）> 位置参数。
+ * 子仓库里调用时会拒绝再传项目参数，避免指错目标。
+ */
+function resolveTargetPackage(
+    packages: readonly PackageInfo[],
+): PackageInfo | number {
+    if (projectSpec !== null) {
+        if (targets.length > 0) {
+            return fail('--project 与项目参数只能二选一');
+        }
+        const found = lookupProject(projectSpec, packages);
+        if (found.pkg === null) {
+            return fail(found.error ?? `找不到项目：${projectSpec}`);
+        }
+        return found.pkg;
+    }
+
+    const fromCwd = projectFromInitCwd(packages);
+    if (fromCwd !== null) {
+        if (targets.length > 0) {
+            return fail(
+                `已从项目目录调用（${fromCwd.relDir}），` +
+                    '不要再传项目参数',
+            );
+        }
+        return fromCwd;
+    }
+
     if (targets.length === 0) {
-        return fail(
-            '用法：pnpm release:tag <项目> ' +
-                '[--commit <rev>] [--push] [--dry-run] [--force]',
-        );
+        return fail(`用法：${usage}`);
     }
     if (targets.length > 1) {
         return fail(`只接受一个项目，收到：${targets.join(' ')}`);
     }
+    const found = lookupProject(targets[0], packages);
+    if (found.pkg === null) {
+        return fail(found.error ?? `找不到项目：${targets[0]}`);
+    }
+    return found.pkg;
+}
 
+function main(): number {
     const packages = discoverPackages();
-    const matches = resolveProjects(targets[0], packages);
-    if (matches.length === 0) {
-        return fail(`找不到项目：${targets[0]}`);
+    const resolved = resolveTargetPackage(packages);
+    if (typeof resolved === 'number') {
+        return resolved;
     }
-    if (matches.length > 1) {
-        const list = matches
-            .map((pkg) => `  ${pkg.relDir}`)
-            .join('\n');
-        return fail(`项目名不唯一，请用完整路径：\n${list}`);
-    }
+    const pkg = resolved;
 
-    const pkg = matches[0];
     const version = pkg.isLibrary ? pkg.version : pkg.scriptVersion;
     if (version === null) {
         return fail(`${pkg.relDir} 没有可用版本号`);
+    }
+
+    // 版本号只认 banner 的 @version；先归档再打标签，保证标签对应
+    // 的 commit 里已经包含这一版产物。
+    if (!skipBuild && !dryRun) {
+        if (pkg.isLibrary) {
+            console.log('= 链接库没有归档构建，跳过构建');
+        } else if (needsArchiveBuild(pkg)) {
+            console.log(`=== 构建 ${pkg.relDir}（v${version}）`);
+            if (!buildPackage(pkg).ok) {
+                return abort(`构建失败，已中止打标签：${pkg.relDir}`);
+            }
+        } else {
+            console.log(`= v${version} 已归档，跳过构建`);
+        }
     }
 
     let tag: string;
@@ -143,9 +156,16 @@ function main(): number {
     }
 
     // 告警不阻断：写错版本号或未推送的 commit 仍由人决定。
-    if (!pkg.isLibrary && pkg.archived === false) {
+    if (!pkg.isLibrary && pkg.archived === false && !dryRun) {
         console.warn(
             `⚠ v${version} 还没有备份归档（${pkg.relDir}/backup）`,
+        );
+    }
+    const dirty = runGit(['status', '--porcelain', '--', pkg.relDir]);
+    if (dirty.ok && dirty.stdout !== '') {
+        console.warn(
+            `⚠ ${pkg.relDir} 有未提交的改动，` +
+                '标签会指向不含这些改动的 commit',
         );
     }
     if (commit === 'HEAD') {

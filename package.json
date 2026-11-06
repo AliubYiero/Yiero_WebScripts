@@ -6,6 +6,8 @@
     "scripts": {
         "build": "tsx script/workspace/cli/build.ts",
         "build:all": "tsx script/workspace/cli/build.ts --all",
+        "commit": "tsx script/workspace/cli/commit.ts",
+        "push": "tsx script/workspace/cli/push.ts",
         "new:script": "tsx script/workspace/cli/new-script.ts",
         "check:template": "tsx script/workspace/cli/check-template.ts",
         "check:tags": "tsx script/release/cli/check-tags.ts",
