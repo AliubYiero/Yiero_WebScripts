@@ -7,6 +7,10 @@ import * as fs from 'node:fs';
 import * as path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { createReadmeContent } from './createReadmeContent.ts';
+import {
+    getScriptSourcePath,
+    SPECIAL_ENTRY_DIRECTORIES,
+} from './script-path.ts';
 import type { ScriptDetail, ScriptInfo } from './types.ts';
 
 export type { ScriptDetail, ScriptInfo };
@@ -15,19 +19,14 @@ export type { ScriptDetail, ScriptInfo };
  * 特殊入口配置
  * 用于配置以 . 开头的特殊目录，这些目录会被当作独立的域名处理
  */
-interface SpecialEntryConfig {
-    entry: string; // 目录名，如 ".Global"、".Crontab"
-    domain: string; // 对应的域名，如 "global"、"crontab"
-}
-
 /**
  * 特殊入口配置列表
- * 这些目录会被当作独立的域名处理，而不是被跳过
+ * 这些目录会被当作独立的域名处理，而不是被跳过。
+ * 目录名与域名的映射只维护在 script-path.ts 一处。
  */
-const SPECIAL_ENTRY_CONFIGS: SpecialEntryConfig[] = [
-    { entry: '.Global', domain: 'global' },
-    { entry: '.Crontab', domain: 'crontab' },
-];
+const SPECIAL_ENTRY_CONFIGS = Object.entries(
+    SPECIAL_ENTRY_DIRECTORIES,
+).map(([domain, entry]) => ({ entry, domain }));
 
 /**
  * 获取文件的最后更新时间
@@ -507,7 +506,7 @@ class ScriptFileSystem {
         // 直接写入文件
         fs.writeFileSync(
             this.scriptJsonPath,
-            JSON.stringify(mergedScriptInfo, null, '\t'),
+            `${JSON.stringify(mergedScriptInfo, null, 4)}\n`,
             'utf8',
         );
         console.log(`[成功] 已更新 script.json`);
@@ -524,25 +523,11 @@ class ScriptFileSystem {
         scriptProjectName: string,
         userScriptFilepath: string,
     ): string {
-        let relativePath: string;
-
-        // 查找是否为特殊入口配置的域名
-        const specialConfig = SPECIAL_ENTRY_CONFIGS.find(
-            (config) => config.domain === domain,
+        const sourcePath = getScriptSourcePath(
+            domain,
+            scriptProjectName,
         );
-        if (specialConfig) {
-            relativePath = `${specialConfig.entry}/${scriptProjectName}`;
-        } else {
-            // 将 domain (如 bilibili.com) 转换为路径 (com/bilibili)
-            const parts = domain.split('.');
-            if (parts.length === 2) {
-                relativePath = `${parts[1]}/${parts[0]}/${scriptProjectName}`;
-            } else {
-                relativePath = `${domain}/${scriptProjectName}`;
-            }
-        }
-
-        return `https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/${relativePath}/${userScriptFilepath}`;
+        return `https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/${sourcePath}/${userScriptFilepath}`;
     }
 }
 

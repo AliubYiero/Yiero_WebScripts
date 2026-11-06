@@ -2,6 +2,7 @@
     "name": "@webscripts/bilibili-live-danmaku-send-time-show",
     "private": true,
     "version": "0.0.0",
+    "license": "GPL-3.0-only",
     "type": "module",
     "scripts": {
         "build": "tsc && vite build --mode production",

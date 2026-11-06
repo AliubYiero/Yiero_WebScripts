@@ -1,3 +1,4 @@
+import { getScriptReadmePath } from './script-path.ts';
 import type { ScriptDetail, ScriptInfo } from './types.ts';
 
 /**
@@ -31,9 +32,26 @@ function timestampToBeijingDate(
 }
 
 /**
+ * 创建简介列的 README 链接
+ * @param isPrivate - 链接写在 docs/README.md 时，需要向仓库根回退一层
+ */
+const createReadmeLink = (
+    domain: string,
+    projectName: string,
+    isPrivate: boolean,
+): string =>
+    `[README](${isPrivate ? '../' : ''}${getScriptReadmePath(
+        domain,
+        projectName,
+    )})`;
+
+/**
  * 创建脚本表格行
  */
-const createScriptTableRow = (scriptDetail: ScriptDetail): string => {
+const createScriptTableRow = (
+    scriptDetail: ScriptDetail,
+    readmeLink: string,
+): string => {
     const scriptType = {
         web: '前台脚本',
         background: '后台脚本',
@@ -52,6 +70,7 @@ const createScriptTableRow = (scriptDetail: ScriptDetail): string => {
     return `| ${[
         scriptDetail.name,
         scriptDetail.description,
+        readmeLink,
         scriptType[scriptDetail.scriptType] || 'unknown',
         scriptDetail.version,
         timestampToBeijingDate(scriptDetail.lastUpdate),
@@ -68,14 +87,17 @@ const createScriptTableHeader = (
     isQuote: boolean = false,
 ): string => {
     const quote = isQuote ? '> ' : '';
-    return `${quote}| 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
-${quote}| --- | --- | --- | --- | --- | --- | --- | --- |`;
+    return `${quote}| 脚本名称 | 脚本描述 | 简介 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
+${quote}| --- | --- | --- | --- | --- | --- | --- | --- | --- |`;
 };
 
 /**
  * 创建 脚本列表内容
  */
-const createScriptListContent = (scriptInfo: ScriptInfo) => {
+const createScriptListContent = (
+    scriptInfo: ScriptInfo,
+    isPrivate: boolean,
+) => {
     const scriptList: string[] = [];
     for (let domain in scriptInfo) {
         const scriptDetailMap = scriptInfo[domain];
@@ -99,8 +121,17 @@ const createScriptListContent = (scriptInfo: ScriptInfo) => {
         // 生成普通脚本表格
         if (normalScripts.length > 0) {
             scriptList.push(createScriptTableHeader());
-            for (const [, scriptDetail] of normalScripts) {
-                scriptList.push(createScriptTableRow(scriptDetail));
+            for (const [projectName, scriptDetail] of normalScripts) {
+                scriptList.push(
+                    createScriptTableRow(
+                        scriptDetail,
+                        createReadmeLink(
+                            domain,
+                            projectName,
+                            isPrivate,
+                        ),
+                    ),
+                );
             }
         }
 
@@ -108,9 +139,20 @@ const createScriptListContent = (scriptInfo: ScriptInfo) => {
         if (archivedScripts.length > 0) {
             scriptList.push('\n> **归档脚本**\n>');
             scriptList.push('>\n' + createScriptTableHeader(true));
-            for (const [, scriptDetail] of archivedScripts) {
+            for (const [
+                projectName,
+                scriptDetail,
+            ] of archivedScripts) {
                 scriptList.push(
-                    '> ' + createScriptTableRow(scriptDetail),
+                    '> ' +
+                        createScriptTableRow(
+                            scriptDetail,
+                            createReadmeLink(
+                                domain,
+                                projectName,
+                                isPrivate,
+                            ),
+                        ),
                 );
             }
         }
@@ -136,7 +178,7 @@ const createPrivateReadmeContent = (scriptInfo: ScriptInfo) => {
 >
 > 版本号小于 1.0.0 的脚本为实验性脚本, 不保证更新, 不保证问题修复.
 
-${createScriptListContent(scriptInfo)}`;
+${createScriptListContent(scriptInfo, true)}`;
 };
 
 /**
@@ -147,7 +189,7 @@ const createPublicReadmeContent = (scriptInfo: ScriptInfo) => {
 
 > 版本号小于 1.0.0 的脚本为实验性脚本, 不保证更新, 不保证问题修复.
 
-${createScriptListContent(scriptInfo)}
+${createScriptListContent(scriptInfo, false)}
 
 
 ## 目录结构
@@ -157,6 +199,7 @@ ${createScriptListContent(scriptInfo)}
 1. 以 \`/src/<顶级域名>/<二级域名>/<项目>\` 为命名格式的项目.
 2. 以 \`/src/.<特殊功能>/<项目>\` 为命名格式的项目:
 \t- \`/src/.Global/<项目>\`: 所有网站匹配的脚本
+\t- \`/src/.Crontab/<项目>\`: 定时脚本
 
 **示例**
 
@@ -189,7 +232,7 @@ pnpm install
 
 > 修改脚本内容
 
-项目模板收在仓库内 templates/ts-template, 新建脚本项目用脚手架: pnpm new:script 域/子域/项目名
+项目模板收在仓库内 templates/ts-template, 新建脚本项目用脚手架: pnpm new:script 顶级域/二级域/项目名（特殊目录用 .Global/项目名、.Crontab/项目名）
 
 > 开发某个脚本项目（示例）
 

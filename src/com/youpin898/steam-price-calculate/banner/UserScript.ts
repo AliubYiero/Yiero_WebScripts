@@ -15,7 +15,7 @@ const UserScript: ScriptCatUserScript = [
     ['run-at', 'document-body'],
     ['connect', ''],
     ['tag', ''],
-    ['license', ''],
+    ['license', 'GPL-3'],
     ['namespace', 'https://github.com/AliubYiero/Yiero_WebScripts'],
     ['noframes'],
 ];

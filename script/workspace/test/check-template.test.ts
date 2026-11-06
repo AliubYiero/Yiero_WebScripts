@@ -56,9 +56,10 @@ test('生成物的空元数据在严格模式下报错', () => {
         writeFileSync(bannerPath, banner, 'utf8');
 
         const result = checkTemplate(target, { strictMeta: true });
+        // 运行方式三选一：match 清空后整组都为空
         ok(
             result.errors.some((error) =>
-                error.includes('match 为空'),
+                error.includes('至少需要一个非空值'),
             ),
         );
         ok(

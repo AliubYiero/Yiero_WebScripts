@@ -31,7 +31,17 @@ export const forbiddenEntries = [
 export const requiredScriptKeys = ['name', 'description', 'version'];
 
 /** 建议填写、但不阻塞模板本身的键。 */
-export const recommendedScriptKeys = ['match', 'author', 'namespace'];
+export const recommendedScriptKeys = [
+    'license',
+    'author',
+    'namespace',
+];
+
+/**
+ * 脚本运行方式：三者互斥，且至少要有一个非空值。
+ * 与 meta-banner 插件的 MUTUALLY_EXCLUSIVE_KEYS 保持一致。
+ */
+export const exclusiveScriptKeys = ['match', 'background', 'crontab'];
 
 /** 模板依赖族的标准值：模板与它漂移即视为腐烂。 */
 export const standardDevDependencies: Record<string, string> = {

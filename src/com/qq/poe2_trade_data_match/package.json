@@ -2,6 +2,7 @@
     "name": "@webscripts/poe2_trade_data_match",
     "private": true,
     "version": "0.0.0",
+    "license": "GPL-3.0-only",
     "type": "module",
     "scripts": {
         "build": "tsc && vite build --mode production",

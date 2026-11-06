@@ -12,7 +12,11 @@
 
 ## 脚手架命令
 
-把模板变成一个新脚本项目的命令（`pnpm new:script <域>/<项目名>`）。它负责复制模板并替换标识（目录名、`@name`、README 标题等），替代「手工复制 + 手工改三处」的旧流程。
+把模板变成一个新脚本项目的命令（`pnpm new:script <顶级域>/<二级域>/<项目名>`；特殊目录用 `pnpm new:script <.Global|.Crontab>/<项目名>`）。它负责复制模板并替换标识（目录名、`@name`、README 标题、`@license`），并按目标目录推导运行方式：普通项目 `@match` 为 `https://*.<二级域>.<顶级域>/*`，`.Global` 为 `https://*/*`，`.Crontab` 不带 `@match` 而写 `@crontab * * once * *`。替代「手工复制 + 手工改三处」的旧流程。
+
+## 定时脚本
+
+banner 里用 `@crontab` 声明运行频率、不带 `@match` 的脚本，位于 `src/.Crontab/<项目名>/`。`@crontab` 的默认值是 `* * once * *`（每天最多执行一次）。`@match`、`@background`、`@crontab` 三者互斥，且必须有一个非空。
 
 ## 版本号唯一来源
 
@@ -29,6 +33,10 @@
 ## 生成物
 
 由 `script/updateReadme` 生成的 `README.md`、`docs/README.md`、`script/updateReadme/script.json`。生成物不可手改——要改就改生成器，否则下次生成会被覆盖回去。
+
+## 简介列
+
+README 脚本表格中位于「脚本描述」之后的一列，每个单元格是指向该脚本项目 `README.md` 的链接。链接是源码树的相对路径，由 `script.json` 的域名与项目名推导，不单独存字段：根 README 写 `src/...`，`docs/README.md` 写 `../src/...`。
 
 ## 构建模式
 

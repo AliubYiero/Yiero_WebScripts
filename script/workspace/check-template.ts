@@ -3,6 +3,7 @@ import { join, relative } from 'node:path';
 import ts from 'typescript';
 import { parseScriptEntries } from './banner-meta';
 import {
+    exclusiveScriptKeys,
     forbiddenEntries,
     recommendedScriptKeys,
     requiredFiles,
@@ -18,7 +19,7 @@ export interface CheckResult {
 export interface CheckOptions {
     /** 模板本身允许保留 {{placeholder}} 占位符；生成物不允许。 */
     allowPlaceholders?: boolean;
-    /** 生成物校验：match / author 等建议键为空时也算错误。 */
+    /** 生成物校验：license / author 等建议键为空、运行方式三键全空时也算错误。 */
     strictMeta?: boolean;
 }
 
@@ -187,6 +188,33 @@ export function checkTemplate(
                 !options.allowPlaceholders &&
                 /\{\{.+?\}\}/.test(value ?? '')
             ) {
+                errors.push(`脚本元数据 ${key} 仍是占位符：${value}`);
+            }
+        }
+
+        // 运行方式三选一：match / background / crontab
+        const presentExclusiveKeys = exclusiveScriptKeys.filter(
+            (key) => (values.get(key) ?? '').trim() !== '',
+        );
+        if (presentExclusiveKeys.length === 0) {
+            const message = `脚本元数据 ${exclusiveScriptKeys.join(
+                ' / ',
+            )} 至少需要一个非空值`;
+            if (options.strictMeta) {
+                errors.push(message);
+            } else {
+                warnings.push(message);
+            }
+        } else if (presentExclusiveKeys.length > 1) {
+            errors.push(
+                `脚本元数据 ${presentExclusiveKeys.join(
+                    ' / ',
+                )} 互斥，只能保留一个`,
+            );
+        } else if (!options.allowPlaceholders) {
+            const [key] = presentExclusiveKeys;
+            const value = (values.get(key) ?? '').trim();
+            if (/\{\{.+?\}\}/.test(value)) {
                 errors.push(`脚本元数据 ${key} 仍是占位符：${value}`);
             }
         }

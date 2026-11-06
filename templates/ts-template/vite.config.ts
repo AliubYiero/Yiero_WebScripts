@@ -85,8 +85,14 @@ export default defineConfig((env) => {
             ['description', `[test project] ${projectName}`],
             ['version', '0.1.0-alpha'],
             ['author', 'test'],
-            ['match', '*://*.*'],
         );
+        // 后台/定时脚本已经有 background/crontab，不能再塞 match，二者互斥
+        const isBackgroundScript = UserScript.some(
+            ([key]) => key === 'background' || key === 'crontab',
+        );
+        if (!isBackgroundScript) {
+            UserScript.push(['match', '*://*.*']);
+        }
     }
 
     const baseOptions: ViteConfig = {

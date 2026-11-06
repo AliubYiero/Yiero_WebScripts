@@ -12,7 +12,7 @@ const UserScript: ScriptCatUserScript = [
     ['run-at', ''],
     ['connect', ''],
     ['tag', ''],
-    ['license', ''],
+    ['license', '{{license}}'],
     ['namespace', '{{namespace}}'],
     ['noframes'],
 ];
