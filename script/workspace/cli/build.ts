@@ -18,12 +18,20 @@ const packages = discoverPackages();
 const plan = createBuildPlan(packages, { all });
 
 /** 目标条目 + 它传递依赖的链接库，保持计划顺序。 */
-function planForProject(spec: string): PlanEntry[] {
+function planForProject(spec: string): ProjectPlan {
     const found = lookupProject(spec, packages);
     if (found.pkg === null) {
         process.exit(fail(found.error ?? `找不到项目：${spec}`));
     }
-    return selectPlanEntries(plan, found.pkg.relDir);
+    return {
+        pkg: found.pkg,
+        entries: selectPlanEntries(plan, found.pkg.relDir),
+    };
+}
+
+interface ProjectPlan {
+    pkg: PackageInfo;
+    entries: PlanEntry[];
 }
 
 if (projectIndex >= 0 && projectSpec === undefined) {
@@ -34,15 +42,43 @@ const target =
     projectSpec === null || projectSpec === undefined
         ? null
         : planForProject(projectSpec);
-const targetPlan = target ?? plan;
+const targetPlan = target?.entries ?? plan;
 
 if (dryRun) {
     console.log(JSON.stringify(targetPlan, null, 4));
     process.exit(0);
 }
 
-if (target !== null && target.length === 0) {
+let targetEntry: PlanEntry | undefined;
+if (target !== null) {
+    targetEntry = target.entries.find(
+        (entry) => entry.project === target.pkg.relDir,
+    );
+}
+
+if (target !== null && targetEntry === undefined) {
     process.exit(fail(`构建计划里没有项目：${projectSpec}`));
+}
+
+// 先判定目标条目的状态再动手：被跳过的目标不能因为库依赖
+// 恰好要构建就顺带把库建了、再以 0 退出。
+if (
+    target !== null &&
+    targetEntry !== undefined &&
+    targetEntry.action !== 'build'
+) {
+    if (targetEntry.exception) {
+        process.exit(
+            fail(
+                `该项目是例外项目，只有 --all / build:all 会构建它：${target.pkg.relDir}`,
+            ),
+        );
+    }
+    process.exit(
+        fail(
+            `该项目当前版本已归档，无需构建：${target.pkg.relDir}（如需强制重建，加 --force）`,
+        ),
+    );
 }
 
 const pending = targetPlan.filter(
@@ -50,13 +86,6 @@ const pending = targetPlan.filter(
 );
 
 if (pending.length === 0) {
-    if (projectSpec !== null && projectSpec !== undefined) {
-        console.error(
-            `该项目当前版本已归档，无需构建：${projectSpec}（如需强制重建，加 --force）`,
-        );
-        process.exit(2);
-    }
-
     console.log('没有需要构建的项目：所有脚本的当前版本都已归档。');
     process.exit(0);
 }

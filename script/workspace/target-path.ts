@@ -1,4 +1,4 @@
-import { SPECIAL_DOMAINS } from './workspace';
+import { LIBRARY_DOMAIN, SPECIAL_DOMAINS } from './workspace';
 
 export interface NewScriptTarget {
     /** src 下的相对路径分段，如 ['com', 'bilibili', 'demo'] */
@@ -37,4 +37,18 @@ export function parseTarget(raw: string): NewScriptTarget | null {
     }
 
     return null;
+}
+
+/**
+ * 识别「把脚本建进库域」的目标：`.Libs/<名>` 或 `src/.Libs/<名>`。
+ * 命中时返回规范化后的 `src/.Libs/<名>` 路径，供脚手架给出
+ * 专属提示；不是库域时返回 null。
+ */
+export function parseLibraryDomainTarget(raw: string): string | null {
+    const parts = raw.split('/').filter((part) => part.length > 0);
+    const segments = parts[0] === 'src' ? parts.slice(1) : parts;
+    if (segments.length < 2 || segments[0] !== LIBRARY_DOMAIN) {
+        return null;
+    }
+    return ['src', ...segments].join('/');
 }

@@ -3,9 +3,21 @@ import { join } from 'node:path';
 import { copyTemplateTo } from '../copy-template';
 import { fillPlaceholders } from '../fill-tokens';
 import { resolveTargetMeta } from '../scaffold-options';
-import { parseTarget } from '../target-path';
+import {
+    parseLibraryDomainTarget,
+    parseTarget,
+} from '../target-path';
 import { templateDir } from '../template';
 import { repoRoot } from '../workspace';
+
+const libraryTarget = parseLibraryDomainTarget(process.argv[2] ?? '');
+
+if (libraryTarget !== null) {
+    console.error(
+        `库域不能放脚本项目：${libraryTarget}（库请直接放到 src/.Libs/<库名>/）`,
+    );
+    process.exit(2);
+}
 
 const target = parseTarget(process.argv[2] ?? '');
 

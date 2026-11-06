@@ -1,3 +1,4 @@
+import { existsSync, statSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { parseArgs } from '../args';
 import { abort, fail } from '../cli-common';
@@ -34,9 +35,13 @@ if (extra.length > 0) {
 }
 
 const rootValue = parsed.values.get('--root');
-const packages = discoverPackages(
-    rootValue === undefined ? repoRoot : resolve(rootValue),
-);
+const root = rootValue === undefined ? repoRoot : resolve(rootValue);
+
+if (!existsSync(root) || !statSync(root).isDirectory()) {
+    process.exit(fail(`--root 指向的目录不存在或不是目录：${root}`));
+}
+
+const packages = discoverPackages(root);
 
 if (!packages.some((pkg) => pkg.isLibrary)) {
     console.log('没有链接库（src/.Libs），跳过库门禁。');

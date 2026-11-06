@@ -13,7 +13,10 @@ import { checkTemplate } from '../check-template';
 import { copyTemplateTo } from '../copy-template';
 import { fillPlaceholders } from '../fill-tokens';
 import { resolveTargetMeta } from '../scaffold-options';
-import { parseTarget } from '../target-path';
+import {
+    parseLibraryDomainTarget,
+    parseTarget,
+} from '../target-path';
 import { templateDir } from '../template';
 import { SPECIAL_DOMAINS } from '../workspace';
 
@@ -158,6 +161,16 @@ test('新建参数校验', () => {
     });
     equal(parseTarget('demo'), null);
     equal(parseTarget('com/.bilibili/demo'), null);
+});
+
+test('库域目标被识别出来，供脚手架给出专属提示', () => {
+    equal(parseLibraryDomainTarget('.Libs/gmlib'), 'src/.Libs/gmlib');
+    equal(
+        parseLibraryDomainTarget('src/.Libs/gmlib'),
+        'src/.Libs/gmlib',
+    );
+    equal(parseLibraryDomainTarget('com/bilibili/demo'), null);
+    equal(parseLibraryDomainTarget('.Global/demo'), null);
 });
 
 test('按目录推导运行方式', () => {

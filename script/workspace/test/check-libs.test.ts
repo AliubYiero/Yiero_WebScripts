@@ -59,6 +59,21 @@ function makeLibrary(
     );
 }
 
+function makeTypeScript(root: string, rel: string): void {
+    const dir = join(root, rel);
+    mkdirSync(join(dir, 'bin'), { recursive: true });
+    writeFileSync(
+        join(dir, 'package.json'),
+        JSON.stringify({ name: 'typescript', version: '5.0.0' }),
+        'utf8',
+    );
+    writeFileSync(
+        join(dir, 'bin/tsc'),
+        "console.log('TSC-RAN');",
+        'utf8',
+    );
+}
+
 function withTempRoot(run: (root: string) => void): void {
     const root = mkdtempSync(join(tmpdir(), 'ws-gate-'));
     try {
@@ -67,6 +82,32 @@ function withTempRoot(run: (root: string) => void): void {
         rmSync(root, { recursive: true, force: true });
     }
 }
+
+test('--root 指向不存在的目录时按用法错误退出，而不是假通过', () => {
+    withTempRoot((root) => {
+        const result = runCheckLibs([
+            'typecheck',
+            '--root',
+            join(root, 'missing'),
+        ]);
+
+        equal(result.status, 2);
+        match(result.stderr, /--root/);
+        match(result.stderr, /不存在|不是目录/);
+    });
+});
+
+test('--root 指向文件时按用法错误退出', () => {
+    withTempRoot((root) => {
+        const file = join(root, 'not-a-dir');
+        writeFileSync(file, '', 'utf8');
+
+        const result = runCheckLibs(['test', '--root', file]);
+
+        equal(result.status, 2);
+        match(result.stderr, /--root/);
+    });
+});
 
 test('没有链接库时门禁以 0 退出并说明', () => {
     withTempRoot((root) => {
@@ -146,7 +187,7 @@ test('库缺少 tsconfig 时类型检查失败并点名', () => {
     });
 });
 
-test('库没有自己的 TypeScript 时报错而不是静默通过', () => {
+test('库没有自己的 TypeScript 时报错而不是回退到根依赖', () => {
     withTempRoot((root) => {
         makeLibrary(root, 'src/.Libs/no-ts', {
             name: '@demo/no-ts',
@@ -157,12 +198,15 @@ test('库没有自己的 TypeScript 时报错而不是静默通过', () => {
             JSON.stringify({ include: ['src'] }),
             'utf8',
         );
+        // 根上有一份 TypeScript：旧实现会沿 node_modules 向上回退到它，
+        // 让门禁假通过；库自己的依赖里并没有。
+        makeTypeScript(root, 'node_modules/typescript');
 
         const result = runCheckLibs(['typecheck', '--root', root]);
 
         equal(result.status, 1);
         match(result.stderr, /src\/\.Libs\/no-ts/);
-        match(result.stderr, /无法类型检查/);
+        match(result.stderr, /库没有自己的 TypeScript/);
     });
 });
 

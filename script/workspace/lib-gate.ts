@@ -1,7 +1,7 @@
 import { execFileSync } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, realpathSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { join } from 'node:path';
+import { join, resolve, sep } from 'node:path';
 import type { PackageInfo } from './workspace';
 
 export type LibGateMode = 'typecheck' | 'test';
@@ -36,11 +36,37 @@ export interface LibGatePlan {
     skipped: LibGateSkip[];
 }
 
+/** child 是否位于 parent 目录之内（兼容 Windows 大小写与分隔符）。 */
+function isInside(parent: string, child: string): boolean {
+    const normalize = (value: string): string => {
+        const resolved = resolve(value);
+        return process.platform === 'win32'
+            ? resolved.toLowerCase()
+            : resolved;
+    };
+    const parentPath = normalize(parent);
+    const childPath = normalize(child);
+    return (
+        childPath === parentPath ||
+        childPath.startsWith(`${parentPath}${sep}`)
+    );
+}
+
 /** 库自己安装的 TypeScript 入口；没有时返回 null。 */
 export function resolveTypeScript(dir: string): string | null {
     try {
         const require = createRequire(join(dir, 'package.json'));
-        return require.resolve('typescript/bin/tsc');
+        const resolved = require.resolve('typescript/bin/tsc');
+        const own = join(dir, 'node_modules', 'typescript');
+        if (!existsSync(own)) {
+            return null;
+        }
+        // require.resolve 会把软链接展开成真实路径（pnpm 下指向根
+        // .pnpm），所以拿库内那份 TypeScript 的真实目录来比对，
+        // 避免沿 node_modules 向上回退到根依赖。
+        return isInside(realpathSync(own), resolved)
+            ? resolved
+            : null;
     } catch {
         return null;
     }
@@ -74,9 +100,7 @@ export function createLibGatePlan(
             }
             const tsc = resolveTypeScript(pkg.dir);
             if (tsc === null) {
-                errors.push(
-                    `没有安装 TypeScript，无法类型检查：${pkg.relDir}`,
-                );
+                errors.push(`库没有自己的 TypeScript：${pkg.relDir}`);
                 continue;
             }
             tasks.push({

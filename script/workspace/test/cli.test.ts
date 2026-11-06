@@ -1,5 +1,6 @@
 import { equal, ok } from 'node:assert/strict';
 import { spawnSync } from 'node:child_process';
+import { mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { test } from 'node:test';
 import { discoverPackages, repoRoot } from '../workspace';
@@ -7,6 +8,7 @@ import { discoverPackages, repoRoot } from '../workspace';
 function runTsx(args: string[]): {
     status: number | null;
     stdout: string;
+    stderr: string;
 } {
     const result = spawnSync(
         process.platform === 'win32' ? 'pnpm.cmd' : 'pnpm',
@@ -17,7 +19,11 @@ function runTsx(args: string[]): {
             shell: process.platform === 'win32',
         },
     );
-    return { status: result.status, stdout: result.stdout ?? '' };
+    return {
+        status: result.status,
+        stdout: result.stdout ?? '',
+        stderr: result.stderr ?? '',
+    };
 }
 
 test('build --dry-run 输出可解析的 JSON 计划', () => {
@@ -41,6 +47,22 @@ test('new:script 参数不合法时退出码为 2', () => {
         'demo',
     ]);
     equal(status, 2);
+});
+
+test('new:script 拒绝库域并给出专属提示', () => {
+    for (const spec of ['.Libs/gmlib', 'src/.Libs/gmlib']) {
+        const { status, stderr } = runTsx([
+            join('script', 'workspace', 'cli', 'new-script.ts'),
+            spec,
+        ]);
+
+        equal(status, 2, spec);
+        ok(
+            stderr.includes('库域不能放脚本项目：src/.Libs/gmlib'),
+            stderr,
+        );
+        ok(stderr.includes('src/.Libs/<库名>/'), stderr);
+    }
 });
 
 interface PlanEntryJson {
@@ -127,6 +149,62 @@ test('--project 指向已归档项目时退出码为 2', () => {
         'src/com/bilibili/bilibili-video-timeline',
     ]);
     equal(status, 2);
+});
+
+test('--project 例外项目时说明只有 --all 会构建它', () => {
+    const { status, stderr } = runTsx([
+        join('script', 'workspace', 'cli', 'build.ts'),
+        '--project',
+        'src/com/bilibili/bilibili-video-watch-sign',
+    ]);
+
+    equal(status, 2);
+    ok(stderr.includes('例外项目'), stderr);
+    ok(stderr.includes('--all'), stderr);
+});
+
+test('目标脚本被跳过时不因库依赖要构建而假装成功', () => {
+    const probeRoot = join(repoRoot, 'src/com/reviewfix');
+    const probe = join(probeRoot, 'pending-probe');
+    try {
+        rmSync(probeRoot, { recursive: true, force: true });
+        mkdirSync(join(probe, 'banner'), { recursive: true });
+        mkdirSync(join(probe, 'backup'), { recursive: true });
+        writeFileSync(
+            join(probe, 'package.json'),
+            JSON.stringify({
+                name: '@webscripts/reviewfix-probe',
+                version: '0.0.0',
+                scripts: { build: 'node -e ""' },
+                dependencies: { '@yiero/gmlib': 'workspace:*' },
+            }),
+            'utf8',
+        );
+        // 未归档的版本：让 gmlib 在全局计划里被判成 build。
+        writeFileSync(
+            join(probe, 'banner/UserScript.ts'),
+            "const UserScript = [['version', '99.0.0']];\n\nexport { UserScript };\n",
+            'utf8',
+        );
+        writeFileSync(
+            join(probe, 'backup/versions.json'),
+            JSON.stringify({ '0.0.1': 'baseline.js' }),
+            'utf8',
+        );
+
+        const { status, stdout, stderr } = runTsx([
+            join('script', 'workspace', 'cli', 'build.ts'),
+            '--project',
+            'src/com/bilibili/bilibili-video-timeline',
+        ]);
+
+        // 目标是已归档脚本：不能因为 gmlib 要构建就 exit 0。
+        equal(status, 2);
+        ok(stderr.includes('已归档'), stderr);
+        ok(!stdout.includes('=== [链接库] src/.Libs/gmlib'), stdout);
+    } finally {
+        rmSync(probeRoot, { recursive: true, force: true });
+    }
 });
 
 test('--project 找不到项目时退出码为 2', () => {
