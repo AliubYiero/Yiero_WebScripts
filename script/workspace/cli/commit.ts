@@ -1,67 +1,39 @@
 import { runGit } from '../../release/git-tags';
 import { parseArgs } from '../args';
-import { buildPackage, needsArchiveBuild } from '../build-project';
+import { ensureArchiveBuild } from '../build-project';
+import {
+    abort,
+    fail,
+    parseStatusLines,
+    previewFiles,
+    splitLines,
+} from '../cli-common';
 import { resolveScope } from '../project-context';
 import { discoverPackages } from '../workspace';
 
-const parsed = parseArgs(process.argv.slice(2), ['--project']);
+const parsed = parseArgs(
+    process.argv.slice(2),
+    ['--project'],
+    ['--dry-run'],
+);
 const dryRun = parsed.flags.has('--dry-run');
-const skipBuild = parsed.flags.has('--no-build');
 
-function fail(message: string): number {
-    console.error(`✖ ${message}`);
-    return 2;
-}
+const usage =
+    '用法：pnpm commit <提交信息> [--project <项目>] [--dry-run]';
 
-/** 运行期失败（构建中止等）用 1，与用法错误的 2 区分。 */
-function abort(message: string): number {
-    console.error(`✖ ${message}`);
-    return 1;
-}
-
-/** 只打印前若干行，避免一次列几十个文件。 */
-function previewFiles(files: string[]): string {
-    const shown = files.slice(0, 20).map((file) => `  ${file}`);
-    if (files.length > shown.length) {
-        shown.push(`  …另有 ${files.length - shown.length} 个文件`);
-    }
-    return shown.join('\n');
-}
-
-/** 把输出按行拆成路径列表。 */
-function splitLines(stdout: string): string[] {
-    return stdout
-        .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => line.length > 0);
-}
-
-/** 解析 `git status --porcelain`：重命名取新路径，带引号的路径去掉引号。 */
-function parseStatusLines(stdout: string): string[] {
-    return stdout
-        .split('\n')
-        .map((line) => line.replace(/\r$/, ''))
-        .filter((line) => line.length > 3)
-        .map((line) => {
-            const rest = line.slice(3);
-            const arrow = rest.indexOf(' -> ');
-            const path =
-                arrow === -1
-                    ? rest
-                    : rest.slice(arrow + ' -> '.length);
-            return path.startsWith('"') && path.endsWith('"')
-                ? path.slice(1, -1)
-                : path;
-        });
+/** 判断暂存路径是否落在项目目录内。 */
+function isInside(file: string, relDir: string): boolean {
+    return file === relDir || file.startsWith(`${relDir}/`);
 }
 
 function main(): number {
+    if (parsed.errors.length > 0) {
+        return fail(parsed.errors[0]);
+    }
+
     const message = parsed.positionals.join(' ').trim();
     if (message === '') {
-        return fail(
-            '用法：pnpm commit <提交信息> ' +
-                '[--project <项目>] [--no-build] [--dry-run]',
-        );
+        return fail(usage);
     }
 
     const packages = discoverPackages();
@@ -77,18 +49,10 @@ function main(): number {
     const label = pkg === null ? '整个仓库' : pkg.relDir;
     console.log(`=== 提交范围：${label}`);
 
-    if (pkg !== null && !skipBuild && !dryRun) {
-        if (pkg.isLibrary) {
-            console.log('= 链接库没有归档构建，跳过构建');
-        } else if (needsArchiveBuild(pkg)) {
-            console.log(
-                `=== 构建 ${pkg.relDir}（v${pkg.scriptVersion}）`,
-            );
-            if (!buildPackage(pkg).ok) {
-                return abort(`构建失败，已中止提交：${pkg.relDir}`);
-            }
-        } else {
-            console.log(`= v${pkg.scriptVersion} 已归档，跳过构建`);
+    if (pkg !== null && !dryRun) {
+        const build = ensureArchiveBuild(pkg);
+        if (!build.ok) {
+            return abort(`构建失败，已中止提交：${pkg.relDir}`);
         }
     }
 
@@ -110,7 +74,7 @@ function main(): number {
                   ];
         const status = runGit(statusArgs);
         if (!status.ok) {
-            return fail(`读取工作区状态失败：${status.stderr}`);
+            return abort(`读取工作区状态失败：${status.stderr}`);
         }
         const files = parseStatusLines(status.stdout);
         if (files.length === 0) {
@@ -126,26 +90,48 @@ function main(): number {
 
     const added = runGit(addArgs);
     if (!added.ok) {
-        return fail(`暂存失败：${added.stderr}`);
+        return abort(`暂存失败：${added.stderr}`);
     }
 
     const staged = runGit(['diff', '--cached', '--name-only']);
     if (!staged.ok) {
-        return fail(`读取暂存区失败：${staged.stderr}`);
+        return abort(`读取暂存区失败：${staged.stderr}`);
     }
-    const files = splitLines(staged.stdout);
+    const stagedAll = splitLines(staged.stdout);
+    const files =
+        pkg === null
+            ? stagedAll
+            : stagedAll.filter((file) => isInside(file, pkg.relDir));
+    // 暂存区可能有别处预先 `git add` 的内容，提交时会被一起带走；
+    // 这里只负责说清楚，不擅自替用户取消暂存。
+    const outside =
+        pkg === null
+            ? []
+            : stagedAll.filter((file) => !isInside(file, pkg.relDir));
 
     if (files.length === 0) {
         console.log('= 没有可提交的变更');
+        if (outside.length > 0) {
+            console.warn(
+                '⚠ 暂存区里还有本次范围之外的改动，未提交：\n' +
+                    previewFiles(outside),
+            );
+        }
         return 0;
     }
 
     console.log(`暂存 ${files.length} 个文件：`);
     console.log(previewFiles(files));
+    if (outside.length > 0) {
+        console.warn(
+            '⚠ 暂存区里还有本次范围之外的改动，会一并提交：\n' +
+                previewFiles(outside),
+        );
+    }
 
     const committed = runGit(['commit', '-m', message]);
     if (!committed.ok) {
-        return fail(committed.stderr || committed.stdout);
+        return abort(committed.stderr || committed.stdout);
     }
     if (committed.stdout !== '') {
         console.log(committed.stdout);

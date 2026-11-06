@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, readdirSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import ts from 'typescript';
 import { parseScriptEntries } from './banner-meta';
@@ -33,6 +33,46 @@ const ignoredDirs = new Set([
     'backup',
     '.git',
 ]);
+
+interface Manifest {
+    devDependencies?: Record<string, string>;
+    dependencies?: Record<string, string>;
+    scripts?: Record<string, string>;
+}
+
+interface ManifestRule {
+    section: keyof Manifest;
+    standards: Record<string, string>;
+    missing: (name: string, expected: string) => string;
+    drift: (name: string, expected: string, actual: string) => string;
+}
+
+/** 三类清单项共用一套遍历，只是措辞不同（测试按字面量断言）。 */
+const manifestRules: ManifestRule[] = [
+    {
+        section: 'devDependencies',
+        standards: standardDevDependencies,
+        missing: (name, expected) =>
+            `模板缺少标准依赖：${name}@${expected}`,
+        drift: (name, expected, actual) =>
+            `模板依赖族漂移：${name} 期望 ${expected}，实际 ${actual}`,
+    },
+    {
+        section: 'dependencies',
+        standards: standardDependencies,
+        missing: (name, expected) =>
+            `模板缺少运行期依赖：${name}@${expected}`,
+        drift: (name, expected, actual) =>
+            `模板运行期依赖漂移：${name} 期望 ${expected}，实际 ${actual}`,
+    },
+    {
+        section: 'scripts',
+        standards: standardScripts,
+        missing: (name) => `模板缺少委托命令：${name}`,
+        drift: (name, expected, actual) =>
+            `模板委托命令被改动：${name} 期望 ${expected}，实际 ${actual}`,
+    },
+];
 
 function collectSources(dir: string): string[] {
     const files: string[] = [];
@@ -128,51 +168,19 @@ export function checkTemplate(
     if (existsSync(manifestPath)) {
         const manifest = JSON.parse(
             readFileSync(manifestPath, 'utf8').replace(/^\uFEFF/, ''),
-        ) as {
-            devDependencies?: Record<string, string>;
-            dependencies?: Record<string, string>;
-            scripts?: Record<string, string>;
-        };
+        ) as Manifest;
 
-        const devDependencies = manifest.devDependencies ?? {};
-        for (const [name, version] of Object.entries(
-            standardDevDependencies,
-        )) {
-            const actual = devDependencies[name];
-            if (actual === undefined) {
-                errors.push(`模板缺少标准依赖：${name}@${version}`);
-            } else if (actual !== version) {
-                errors.push(
-                    `模板依赖族漂移：${name} 期望 ${version}，实际 ${actual}`,
-                );
-            }
-        }
-
-        const dependencies = manifest.dependencies ?? {};
-        for (const [name, version] of Object.entries(
-            standardDependencies,
-        )) {
-            const actual = dependencies[name];
-            if (actual === undefined) {
-                errors.push(`模板缺少运行期依赖：${name}@${version}`);
-            } else if (actual !== version) {
-                errors.push(
-                    `模板运行期依赖漂移：${name} 期望 ${version}，实际 ${actual}`,
-                );
-            }
-        }
-
-        const scripts = manifest.scripts ?? {};
-        for (const [name, command] of Object.entries(
-            standardScripts,
-        )) {
-            const actual = scripts[name];
-            if (actual === undefined) {
-                errors.push(`模板缺少委托命令：${name}`);
-            } else if (actual !== command) {
-                errors.push(
-                    `模板委托命令被改动：${name} 期望 ${command}，实际 ${actual}`,
-                );
+        for (const rule of manifestRules) {
+            const actual = manifest[rule.section] ?? {};
+            for (const [name, expected] of Object.entries(
+                rule.standards,
+            )) {
+                const value = actual[name];
+                if (value === undefined) {
+                    errors.push(rule.missing(name, expected));
+                } else if (value !== expected) {
+                    errors.push(rule.drift(name, expected, value));
+                }
             }
         }
     }

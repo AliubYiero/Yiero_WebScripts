@@ -13,8 +13,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm format` — 使用 Biome 格式化代码
 - `pnpm update:readme` — 重新生成 README.md 与 docs/README.md
 - `pnpm install` — 安装整个 workspace 的依赖（增删项目后重跑）
-- `pnpm commit <提交信息>` — 暂存当前项目（根目录调用则整仓）并提交；默认先按需构建
-- `pnpm push` — 推当前分支 + 当前项目的标签（根目录调用则推全部分支标签）
+- `pnpm commit <提交信息>` — 暂存当前项目（根目录调用则整仓）并提交；当前版本未归档时先构建
+- `pnpm push` — 推当前分支 + 当前项目前缀下的标签（根目录调用则推当前分支 + 全部标签）
 - `pnpm build` — 只构建「banner 版本号尚未归档」的项目
 - `pnpm build:all` — 全量构建（会临时移走 `backup/`，避免同版本重复归档报错）
 - `pnpm build --dry-run` — 打印构建计划（JSON）
@@ -23,11 +23,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm new:script 域/子域/项目名` — 用 `templates/ts-template` 生成新脚本项目
 - `pnpm check:template` — 体检模板（必备文件、依赖族、运行期依赖、委托命令、元数据键）
 - `pnpm check:tags` — 校验 git 标签是否符合「域/子域/项目/v版本」（`--remote` 一并比对远程）
+- `pnpm check:biome` — 检查 `script/workspace` 与 `script/release` 的 import 顺序与 lint（`pnpm format` 只管格式，不跑 assist）
 - `pnpm release:tag <项目>` — 给某项目的当前版本打标签（`--push` 顺手推远程）
 - `pnpm release:retag` — 标签命名迁移：默认只打印计划，`--apply` 建新名、`--push` 推远程、`--delete-old-local`/`--delete-old-remote` 清理旧名（须配 `--confirm`）
 - `pnpm test` — 运行 workspace 工具脚本自测
 - `pnpm typecheck` — 对 `script/` 做 TypeScript 类型检查
-- `pnpm verify` — 依次跑 typecheck、模板体检、标签校验与自测
+- `pnpm verify` — 依次跑 typecheck、biome 检查、模板体检、标签校验与自测
 
 对单个脚本项目执行（进项目目录，或在根目录用 `pnpm --filter @webscripts/<目录名> ...`）：
 
@@ -35,11 +36,15 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm dev:base` — 开发构建（development 模式，带 `--watch` 监听）
 - `pnpm dev:sync` — 开发构建并推送至脚本猫客户端（sync 模式，带 `--watch`）
 - `pnpm dev:test` — 测试构建（test 模式，会覆盖脚本元数据用于本地测试，带 `--watch`）
-- `pnpm commit <提交信息>` — 提交当前项目目录（默认先按需构建、打标签前也走同一套归档）
-- `pnpm release:tag` — 用 banner 版本号给当前项目打标签（先构建归档；同名标签指向同一 commit 时静默通过）
+- `pnpm commit <提交信息>` — 提交当前项目目录（当前版本未归档时先构建；没有可提交的变更时以 0 退出）
+- `pnpm release:tag` — 用 banner 版本号给当前项目打标签（当前版本未归档时先构建；同名标签指向同一 commit 时静默通过）
 - `pnpm push` — 推当前分支 + 当前项目前缀下的标签
 
 这三条是**委托命令**：项目里只有一行 `pnpm -w run ...`，实现在根仓库，靠 `INIT_CWD` 认出当前项目；也可用 `--project <路径>` 显式指定。见 `docs/adr/0004-delegated-commands.md`。
+
+退出码统一为：`0` 成功或幂等跳过（没有可提交的变更、标签已存在），`1` 运行期失败（构建、git 操作失败），`2` 用法 / 查找错误（缺参数、项目找不到、项目名不唯一）。
+
+发版顺序是先 `pnpm commit` 再 `pnpm release:tag`：标签只能指向已有 commit，构建产物要先落进 HEAD；反过来做，标签指向的 commit 里就没有这一版归档（命令会告警）。
 
 ## 浏览器验证（独立配置）
 

@@ -1,7 +1,7 @@
 import { equal, ok } from 'node:assert/strict';
 import { test } from 'node:test';
-import { projectFromInitCwd, resolveScope } from '../project-context';
 import { needsArchiveBuild } from '../build-project';
+import { projectFromInitCwd, resolveScope } from '../project-context';
 import { type PackageInfo, repoRoot } from '../workspace';
 
 function fakePackage(
