@@ -1,0 +1,48 @@
+{
+    "name": "@yiero/gmlib",
+    "author": "Yiero",
+    "version": "0.4.7",
+    "description": "GM Lib for Tampermonkey/ScriptCat",
+    "type": "module",
+    "exports": {
+        ".": {
+            "types": "./dist/index.d.ts",
+            "import": "./dist/index.js"
+        }
+    },
+    "types": "./dist/index.d.ts",
+    "files": [
+        "dist",
+        "LICENSE"
+    ],
+    "scripts": {
+        "dev": "rslib build --watch",
+        "build": "rslib build",
+        "check": "biome check --write",
+        "format": "biome format --write",
+        "test": "vitest run",
+        "test:watch": "vitest",
+        "pack": "npm pack"
+    },
+    "devDependencies": {
+        "@biomejs/biome": "^2.4.9",
+        "@rslib/core": "^0.18.3",
+        "@types/node": "^24.10.1",
+        "happy-dom": "^20.9.0",
+        "typescript": "^5.9.3",
+        "vitest": "^4.1.4"
+    },
+    "license": "MIT",
+    "keywords": [
+        "tampermonkey",
+        "lib",
+        "scriptcat",
+        "utils"
+    ],
+    "repository": {
+        "url": "git+https://github.com/AliubYiero/GmLib.git"
+    },
+    "publishConfig": {
+        "access": "public"
+    }
+}

@@ -1,16 +1,18 @@
 packages:
-    # 域名分层布局下的脚本项目：src/<顶级域>/<二级域>/<项目>
-    - 'src/[!.]*/[!.]*/*'
-    # 库域：跨域复用的链接库，两层布局 src/.Libs/<库名>
-    - 'src/.Libs/*'
-    # 两个特殊目录：跨站脚本与定时脚本
-    - 'src/.Global/*'
-    - 'src/.Crontab/*'
+  # 域名分层布局下的脚本项目：src/<顶级域>/<二级域>/<项目>
+  - 'src/[!.]*/[!.]*/*'
+  # 库域：跨域复用的链接库，两层布局 src/.Libs/<库名>
+  - 'src/.Libs/*'
+  # 两个特殊目录：跨站脚本与定时脚本
+  - 'src/.Global/*'
+  - 'src/.Crontab/*'
 
 # src/.WIP 等其它点开头目录被上面的 [!.] 通配排除，库域（.Libs）显式收录；没有 package.json 的孤儿目录不会被 pnpm 当作 workspace 包
 
 allowBuilds:
-    esbuild: true
+  # core-js 的 postinstall 只打印赞助信息，不影响产物
+  core-js: false
+  esbuild: true
 
 # 不要在每个 pnpm run/exec 之前自动重装依赖（会重建子项目锁文件）
 verifyDepsBeforeRun: false
