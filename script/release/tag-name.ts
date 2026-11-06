@@ -103,8 +103,9 @@ export function isLegacyTag(tag: string): boolean {
  * 项目目录可能对应的标签基名。
  *
  * 带点目录（`.Global/xxx`）在旧标签里常被写成
- * `xxx/v1.0.0`，库则可能写成 `bilibili-api-lib` 或
- * `_bilibili-api-lib`，这里一次性列全。
+ * `xxx/v1.0.0` 或 `_xxx/v1.0.0`，这里把去点与下划线形式
+ * 一并列出；库域 `src/.Libs/<名>` 的基名就是 `<名>`，标签
+ * 前缀 `_Libs/<名>` 由 toTagPrefix 生成。
  */
 export function matchKeys(relDir: string): string[] {
     const index = relDir.lastIndexOf('/');

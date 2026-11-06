@@ -63,6 +63,26 @@ test('段首点号写成点号时给出下划线建议', () => {
     equal(violations[0].next, null);
 });
 
+test('旧前缀 _ 的库标签改判路径不符并给出库域建议', () => {
+    const violations = validateTags(
+        ['com/bilibili/_bilibili-api-lib/v0.3.2'],
+        packages,
+    );
+    equal(violations.length, 1);
+    equal(violations[0].rule, '路径');
+    equal(violations[0].next, '_Libs/bilibili-api-lib/v0.3.2');
+});
+
+test('去掉下划线后仍无匹配时保持未知项目', () => {
+    const violations = validateTags(
+        ['com/bilibili/_nope/v1.0.0'],
+        packages,
+    );
+    equal(violations.length, 1);
+    equal(violations[0].rule, '未知项目');
+    equal(violations[0].next, null);
+});
+
 test('未知项目被点名', () => {
     const violations = validateTags(
         ['com/nope/whatever/v1.0.0'],

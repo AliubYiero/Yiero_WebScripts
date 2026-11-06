@@ -67,6 +67,23 @@ export function validateTags(
         const name = parsed.segments[parsed.segments.length - 1];
         const candidates = byKey.get(name) ?? [];
         if (candidates.length === 0) {
+            // 历史标签把库的旧前缀写成 `_bilibili-api-lib`：项目名
+            // 本身对得上，只是路径段错了，改判路径不符并给出建议。
+            const stripped = name.startsWith('_')
+                ? name.slice(1)
+                : null;
+            const legacy =
+                stripped === null ? [] : (byKey.get(stripped) ?? []);
+            if (legacy.length === 1) {
+                const expected = toTagPrefix(legacy[0]);
+                violations.push({
+                    tag,
+                    rule: '路径',
+                    message: `应为 ${expected}（目录 ${legacy[0]}）`,
+                    next: formatTag(expected, parsed.version),
+                });
+                continue;
+            }
             violations.push({
                 tag,
                 rule: '未知项目',
