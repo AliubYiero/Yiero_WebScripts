@@ -7,16 +7,16 @@
 ### global
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 全局CSS导入 | 将自定义的 CSS 导入进页面中, 实现易用可控的页面样式控制. | 前台脚本 | 1.1.3 | 2026-11-01 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/.Global/global-css-import/backup/global-css-import.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/1626) |  |
+| 全局CSS导入 | 将自定义的 CSS 导入进页面中, 实现易用可控的页面样式控制. | 前台脚本 | 1.1.3 | 2026-11-06 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/.Global/global-css-import/backup/global-css-import.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/1626) |  |
 | 健康浏览网页 | 限制网页访问时间 | 前台脚本 | 1.0.0 | 2024-05-20 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/.Global/limit-web-view-time/backup/limit-web-view-time.user.js) |  |  |
 
 
 ### bilibili.com
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| Bilibili 视频时间轴 | 根据视频字幕, 生成视频时间轴. | 前台脚本 | 2.0.3 | 2026-11-01 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-timeline/backup/bilibili-video-timeline.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/2613) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/522993) |
-| Bilibili 直播弹幕发送时间显示 | 在评论框直播弹幕的最后, 显示弹幕发送的时间 | 前台脚本 | 1.0.2 | 2026-11-01 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-danmaku-send-time-show/backup/bilibili-live-danmaku-send-time-show.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/2621) |  |
-| Bilibili直播自动点赞 | Bilibili进入直播间后自动点赞. | 前台脚本 | 1.3.0 | 2026-11-01 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-auto-like/backup/bilibili-live-auto-like.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/2016) |  |
+| Bilibili 视频时间轴 | 根据视频字幕, 生成视频时间轴. | 前台脚本 | 2.0.3 | 2026-11-06 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-timeline/backup/bilibili-video-timeline.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/2613) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/522993) |
+| Bilibili直播自动点赞 | Bilibili进入直播间后自动点赞. | 前台脚本 | 1.3.0 | 2026-11-06 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-auto-like/backup/bilibili-live-auto-like.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/2016) |  |
+| Bilibili 直播弹幕发送时间显示 | 在评论框直播弹幕的最后, 显示弹幕发送的时间 | 前台脚本 | 1.0.2 | 2026-11-06 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-danmaku-send-time-show/backup/bilibili-live-danmaku-send-time-show.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/2621) |  |
 | Bilibili视频倍速记忆 | 自动记忆视频播放倍速设置，并提供快捷键快速调整播放速度。 | 前台脚本 | 1.3.0 | 2026-10-07 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-playback-rate-remember/backup/bilibili-video-playback-rate-remember.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5800) |  |
 | Bilibili投稿合集排序辅助 | 支持按投稿的发布时间排序(升序/降序), 不再只能使用默认的按投稿标题排序. | 前台脚本 | 1.1.1 | 2026-06-04 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-upload-section-sort/backup/bilibili-upload-section-sort.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5085) | [GreasyFork 源](https://greasyfork.org/zh-CN/scripts/561930) |
 | Bilibili直播评论样式修改 | 修改Bilibili直播间的评论样式弹幕显示样式, 使其按卡片式固定格式显示. 即上面是用户信息, 下面是弹幕.  优化弹幕框顶部的房间观众和大航海显示, 不再固定显示. | 前台脚本 | 1.0.4 | 2026-04-17 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-chat-style/backup/bilibili-live-chat-style.user.js) | [ScriptCat 源](https://scriptcat.org/zh-CN/script-show-page/5757) |  |
@@ -31,13 +31,19 @@
 ### qidian.com
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 小说自动滚动 | 小说自动滚动脚本, 支持自动翻页/无限滚动模式.\n支持网站: 起点, 微信阅读, QQ阅读, 阅读 \nSpace 开启/关闭滚动, 长按 Space 临时暂停, Shift+PageUp/PageDown 调节速度. | 前台脚本 | 1.0.1 | 2026-11-01 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qidian/auto-scroll/backup/auto-scroll.user.js) |  |  |
+| 小说自动滚动 | 小说自动滚动脚本, 支持自动翻页/无限滚动模式.\n支持网站: 起点, 微信阅读, QQ阅读, 阅读 \nSpace 开启/关闭滚动, 长按 Space 临时暂停, Shift+PageUp/PageDown 调节速度. | 前台脚本 | 1.0.1 | 2026-11-06 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qidian/auto-scroll/backup/auto-scroll.user.js) |  |  |
 
 
 ### qq.com
 | 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| 流放之路2网页市集快速跳转 | 按下空格, 自动点击搜索栏的第一个可跳转的商品藏身处 | 前台脚本 | 1.1.0 | 2026-11-01 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2-market-quick-jump/backup/poe2-market-quick-jump.user.js) |  |  |
+| 流放之路2网页市集快速跳转 | 按下空格, 自动点击搜索栏的第一个可跳转的商品藏身处 | 前台脚本 | 1.1.0 | 2026-11-06 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/qq/poe2-market-quick-jump/backup/poe2-market-quick-jump.user.js) |  |  |
+
+
+### youpin898.com
+| 脚本名称 | 脚本描述 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| 悠悠有品饰品折扣率计算 | 在首页访问时, 直接显示当前饰品可以倒余额的折扣率. | 前台脚本 | 1.0.0 | 2026-11-06 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/youpin898/steam-price-calculate/backup/steam-price-calculate.user.js) |  |  |
 
 
 ### mikannani.me
