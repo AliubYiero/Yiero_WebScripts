@@ -152,15 +152,39 @@ test('--project 指向已归档项目时退出码为 2', () => {
 });
 
 test('--project 例外项目时说明只有 --all 会构建它', () => {
-    const { status, stderr } = runTsx([
-        join('script', 'workspace', 'cli', 'build.ts'),
-        '--project',
-        'src/com/bilibili/bilibili-video-watch-sign',
-    ]);
+    const probeRoot = join(repoRoot, 'src/com/reviewfix');
+    const probe = join(probeRoot, 'exception-probe');
+    try {
+        rmSync(probeRoot, { recursive: true, force: true });
+        mkdirSync(join(probe, 'banner'), { recursive: true });
+        writeFileSync(
+            join(probe, 'package.json'),
+            JSON.stringify({
+                name: '@webscripts/reviewfix-exception-probe',
+                version: '0.0.0',
+                scripts: { build: 'node -e ""' },
+            }),
+            'utf8',
+        );
+        // 有脚本版本、但没有 backup/：属于例外项目。
+        writeFileSync(
+            join(probe, 'banner/UserScript.ts'),
+            "const UserScript = [['version', '1.0.0']];\n\nexport { UserScript };\n",
+            'utf8',
+        );
 
-    equal(status, 2);
-    ok(stderr.includes('例外项目'), stderr);
-    ok(stderr.includes('--all'), stderr);
+        const { status, stderr } = runTsx([
+            join('script', 'workspace', 'cli', 'build.ts'),
+            '--project',
+            'src/com/reviewfix/exception-probe',
+        ]);
+
+        equal(status, 2);
+        ok(stderr.includes('例外项目'), stderr);
+        ok(stderr.includes('--all'), stderr);
+    } finally {
+        rmSync(probeRoot, { recursive: true, force: true });
+    }
 });
 
 test('目标脚本被跳过时不因库依赖要构建而假装成功', () => {

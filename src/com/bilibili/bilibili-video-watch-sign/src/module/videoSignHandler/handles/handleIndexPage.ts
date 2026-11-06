@@ -4,8 +4,8 @@
  * created by 2025/12/2
  * @file FILE_DESCRIPTION
  * */
-import { baseParser, baseVideoSignLoader } from './base.ts';
-import { BindUpdatePageButton } from './bindUpdatePageButton.ts';
+import { baseParser, baseVideoSignLoader } from './base';
+import { BindUpdatePageButton } from './bindUpdatePageButton';
 import { sleep } from 'radash';
 
 // 首页 Banner 卡片解析

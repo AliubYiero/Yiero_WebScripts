@@ -4,7 +4,7 @@
  * created by 2025/12/2
  * @file 搜索页面
  * */
-import { baseParser, baseVideoSignLoader } from './base.ts';
+import { baseParser, baseVideoSignLoader } from './base';
 import { sleep } from 'radash';
 
 // 视频卡片解析

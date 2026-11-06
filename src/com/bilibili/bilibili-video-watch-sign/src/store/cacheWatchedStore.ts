@@ -1,14 +1,19 @@
+import { GmStorage } from '@yiero/gmlib';
+
 /**
  * 缓存已经收藏的视频 bvid
  *
- * 存储方式为 bvId 的前两位字符串作为子存储, 进行存储分流
+ * 存储方式为 bvId 的前三位字符串作为子存储, 进行存储分流
  */
 class CacheWatchedStore {
     // 储存名
     private readonly stoneName = 'cacheWatched';
 
-    // 存储的值
-    private watchedMapper: Record<string, string[]> = {};
+    // 子存储, 按 bvId 的前三位分片
+    private readonly childStoreMapper: Record<
+        string,
+        GmStorage<string[]>
+    > = {};
 
     /**
      * 判断当前 bvId 是否在缓存中
@@ -19,7 +24,7 @@ class CacheWatchedStore {
         }
 
         const childStore = this.getChildStore(bvId);
-        return childStore.includes(this.getBvIdValue(bvId));
+        return childStore.get().includes(this.getBvIdValue(bvId));
     }
 
     /**
@@ -30,13 +35,14 @@ class CacheWatchedStore {
             return;
         }
 
-        const watchedList = this.getChildStore(bvId);
+        const childStore = this.getChildStore(bvId);
+        const watchedList = childStore.get();
         const saveValue = this.getBvIdValue(bvId);
         if (watchedList.includes(saveValue)) {
             return;
         }
         watchedList.push(saveValue);
-        this.setChildStore(bvId, watchedList);
+        childStore.set(watchedList);
     }
 
     /**
@@ -44,21 +50,13 @@ class CacheWatchedStore {
      */
     private getChildStore(bvId: string) {
         const prevKey = this.getPrevKey(bvId);
-        if (!this.watchedMapper[prevKey]) {
-            this.watchedMapper[prevKey] = GM_getValue(
+        if (!this.childStoreMapper[prevKey]) {
+            this.childStoreMapper[prevKey] = new GmStorage<string[]>(
                 `${this.stoneName}_${prevKey}`,
                 [],
             );
         }
-        return this.watchedMapper[prevKey];
-    }
-
-    /**
-     * 设置子存储
-     */
-    private setChildStore(bvId: string, value: string[]) {
-        const prevKey = this.getPrevKey(bvId);
-        GM_setValue(`${this.stoneName}_${prevKey}`, value);
+        return this.childStoreMapper[prevKey];
     }
 
     /**

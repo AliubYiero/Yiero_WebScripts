@@ -4,9 +4,9 @@
  * created by 2025/12/2
  * @file 主站子分类页面
  * */
-import { baseParser, baseVideoSignLoader } from './base.ts';
-import { baseVideoCardParser } from './handleSpaceIndexPage.ts';
-import { elementGetter } from '../../../util/elementGetter.ts';
+import { baseParser, baseVideoSignLoader } from './base';
+import { baseVideoCardParser } from './handleSpaceIndexPage';
+import { elementGetter } from '../../../util/elementGetter';
 
 // 首页 Banner 卡片解析
 const indexChildTypeBannerCardParser = (container: HTMLElement) =>

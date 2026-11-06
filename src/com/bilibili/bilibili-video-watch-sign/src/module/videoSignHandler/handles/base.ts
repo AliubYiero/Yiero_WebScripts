@@ -1,10 +1,10 @@
-import { IVideoItem } from '../types/IVideoItem.ts';
-import { getVideoId } from '../../../util/getVideoId.ts';
-import { videoSignProcessingQueue } from '../../videoSignProcessingQueue/videoSignProcessingQueue.ts';
+import { IVideoItem } from '../types/IVideoItem';
+import { getVideoId } from '../../../util/getVideoId';
+import { videoSignProcessingQueue } from '../../videoSignProcessingQueue/videoSignProcessingQueue';
 import { elementWaiter } from '@yiero/gmlib';
-import { createMutationObserver } from '../../../util/createMutationObserver.ts';
-import { cacheWatchedStore } from '../../../store/cacheWatchedStore.ts';
-import { handleAddSign } from '../../videoSignProcessingQueue/handleAddSign.ts';
+import { createMutationObserver } from '../../../util/createMutationObserver';
+import { cacheWatchedStore } from '../../../store/cacheWatchedStore';
+import { handleAddSign } from '../../videoSignProcessingQueue/handleAddSign';
 
 /**
  * 通用视频信息解析

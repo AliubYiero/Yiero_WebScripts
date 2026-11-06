@@ -1,9 +1,9 @@
-import { addReadSignStyle } from './module/addReadSignStyle/addReadSignStyle.ts';
-import { getVideoSignHandler } from './module/videoSignHandler/getVideoSignHandler.ts';
-import { freshListenerPushState } from './util/freshListenerPushState.ts';
-import { videoSignProcessingQueue } from './module/videoSignProcessingQueue/videoSignProcessingQueue.ts';
-import { ObserverList } from './module/videoSignHandler/handles/base.ts';
-import { cacheWatchedSessionStore } from './store/cacheWatchedSessionStore.ts';
+import { addReadSignStyle } from './module/addReadSignStyle/addReadSignStyle';
+import { getVideoSignHandler } from './module/videoSignHandler/getVideoSignHandler';
+import { freshListenerPushState } from './util/freshListenerPushState';
+import { videoSignProcessingQueue } from './module/videoSignProcessingQueue/videoSignProcessingQueue';
+import { ObserverList } from './module/videoSignHandler/handles/base';
+import { cacheWatchedSessionStore } from './store/cacheWatchedSessionStore';
 import { sleep } from 'radash';
 
 /**

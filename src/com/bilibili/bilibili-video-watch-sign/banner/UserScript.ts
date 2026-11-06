@@ -1,6 +1,6 @@
-import { IUserScript } from './UserScript.d';
+import type { ScriptCatUserScript } from '../types/UserScript';
 
-const UserScript: IUserScript[] = [
+const UserScript: ScriptCatUserScript = [
     ['name', 'Bilibili视频观看状态标记'],
     [
         'description',
@@ -14,9 +14,10 @@ const UserScript: IUserScript[] = [
     ['icon', 'https://www.bilibili.com/favicon.ico'],
     ['run-at', ''],
     ['connect', 'api.bilibili.com'],
+    ['tag', ''],
     ['license', 'GPL-3'],
     ['namespace', 'https://github.com/AliubYiero/Yiero_WebScripts'],
-    ['noframes', ''],
+    ['noframes'],
 ];
 
 export { UserScript };

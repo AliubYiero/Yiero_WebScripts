@@ -1,9 +1,9 @@
-import { api_isFavorVideo } from '../../api/api_isFavorVideo.ts';
-import { DelayedQueue } from '../../util/DelayedQueue.ts';
-import { IVideoItem } from '../videoSignHandler/types/IVideoItem.ts';
-import { handleAddSign } from './handleAddSign.ts';
-import { cacheWatchedStore } from '../../store/cacheWatchedStore.ts';
-import { cacheWatchedSessionStore } from '../../store/cacheWatchedSessionStore.ts';
+import { api_isFavorVideo } from '../../api/api_isFavorVideo';
+import { DelayedQueue } from '../../util/DelayedQueue';
+import { IVideoItem } from '../videoSignHandler/types/IVideoItem';
+import { handleAddSign } from './handleAddSign';
+import { cacheWatchedStore } from '../../store/cacheWatchedStore';
+import { cacheWatchedSessionStore } from '../../store/cacheWatchedSessionStore';
 
 export const handleVideoSign = async (item: IVideoItem) => {
     item.position ||= 'left';

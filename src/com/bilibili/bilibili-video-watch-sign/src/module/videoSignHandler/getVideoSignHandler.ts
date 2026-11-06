@@ -1,19 +1,19 @@
-import { handleDynamicPage } from './handles/handleDynamicPage.ts';
-import { handleVideoPage } from './handles/handleVideoPage.ts';
-import { handleSpaceDynamicPage } from './handles/handleSpaceDynamicPage.ts';
-import { handleSpaceVideoPage } from './handles/handleSpaceVideoPage.ts';
-import { handleSpaceIndexPage } from './handles/handleSpaceIndexPage.ts';
-import { handleSpaceAlbumListPage } from './handles/handleSpaceAlbumListPage.ts';
-import { handleSpaceAlbumContentPage } from './handles/handleSpaceAlbumContentPage.ts';
-import { handleSpaceFavListPage } from './handles/handleSpaceFavListPage.ts';
-import { handleSpaceFollowCollectPage } from './handles/handleSpaceFollowCollectPage.ts';
-import { handleIndexPage } from './handles/handleIndexPage.ts';
-import { handleIndexChildPage } from './handles/handleIndexChildPage.ts';
-import { handlePopularPage } from './handles/handlePopularPage.ts';
-import { handlePopularWeeklyPage } from './handles/handlePopularWeeklyPage.ts';
-import { handlePopularRankPage } from './handles/handlePopularRankPage.ts';
-import { handleWatchLaterPage } from './handles/handleWatchLaterPage.ts';
-import { handleSearchPage } from './handles/handleSearchPage.ts';
+import { handleDynamicPage } from './handles/handleDynamicPage';
+import { handleVideoPage } from './handles/handleVideoPage';
+import { handleSpaceDynamicPage } from './handles/handleSpaceDynamicPage';
+import { handleSpaceVideoPage } from './handles/handleSpaceVideoPage';
+import { handleSpaceIndexPage } from './handles/handleSpaceIndexPage';
+import { handleSpaceAlbumListPage } from './handles/handleSpaceAlbumListPage';
+import { handleSpaceAlbumContentPage } from './handles/handleSpaceAlbumContentPage';
+import { handleSpaceFavListPage } from './handles/handleSpaceFavListPage';
+import { handleSpaceFollowCollectPage } from './handles/handleSpaceFollowCollectPage';
+import { handleIndexPage } from './handles/handleIndexPage';
+import { handleIndexChildPage } from './handles/handleIndexChildPage';
+import { handlePopularPage } from './handles/handlePopularPage';
+import { handlePopularWeeklyPage } from './handles/handlePopularWeeklyPage';
+import { handlePopularRankPage } from './handles/handlePopularRankPage';
+import { handleWatchLaterPage } from './handles/handleWatchLaterPage';
+import { handleSearchPage } from './handles/handleSearchPage';
 
 /**
  * 对应网页的回调函数映射

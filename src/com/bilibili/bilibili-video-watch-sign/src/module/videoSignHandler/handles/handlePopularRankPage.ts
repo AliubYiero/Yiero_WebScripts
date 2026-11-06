@@ -1,5 +1,5 @@
-import { elementGetter } from '../../../util/elementGetter.ts';
-import { baseParser, baseVideoSignLoader } from './base.ts';
+import { elementGetter } from '../../../util/elementGetter';
+import { baseParser, baseVideoSignLoader } from './base';
 import { sleep } from 'radash';
 
 /**

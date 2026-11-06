@@ -1,6 +1,6 @@
-import { elementGetter } from '../../../util/elementGetter.ts';
-import { baseVideoSignLoader } from './base.ts';
-import { rankingVideoCardParser } from './handlePopularPage.ts';
+import { elementGetter } from '../../../util/elementGetter';
+import { baseVideoSignLoader } from './base';
+import { rankingVideoCardParser } from './handlePopularPage';
 
 /**
  * handlePopularWeeklyPage.ts

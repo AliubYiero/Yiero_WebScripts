@@ -2,7 +2,7 @@ import { elementWaiter } from '@yiero/gmlib';
 import {
     updatePageEvent,
     updateStatusEvent,
-} from '../../../util/updateEvent.ts';
+} from '../../../util/updateEvent';
 
 /**
  * 绑定点击按钮触发的页面更新

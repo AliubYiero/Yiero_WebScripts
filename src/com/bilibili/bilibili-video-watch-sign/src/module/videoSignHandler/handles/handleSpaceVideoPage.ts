@@ -5,9 +5,9 @@
  * @file UP主动态
  * */
 
-import { baseVideoSignLoader } from './base.ts';
-import { baseVideoCardParser } from './handleSpaceIndexPage.ts';
-import { BindUpdatePageButton } from './bindUpdatePageButton.ts';
+import { baseVideoSignLoader } from './base';
+import { baseVideoCardParser } from './handleSpaceIndexPage';
+import { BindUpdatePageButton } from './bindUpdatePageButton';
 
 /**
  * 动态页面的已看视频处理

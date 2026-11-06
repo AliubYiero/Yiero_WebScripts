@@ -4,9 +4,9 @@
  * created by 2025/12/1
  * @file UP主主页上传视频页面
  * */
-import { BindUpdatePageButton } from './bindUpdatePageButton.ts';
-import { baseVideoSignLoader } from './base.ts';
-import { dynamicItemParser } from './handleDynamicPage.ts';
+import { BindUpdatePageButton } from './bindUpdatePageButton';
+import { baseVideoSignLoader } from './base';
+import { dynamicItemParser } from './handleDynamicPage';
 
 /**
  * 动态页面的已看视频处理

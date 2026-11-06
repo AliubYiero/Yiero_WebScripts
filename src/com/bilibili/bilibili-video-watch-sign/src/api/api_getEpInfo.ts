@@ -1,7 +1,7 @@
 import {
     IEpInfoResponse,
     IEpInfoResponseResultEpisodes,
-} from './types/IEpInfoResponse.ts';
+} from './types/IEpInfoResponse';
 import { gmRequest } from '@yiero/gmlib';
 
 /**

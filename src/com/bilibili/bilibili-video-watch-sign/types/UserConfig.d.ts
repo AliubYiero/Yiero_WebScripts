@@ -1,13 +1,13 @@
 /**
  * ScriptCat 配置
  */
-export declare interface IUserConfig {
+export interface ScriptCatUserConfig {
     [groupName: string]: {
-        [configKey: string]: UserConfigItemInterface;
+        [configKey: string]: UserConfigItem;
     };
 }
 
-export declare interface UserConfigItemInterface {
+export interface UserConfigItem {
     /** 配置标题 */
     title: string;
     /** 配置描述 */

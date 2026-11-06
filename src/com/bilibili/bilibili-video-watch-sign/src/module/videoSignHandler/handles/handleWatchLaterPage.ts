@@ -4,9 +4,9 @@
  * created by 2025/12/2
  * @file 稍后再看页面
  * */
-import { baseParser, baseVideoSignLoader } from './base.ts';
-import { IVideoItem } from '../types/IVideoItem.ts';
-import { BindUpdatePageButton } from './bindUpdatePageButton.ts';
+import { baseParser, baseVideoSignLoader } from './base';
+import { IVideoItem } from '../types/IVideoItem';
+import { BindUpdatePageButton } from './bindUpdatePageButton';
 
 const watchLaterParser = (
     container: HTMLElement,

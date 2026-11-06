@@ -4,7 +4,7 @@
  * created by 2025/12/2
  * @file 临时会话存储当前视频的所有状态
  * */
-import { WatchStatus } from '../module/videoSignProcessingQueue/handleAddSign.ts';
+import { WatchStatus } from '../module/videoSignProcessingQueue/handleAddSign';
 
 type CacheWatchedMapper = Record<string, WatchStatus>;
 

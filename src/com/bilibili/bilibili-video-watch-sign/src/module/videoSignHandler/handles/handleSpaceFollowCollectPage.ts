@@ -1,6 +1,6 @@
-import { baseVideoCardParser } from './handleSpaceIndexPage.ts';
-import { baseVideoSignLoader } from './base.ts';
-import { BindUpdatePageButton } from './bindUpdatePageButton.ts';
+import { baseVideoCardParser } from './handleSpaceIndexPage';
+import { baseVideoSignLoader } from './base';
+import { BindUpdatePageButton } from './bindUpdatePageButton';
 
 export const handleSpaceFollowCollectPage = async () => {
     const selectorList = {

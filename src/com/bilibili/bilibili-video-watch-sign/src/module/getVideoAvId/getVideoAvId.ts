@@ -1,5 +1,5 @@
-import { bvToAv } from './bvToAv.ts';
-import { api_getEpInfo } from '../../api/api_getEpInfo.ts';
+import { bvToAv } from './bvToAv';
+import { api_getEpInfo } from '../../api/api_getEpInfo';
 
 /**
  * 从URL路径检索视频ID，并在必要时进行转换。

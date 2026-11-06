@@ -1,4 +1,4 @@
-import { getVideoAvId } from '../module/getVideoAvId/getVideoAvId.ts';
+import { getVideoAvId } from '../module/getVideoAvId/getVideoAvId';
 import { gmRequest } from '@yiero/gmlib';
 
 export interface IFavouredResponse {

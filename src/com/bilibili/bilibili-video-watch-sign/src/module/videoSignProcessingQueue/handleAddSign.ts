@@ -1,4 +1,4 @@
-import { IVideoItem } from '../videoSignHandler/types/IVideoItem.ts';
+import { IVideoItem } from '../videoSignHandler/types/IVideoItem';
 
 export type WatchStatus =
     | 'watched'

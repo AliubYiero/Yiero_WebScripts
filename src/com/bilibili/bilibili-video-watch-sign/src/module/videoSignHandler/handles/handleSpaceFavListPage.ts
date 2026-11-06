@@ -1,8 +1,8 @@
 import { elementWaiter } from '@yiero/gmlib';
-import { baseVideoCardParser } from './handleSpaceIndexPage.ts';
-import { handleAddSign } from '../../videoSignProcessingQueue/handleAddSign.ts';
-import { createMutationObserver } from '../../../util/createMutationObserver.ts';
-import { cacheWatchedStore } from '../../../store/cacheWatchedStore.ts';
+import { baseVideoCardParser } from './handleSpaceIndexPage';
+import { handleAddSign } from '../../videoSignProcessingQueue/handleAddSign';
+import { createMutationObserver } from '../../../util/createMutationObserver';
+import { cacheWatchedStore } from '../../../store/cacheWatchedStore';
 
 export const handleSpaceFavListPage = async () => {
     const selectorList = {

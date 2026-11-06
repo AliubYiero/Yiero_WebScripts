@@ -1,6 +1,6 @@
-import { IVideoItem } from '../types/IVideoItem.ts';
-import { baseParser, baseVideoSignLoader } from './base.ts';
-import { elementGetter } from '../../../util/elementGetter.ts';
+import { IVideoItem } from '../types/IVideoItem';
+import { baseParser, baseVideoSignLoader } from './base';
+import { elementGetter } from '../../../util/elementGetter';
 
 /**
  * 广告视频解析

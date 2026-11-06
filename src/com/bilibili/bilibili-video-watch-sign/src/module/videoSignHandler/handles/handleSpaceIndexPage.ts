@@ -4,10 +4,10 @@
  * created by 2025/12/1
  * @file UP主主页
  * */
-import { IVideoItem } from '../types/IVideoItem.ts';
-import { baseParser, baseVideoSignLoader } from './base.ts';
+import { IVideoItem } from '../types/IVideoItem';
+import { baseParser, baseVideoSignLoader } from './base';
 import { elementWaiter } from '@yiero/gmlib';
-import { BindUpdatePageButton } from './bindUpdatePageButton.ts';
+import { BindUpdatePageButton } from './bindUpdatePageButton';
 
 /**
  * 解析主页上传视频卡片

@@ -4,9 +4,9 @@
  * created by 2025/12/2
  * @file 主站综合热门页面
  * */
-import { baseParser, baseVideoSignLoader } from './base.ts';
-import { IVideoItem } from '../types/IVideoItem.ts';
-import { elementGetter } from '../../../util/elementGetter.ts';
+import { baseParser, baseVideoSignLoader } from './base';
+import { IVideoItem } from '../types/IVideoItem';
+import { elementGetter } from '../../../util/elementGetter';
 
 export const rankingVideoCardParser = (
     container: HTMLElement,

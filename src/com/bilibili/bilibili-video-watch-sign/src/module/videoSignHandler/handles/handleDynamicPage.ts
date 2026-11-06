@@ -1,6 +1,6 @@
-import { IVideoItem } from '../types/IVideoItem.ts';
-import { baseParser, baseVideoSignLoader } from './base.ts';
-import { BindUpdatePageButton } from './bindUpdatePageButton.ts';
+import { IVideoItem } from '../types/IVideoItem';
+import { baseParser, baseVideoSignLoader } from './base';
+import { BindUpdatePageButton } from './bindUpdatePageButton';
 
 /**
  * 解析动态卡片
