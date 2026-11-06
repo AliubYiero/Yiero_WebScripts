@@ -30,8 +30,8 @@ test('段首点号换成下划线', () => {
         '_Crontab/daily-check',
     );
     equal(
-        toTagPrefix('src/com/bilibili/.bilibili-api-lib'),
-        'com/bilibili/_bilibili-api-lib',
+        toTagPrefix('src/.Libs/bilibili-api-lib'),
+        '_Libs/bilibili-api-lib',
     );
 });
 
@@ -94,9 +94,9 @@ test('formatTag 拼出规范名字', () => {
 
 test('段首点号的标签名非法', () => {
     ok(isValidTagName('_Global/global-css-import/v1.1.3'));
-    ok(isValidTagName('com/bilibili/_bilibili-api-lib/v0.3.2'));
+    ok(isValidTagName('_Libs/bilibili-api-lib/v0.3.2'));
     ok(!isValidTagName('.Global/global-css-import/v1.1.3'));
-    ok(!isValidTagName('com/bilibili/.bilibili-api-lib/v0.3.2'));
+    ok(!isValidTagName('_Libs/.bilibili-api-lib/v0.3.2'));
     ok(!isValidTagName('com/a/b/v1.0.0.'));
     ok(!isValidTagName('com/a/b/v1.0.0 '));
     ok(!isValidTagName('com/a/b/v1.0.0~x'));

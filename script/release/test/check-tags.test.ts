@@ -1,7 +1,12 @@
 import { deepEqual, equal, ok } from 'node:assert/strict';
 import { test } from 'node:test';
 import type { PackageInfo } from '../../workspace/workspace';
+import {
+    discoverPackages,
+    repoRoot,
+} from '../../workspace/workspace';
 import { splitLegacy, validateTags } from '../check-tags';
+import { toTagPrefix } from '../tag-name';
 
 function pkg(relDir: string): PackageInfo {
     return {
@@ -25,7 +30,7 @@ const packages = [
     pkg('src/.Global/global-css-import'),
     pkg('src/com/bilibili/bilibili-video-timeline'),
     pkg('src/com/qidian/auto-scroll'),
-    pkg('src/com/bilibili/.bilibili-api-lib'),
+    pkg('src/.Libs/bilibili-api-lib'),
 ];
 
 test('合规集合零违规', () => {
@@ -33,7 +38,7 @@ test('合规集合零违规', () => {
         [
             '_Global/global-css-import/v1.1.3',
             'com/bilibili/bilibili-video-timeline/v2.0.3',
-            'com/bilibili/_bilibili-api-lib/v0.3.2',
+            '_Libs/bilibili-api-lib/v0.3.2',
             'com/qidian/auto-scroll/v1.0.1',
         ],
         packages,
@@ -80,6 +85,21 @@ test('项目名歧义被点名', () => {
     );
     equal(violations.length, 1);
     equal(violations[0].rule, '项目名歧义');
+});
+
+test('真实仓库里的 bilibili 库已迁入库域，标签前缀同构', () => {
+    const packages = discoverPackages(repoRoot);
+    const lib = packages.find(
+        (item) => item.name === '@yiero/bilibili-api-lib',
+    );
+    ok(lib !== undefined);
+    equal(lib.relDir, 'src/.Libs/bilibili-api-lib');
+    equal(lib.isLibrary, true);
+    equal(toTagPrefix(lib.relDir), '_Libs/bilibili-api-lib');
+    deepEqual(
+        validateTags(['_Libs/bilibili-api-lib/v0.3.2'], packages),
+        [],
+    );
 });
 
 test('--allow-legacy 只放行旧格式', () => {

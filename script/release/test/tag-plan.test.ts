@@ -6,7 +6,7 @@ const projects = [
     { relDir: 'src/com/bilibili/bilibili-video-timeline' },
     { relDir: 'src/com/qidian/auto-scroll' },
     { relDir: 'src/.Global/global-css-import' },
-    { relDir: 'src/com/bilibili/.bilibili-api-lib' },
+    { relDir: 'src/.Libs/bilibili-api-lib' },
 ];
 
 test('旧格式标签全部进入改名计划', () => {
@@ -26,7 +26,7 @@ test('旧格式标签全部进入改名计划', () => {
         plan.renames.map((entry) => entry.next),
         [
             'com/qidian/auto-scroll/v1.0.1',
-            'com/bilibili/_bilibili-api-lib/v0.3.2',
+            '_Libs/bilibili-api-lib/v0.3.2',
             'com/bilibili/bilibili-video-timeline/v2.0.3',
             '_Global/global-css-import/v1.1.3',
         ],

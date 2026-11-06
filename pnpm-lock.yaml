@@ -140,6 +140,33 @@ importers:
         specifier: ^0.3.0
         version: 0.3.0
 
+  src/.Libs/bilibili-api-lib:
+    devDependencies:
+      '@biomejs/biome':
+        specifier: ^2.4.11
+        version: 2.4.12
+      '@microsoft/api-extractor':
+        specifier: ^7.58.2
+        version: 7.60.1(@types/node@24.19.2)
+      '@rslib/core':
+        specifier: ^0.21.2
+        version: 0.21.5(@microsoft/api-extractor@7.60.1(@types/node@24.19.2))(typescript@5.9.3)
+      '@types/node':
+        specifier: ^24.10.4
+        version: 24.19.2
+      '@vitest/coverage-v8':
+        specifier: ^4.1.4
+        version: 4.1.12(vitest@4.1.12)
+      happy-dom:
+        specifier: ^20.9.0
+        version: 20.14.6
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^4.1.4
+        version: 4.1.12(@types/node@24.19.2)(@vitest/coverage-v8@4.1.12)(happy-dom@20.14.6)(jsdom@24.1.3(supports-color@8.1.1))(vite@7.3.7(@types/node@24.19.2)(terser@5.51.2)(tsx@4.21.0))
+
   src/cn/minamini/get-song-info:
     dependencies:
       '@yiero/gmlib':
@@ -194,33 +221,6 @@ importers:
       yamljs:
         specifier: ^0.3.0
         version: 0.3.0
-
-  src/com/bilibili/.bilibili-api-lib:
-    devDependencies:
-      '@biomejs/biome':
-        specifier: ^2.4.11
-        version: 2.4.12
-      '@microsoft/api-extractor':
-        specifier: ^7.58.2
-        version: 7.60.1(@types/node@24.19.2)
-      '@rslib/core':
-        specifier: ^0.21.2
-        version: 0.21.5(@microsoft/api-extractor@7.60.1(@types/node@24.19.2))(typescript@5.9.3)
-      '@types/node':
-        specifier: ^24.10.4
-        version: 24.19.2
-      '@vitest/coverage-v8':
-        specifier: ^4.1.4
-        version: 4.1.12(vitest@4.1.12)
-      happy-dom:
-        specifier: ^20.9.0
-        version: 20.14.6
-      typescript:
-        specifier: ^5.9.3
-        version: 5.9.3
-      vitest:
-        specifier: ^4.1.4
-        version: 4.1.12(@types/node@24.19.2)(@vitest/coverage-v8@4.1.12)(happy-dom@20.14.6)(jsdom@24.1.3(supports-color@8.1.1))(vite@7.3.7(@types/node@24.19.2)(terser@5.51.2)(tsx@4.21.0))
 
   src/com/bilibili/bilibili-index-video-filter:
     dependencies:
@@ -281,7 +281,7 @@ importers:
     dependencies:
       '@yiero/bilibili-api-lib':
         specifier: workspace:*
-        version: link:../.bilibili-api-lib
+        version: link:../../../.Libs/bilibili-api-lib
       '@yiero/gmlib':
         specifier: ^0.4.6
         version: 0.4.7
@@ -400,7 +400,7 @@ importers:
     dependencies:
       '@yiero/bilibili-api-lib':
         specifier: workspace:*
-        version: link:../.bilibili-api-lib
+        version: link:../../../.Libs/bilibili-api-lib
       '@yiero/gmlib':
         specifier: ^0.3.5
         version: 0.3.9
@@ -629,7 +629,7 @@ importers:
     dependencies:
       '@yiero/bilibili-api-lib':
         specifier: workspace:*
-        version: link:../.bilibili-api-lib
+        version: link:../../../.Libs/bilibili-api-lib
       '@yiero/gmlib':
         specifier: ^0.4.6
         version: 0.4.7
@@ -690,7 +690,7 @@ importers:
     dependencies:
       '@yiero/bilibili-api-lib':
         specifier: workspace:*
-        version: link:../.bilibili-api-lib
+        version: link:../../../.Libs/bilibili-api-lib
       '@yiero/gmlib':
         specifier: ^0.3.5
         version: 0.3.9
@@ -876,7 +876,7 @@ importers:
         version: 0.0.6
       '@yiero/bilibili-api-lib':
         specifier: workspace:*
-        version: link:../.bilibili-api-lib
+        version: link:../../../.Libs/bilibili-api-lib
       '@yiero/gmlib':
         specifier: 0.4.6
         version: 0.4.6
