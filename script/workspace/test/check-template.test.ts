@@ -97,6 +97,33 @@ test('依赖族漂移会被报告', () => {
     }
 });
 
+test('运行期库依赖用 semver 范围算漂移', () => {
+    const root = mkdtempSync(join(tmpdir(), 'ws-check-'));
+    const target = join(root, 'demo');
+    try {
+        cpSync(templateDir, target, { recursive: true });
+        const manifestPath = join(target, 'package.json');
+        const manifest = JSON.parse(
+            readFileSync(manifestPath, 'utf8'),
+        ) as {
+            dependencies: Record<string, string>;
+        };
+        manifest.dependencies['@yiero/gmlib'] = '^0.4.7';
+        writeFileSync(manifestPath, JSON.stringify(manifest), 'utf8');
+
+        const result = checkTemplate(target);
+        ok(
+            result.errors.some(
+                (error) =>
+                    error.startsWith('模板运行期依赖漂移') &&
+                    error.includes('workspace:*'),
+            ),
+        );
+    } finally {
+        rmSync(root, { recursive: true, force: true });
+    }
+});
+
 test('非法 UTF-8 源码会被报告', () => {
     const root = mkdtempSync(join(tmpdir(), 'ws-check-'));
     try {

@@ -48,9 +48,13 @@ export const exclusiveScriptKeys = ['match', 'background', 'crontab'];
  *
  * 与 devDependencies 分开看守：`dependencies` 里的库会被
  * 复制进每个新项目，漂移比工具链更难被发现。
+ *
+ * 库域（`src/.Libs`）内的自产库一律用 `workspace:*` 引用：
+ * 版本由库自己的 package.json 唯一决定，模板里不再写 semver 范围，
+ * 否则新项目一落地就指向 registry 上的旧版本。
  */
 export const standardDependencies: Record<string, string> = {
-    '@yiero/gmlib': '^0.4.7',
+    '@yiero/gmlib': 'workspace:*',
     radash: '^12.1.1',
 };
 
