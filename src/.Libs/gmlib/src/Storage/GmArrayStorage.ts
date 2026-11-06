@@ -241,7 +241,9 @@ export class GmArrayStorage<T> extends GmStorage<Array<T>> {
      *
      * @param callback - 遍历回调函数
      */
-    forEach(callback: (value: T, index: number, array: T[]) => void): void {
+    forEach(
+        callback: (value: T, index: number, array: T[]) => void,
+    ): void {
         this.value.forEach(callback);
     }
 
@@ -259,7 +261,9 @@ export class GmArrayStorage<T> extends GmStorage<Array<T>> {
      * console.log(storage.value); // [1, 2, 3] 原数组不变
      * ```
      */
-    map<U>(callback: (value: T, index: number, array: T[]) => U): U[] {
+    map<U>(
+        callback: (value: T, index: number, array: T[]) => U,
+    ): U[] {
         return this.value.map(callback);
     }
 
@@ -275,7 +279,9 @@ export class GmArrayStorage<T> extends GmStorage<Array<T>> {
      * console.log(storage.value); // [2, 4, 6]
      * ```
      */
-    mapInPlace(callback: (value: T, index: number, array: T[]) => T): void {
+    mapInPlace(
+        callback: (value: T, index: number, array: T[]) => T,
+    ): void {
         const list = this.value;
         const newList = list.map(callback);
         this.set(newList);
@@ -294,7 +300,9 @@ export class GmArrayStorage<T> extends GmStorage<Array<T>> {
      * console.log(storage.value); // [1, 2, 3, 4] 原数组不变
      * ```
      */
-    filter(callback: (value: T, index: number, array: T[]) => boolean): T[] {
+    filter(
+        callback: (value: T, index: number, array: T[]) => boolean,
+    ): T[] {
         return this.value.filter(callback);
     }
 
@@ -419,7 +427,11 @@ export class GmArrayStorage<T> extends GmStorage<Array<T>> {
      */
     private validateIndex(index: number, methodName: string): void {
         const length = this.value.length;
-        if (!Number.isInteger(index) || index < 0 || index >= length) {
+        if (
+            !Number.isInteger(index) ||
+            index < 0 ||
+            index >= length
+        ) {
             throw new RangeError(
                 `${methodName}: 索引 ${index} 越界，有效范围 [0, ${length - 1}]`,
             );

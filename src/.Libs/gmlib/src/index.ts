@@ -43,7 +43,10 @@ export type {
     KeydownCallback,
     Unsubscribe,
 } from './UserInteraction/onKeydown';
-export { onKeydown, onKeydownMultiple } from './UserInteraction/onKeydown';
+export {
+    onKeydown,
+    onKeydownMultiple,
+} from './UserInteraction/onKeydown';
 export type {
     IKeyupBinding,
     IKeyupMultipleOptions,

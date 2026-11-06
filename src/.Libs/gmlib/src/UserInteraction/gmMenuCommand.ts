@@ -141,7 +141,12 @@ class gmMenuCommand {
             throw new Error('菜单按钮已存在');
         }
 
-        gmMenuCommand.list.push({ title, onClick: onClick, isActive, id: 0 });
+        gmMenuCommand.list.push({
+            title,
+            onClick: onClick,
+            isActive,
+            id: 0,
+        });
         return gmMenuCommand.render();
     }
 
@@ -152,13 +157,17 @@ class gmMenuCommand {
      * @returns gmMenuCommand 实例（支持链式调用）
      */
     static remove(title: string) {
-        gmMenuCommand.list = gmMenuCommand.list.filter((commandButton) => {
-            const isRemove = commandButton.title !== title;
-            if (isRemove) {
-                gmMenuCommand.unregisterMenuCommand(commandButton.id);
-            }
-            return isRemove;
-        });
+        gmMenuCommand.list = gmMenuCommand.list.filter(
+            (commandButton) => {
+                const isRemove = commandButton.title !== title;
+                if (isRemove) {
+                    gmMenuCommand.unregisterMenuCommand(
+                        commandButton.id,
+                    );
+                }
+                return isRemove;
+            },
+        );
         return gmMenuCommand.render();
     }
 

@@ -1,4 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+    afterEach,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest';
 import { setValue } from '../../src/DOM/setValue';
 
 describe('setValue', () => {
@@ -113,14 +120,25 @@ describe('setValue', () => {
         it('should trigger events in correct order', () => {
             const events: string[] = [];
 
-            input.addEventListener('focus', () => events.push('focus'));
-            input.addEventListener('input', () => events.push('input'));
-            input.addEventListener('change', () => events.push('change'));
+            input.addEventListener('focus', () =>
+                events.push('focus'),
+            );
+            input.addEventListener('input', () =>
+                events.push('input'),
+            );
+            input.addEventListener('change', () =>
+                events.push('change'),
+            );
             input.addEventListener('blur', () => events.push('blur'));
 
             setValue(input, 'test', { triggerFocusBlur: true });
 
-            expect(events).toEqual(['focus', 'input', 'change', 'blur']);
+            expect(events).toEqual([
+                'focus',
+                'input',
+                'change',
+                'blur',
+            ]);
         });
     });
 

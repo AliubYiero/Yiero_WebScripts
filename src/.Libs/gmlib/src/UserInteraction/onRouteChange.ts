@@ -32,7 +32,8 @@ let isFallbackInitialized = false;
 let popstateHandler: ((event: PopStateEvent) => void) | null = null;
 
 /** hashchange 事件处理器 */
-let hashchangeHandler: ((event: HashChangeEvent) => void) | null = null;
+let hashchangeHandler: ((event: HashChangeEvent) => void) | null =
+    null;
 
 // ============================================================================
 // Navigation API 检测
@@ -47,7 +48,8 @@ function isNavigationSupported(): boolean {
     return (
         'navigation' in window &&
         window.navigation instanceof
-            (window as unknown as { Navigation: typeof Navigation }).Navigation
+            (window as unknown as { Navigation: typeof Navigation })
+                .Navigation
     );
 }
 
@@ -96,7 +98,9 @@ function triggerCallback(
  * @param callback 路由变化回调
  * @returns 取消监听函数
  */
-function setupNavigationApi(callback: RouteChangeCallback): Unsubscribe {
+function setupNavigationApi(
+    callback: RouteChangeCallback,
+): Unsubscribe {
     currentCallback = callback;
 
     const handleNavigate = (event: NavigateEvent): void => {
@@ -115,7 +119,10 @@ function setupNavigationApi(callback: RouteChangeCallback): Unsubscribe {
     window.navigation.addEventListener('navigate', handleNavigate);
 
     return () => {
-        window.navigation.removeEventListener('navigate', handleNavigate);
+        window.navigation.removeEventListener(
+            'navigate',
+            handleNavigate,
+        );
         currentCallback = null;
     };
 }
@@ -148,9 +155,17 @@ function initFallback(): void {
         originalPushState?.call(this, data, unused, url);
 
         // 构建完整 URL
-        const fullUrl = url ? new URL(url, fromUrl).href : window.location.href;
+        const fullUrl = url
+            ? new URL(url, fromUrl).href
+            : window.location.href;
 
-        triggerCallback(fullUrl, 'push', undefined, undefined, fromUrl);
+        triggerCallback(
+            fullUrl,
+            'push',
+            undefined,
+            undefined,
+            fromUrl,
+        );
     };
 
     // 重写 replaceState
@@ -166,9 +181,17 @@ function initFallback(): void {
         originalReplaceState?.call(this, data, unused, url);
 
         // 构建完整 URL
-        const fullUrl = url ? new URL(url, fromUrl).href : window.location.href;
+        const fullUrl = url
+            ? new URL(url, fromUrl).href
+            : window.location.href;
 
-        triggerCallback(fullUrl, 'replace', undefined, undefined, fromUrl);
+        triggerCallback(
+            fullUrl,
+            'replace',
+            undefined,
+            undefined,
+            fromUrl,
+        );
     };
 
     // 监听 popstate（前进/后退）
@@ -307,7 +330,9 @@ function setupFallback(callback: RouteChangeCallback): Unsubscribe {
  * // 之后取消监听
  * unsubscribe();
  */
-export function onRouteChange(callback: RouteChangeCallback): Unsubscribe {
+export function onRouteChange(
+    callback: RouteChangeCallback,
+): Unsubscribe {
     // Navigation API 方案
     if (isNavigationSupported()) {
         return setupNavigationApi(callback);

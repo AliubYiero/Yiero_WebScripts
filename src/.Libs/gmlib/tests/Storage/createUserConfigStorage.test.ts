@@ -24,7 +24,8 @@ describe('createUserConfigStorage', () => {
             },
         };
 
-        const storage = createUserConfigStorage<SingleConfigStorage>(config);
+        const storage =
+            createUserConfigStorage<SingleConfigStorage>(config);
 
         expect(storage.scrollLengthStore).toBeDefined();
         expect(storage.scrollLengthStore.get()).toBe(100);
@@ -51,7 +52,8 @@ describe('createUserConfigStorage', () => {
             },
         };
 
-        const storage = createUserConfigStorage<MultiConfigStorage>(config);
+        const storage =
+            createUserConfigStorage<MultiConfigStorage>(config);
 
         expect(storage.scrollLengthStore).toBeDefined();
         expect(storage.focusModeStore).toBeDefined();
@@ -82,7 +84,8 @@ describe('createUserConfigStorage', () => {
             },
         };
 
-        const storage = createUserConfigStorage<MultiGroupStorage>(config);
+        const storage =
+            createUserConfigStorage<MultiGroupStorage>(config);
 
         expect(storage.scrollLengthStore).toBeDefined();
         expect(storage.turnPageDelayStore).toBeDefined();
@@ -104,7 +107,8 @@ describe('createUserConfigStorage', () => {
             },
         };
 
-        const storage = createUserConfigStorage<NoDefaultStorage>(config);
+        const storage =
+            createUserConfigStorage<NoDefaultStorage>(config);
 
         expect(storage.noDefaultStore).toBeDefined();
         // text 类型无默认值时推断为空字符串
@@ -126,7 +130,8 @@ describe('createUserConfigStorage', () => {
             },
         };
 
-        const storage = createUserConfigStorage<KeyFormatStorage>(config);
+        const storage =
+            createUserConfigStorage<KeyFormatStorage>(config);
 
         // 设置一个新值来验证存储键
         storage.scrollLengthStore.set(200);
@@ -135,7 +140,9 @@ describe('createUserConfigStorage', () => {
         expect(storage.scrollLengthStore.get()).toBe(200);
 
         // 验证存储键格式为 "groupName.configKey"
-        expect(gmApiMock.getStorage().has('滚动配置.scrollLength')).toBe(true);
+        expect(
+            gmApiMock.getStorage().has('滚动配置.scrollLength'),
+        ).toBe(true);
     });
 
     it('should handle different default value types', () => {
@@ -171,11 +178,16 @@ describe('createUserConfigStorage', () => {
             },
         };
 
-        const storage = createUserConfigStorage<MixedTypesStorage>(config);
+        const storage =
+            createUserConfigStorage<MixedTypesStorage>(config);
 
         expect(storage.stringValueStore.get()).toBe('hello');
         expect(storage.numberValueStore.get()).toBe(42);
         expect(storage.booleanValueStore.get()).toBe(true);
-        expect(storage.arrayValueStore.get()).toEqual(['a', 'b', 'c']);
+        expect(storage.arrayValueStore.get()).toEqual([
+            'a',
+            'b',
+            'c',
+        ]);
     });
 });

@@ -19,7 +19,10 @@ describe('GmArrayStorage', () => {
         });
 
         it('should use provided default value', () => {
-            const customStorage = new GmArrayStorage('custom', [10, 20]);
+            const customStorage = new GmArrayStorage(
+                'custom',
+                [10, 20],
+            );
             expect(customStorage.get()).toEqual([10, 20]);
         });
     });

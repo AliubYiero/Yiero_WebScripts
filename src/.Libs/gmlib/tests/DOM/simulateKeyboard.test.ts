@@ -1,4 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+    afterEach,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest';
 import { simulateKeyboard } from '../../src/DOM/simulateKeyboard';
 
 describe('simulateKeyboard', () => {
@@ -247,7 +254,11 @@ describe('simulateKeyboard', () => {
                 capturedEvent = e;
             });
 
-            simulateKeyboard(input, { key: 'Tab', code: 'Tab', keyCode: 9 });
+            simulateKeyboard(input, {
+                key: 'Tab',
+                code: 'Tab',
+                keyCode: 9,
+            });
 
             expect(capturedEvent).not.toBeNull();
             expect(capturedEvent?.key).toBe('Tab');
@@ -307,25 +318,37 @@ describe('simulateKeyboard', () => {
         it('should dispatch events in correct order for printable characters', () => {
             const eventOrder: string[] = [];
 
-            input.addEventListener('keydown', () => eventOrder.push('keydown'));
+            input.addEventListener('keydown', () =>
+                eventOrder.push('keydown'),
+            );
             input.addEventListener('keypress', () =>
                 eventOrder.push('keypress'),
             );
-            input.addEventListener('keyup', () => eventOrder.push('keyup'));
+            input.addEventListener('keyup', () =>
+                eventOrder.push('keyup'),
+            );
 
             simulateKeyboard(input, { key: 'a' });
 
-            expect(eventOrder).toEqual(['keydown', 'keypress', 'keyup']);
+            expect(eventOrder).toEqual([
+                'keydown',
+                'keypress',
+                'keyup',
+            ]);
         });
 
         it('should dispatch events in correct order for special keys', () => {
             const eventOrder: string[] = [];
 
-            input.addEventListener('keydown', () => eventOrder.push('keydown'));
+            input.addEventListener('keydown', () =>
+                eventOrder.push('keydown'),
+            );
             input.addEventListener('keypress', () =>
                 eventOrder.push('keypress'),
             );
-            input.addEventListener('keyup', () => eventOrder.push('keyup'));
+            input.addEventListener('keyup', () =>
+                eventOrder.push('keyup'),
+            );
 
             simulateKeyboard(input, { key: 'Enter' });
 

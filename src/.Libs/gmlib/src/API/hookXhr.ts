@@ -7,7 +7,10 @@ let isHooked = false;
 /** Hook 管理器，存储所有注册的 hook */
 const hookRegistry: Array<{
     matcher: (url: string) => boolean;
-    callback: (response: unknown, requestUrl: string) => undefined | string;
+    callback: (
+        response: unknown,
+        requestUrl: string,
+    ) => undefined | string;
 }> = [];
 
 /**
@@ -41,7 +44,9 @@ const hookRegistry: Array<{
  * );
  * ```
  */
-export const hookXhr = <T extends string | Record<string, unknown> | Document>(
+export const hookXhr = <
+    T extends string | Record<string, unknown> | Document,
+>(
     hookUrl: (url: string) => boolean,
     callback: (response: T, requestUrl: string) => undefined | string,
 ) => {
@@ -70,7 +75,9 @@ export const hookXhr = <T extends string | Record<string, unknown> | Document>(
         const requestUrl = url; // 提前保存 URL
 
         // 查找匹配的 hook
-        const matchedHook = hookRegistry.find((h) => h.matcher(requestUrl));
+        const matchedHook = hookRegistry.find((h) =>
+            h.matcher(requestUrl),
+        );
         if (matchedHook) {
             const descriptor = Object.getOwnPropertyDescriptor(
                 XMLHttpRequest.prototype,

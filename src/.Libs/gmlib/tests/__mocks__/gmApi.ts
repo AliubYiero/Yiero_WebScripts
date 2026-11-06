@@ -13,8 +13,13 @@ const listeners = new Map<
 // GM API Mock 函数
 export const gmApiMock = {
     // Storage API
-    GM_getValue: <T>(key: string, defaultValue?: T): T | undefined => {
-        return storage.has(key) ? (storage.get(key) as T) : defaultValue;
+    GM_getValue: <T>(
+        key: string,
+        defaultValue?: T,
+    ): T | undefined => {
+        return storage.has(key)
+            ? (storage.get(key) as T)
+            : defaultValue;
     },
 
     GM_setValue: (key: string, value: unknown): void => {
@@ -102,7 +107,8 @@ export const setupGlobalGmApi = (): void => {
     (globalThis as any).GM_removeValueChangeListener =
         gmApiMock.GM_removeValueChangeListener;
     // biome-ignore lint/suspicious/noExplicitAny: 全局对象需要 any 类型
-    (globalThis as any).GM_xmlhttpRequest = gmApiMock.GM_xmlhttpRequest;
+    (globalThis as any).GM_xmlhttpRequest =
+        gmApiMock.GM_xmlhttpRequest;
     // biome-ignore lint/suspicious/noExplicitAny: 全局对象需要 any 类型
     (globalThis as any).GM_download = gmApiMock.GM_download;
     // biome-ignore lint/suspicious/noExplicitAny: 全局对象需要 any 类型

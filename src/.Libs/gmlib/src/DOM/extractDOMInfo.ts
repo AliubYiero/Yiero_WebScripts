@@ -1,4 +1,7 @@
-import type { ExtractedResult, ExtractRule } from './types/ExtractRule';
+import type {
+    ExtractedResult,
+    ExtractRule,
+} from './types/ExtractRule';
 
 /**
  * 表单元素标签名集合
@@ -54,7 +57,8 @@ function parseValue(
         } else if (type === 'url') {
             // URL 类型优先读取 href
             rawValue =
-                (targetEl as HTMLAnchorElement).href || targetEl.textContent;
+                (targetEl as HTMLAnchorElement).href ||
+                targetEl.textContent;
         } else {
             // 默认读取 textContent
             rawValue = targetEl.textContent;
@@ -72,7 +76,9 @@ function parseValue(
                 return rule.defaultValue ?? null;
             }
             const num = Number(trimmed);
-            return Number.isNaN(num) ? (rule.defaultValue ?? null) : num;
+            return Number.isNaN(num)
+                ? (rule.defaultValue ?? null)
+                : num;
         }
 
         case 'boolean': {
@@ -112,7 +118,9 @@ function parseValue(
  * // result = { name: '张三' }
  * ```
  */
-export function extractDOMInfo<T extends Omit<ExtractRule, 'selector'>>(
+export function extractDOMInfo<
+    T extends Omit<ExtractRule, 'selector'>,
+>(
     selector: string,
     rule: T,
     // biome-ignore lint/suspicious/noExplicitAny: 泛型结果类型需与 ExtractedResult 一致
@@ -150,13 +158,16 @@ export function extractDOMInfo(
         const selector = selectorOrRoot;
         const rule = ruleOrRules;
         const fullRule: ExtractRule = { ...rule, selector };
-        const targetEl = document.querySelector<HTMLElement>(selector);
+        const targetEl =
+            document.querySelector<HTMLElement>(selector);
         return { [rule.key]: parseValue(targetEl, fullRule) };
     }
 
     // 根元素模式：从 root 批量查询
     const root = selectorOrRoot;
-    const rules = Array.isArray(ruleOrRules) ? ruleOrRules : [ruleOrRules];
+    const rules = Array.isArray(ruleOrRules)
+        ? ruleOrRules
+        : [ruleOrRules];
     // biome-ignore lint/suspicious/noExplicitAny: 内部实现需要灵活类型
     const result: Record<string, any> = {};
 
@@ -166,9 +177,8 @@ export function extractDOMInfo(
     for (const rule of rules) {
         // 优先读缓存，未命中则查询并存入缓存（包含 null 结果也缓存）
         if (!(rule.selector in elementCache)) {
-            elementCache[rule.selector] = root.querySelector<HTMLElement>(
-                rule.selector,
-            );
+            elementCache[rule.selector] =
+                root.querySelector<HTMLElement>(rule.selector);
         }
 
         const targetEl = elementCache[rule.selector];

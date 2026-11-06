@@ -1,4 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+    afterEach,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest';
 import { Message } from '../../src/UserInteraction/Message';
 
 describe('Message', () => {
@@ -51,7 +58,9 @@ describe('Message', () => {
             const messageEl = container?.querySelector('div');
 
             expect(messageEl).toBeTruthy();
-            expect(messageEl?.textContent).toContain('success message');
+            expect(messageEl?.textContent).toContain(
+                'success message',
+            );
             // success 类型应该有 ✓ 图标
             expect(messageEl?.textContent).toContain('✓');
         });
@@ -59,7 +68,11 @@ describe('Message', () => {
         it('should auto close after duration', () => {
             vi.useFakeTimers();
 
-            Message({ message: 'auto close', type: 'info', duration: 1000 });
+            Message({
+                message: 'auto close',
+                type: 'info',
+                duration: 1000,
+            });
 
             const container = document.querySelector(
                 'div[style*="position: fixed"]',
@@ -87,7 +100,9 @@ describe('Message', () => {
             const container = document.querySelector(
                 'div[style*="position: fixed"]',
             );
-            const messageEl = container?.querySelector('div') as HTMLElement;
+            const messageEl = container?.querySelector(
+                'div',
+            ) as HTMLElement;
             expect(messageEl).toBeTruthy();
 
             // 模拟点击
@@ -112,7 +127,9 @@ describe('Message', () => {
             const messageEl = container?.querySelector('div');
 
             expect(messageEl).toBeTruthy();
-            expect(messageEl?.textContent).toContain('success message');
+            expect(messageEl?.textContent).toContain(
+                'success message',
+            );
             expect(messageEl?.textContent).toContain('✓');
         });
 
@@ -125,7 +142,9 @@ describe('Message', () => {
             const messageEl = container?.querySelector('div');
 
             expect(messageEl).toBeTruthy();
-            expect(messageEl?.textContent).toContain('warning message');
+            expect(messageEl?.textContent).toContain(
+                'warning message',
+            );
             expect(messageEl?.textContent).toContain('⚠');
         });
 
@@ -241,9 +260,9 @@ describe('Message', () => {
         });
 
         it('should throw error for invalid duration (< 100)', () => {
-            expect(() => Message({ message: 'test', duration: 50 })).toThrow(
-                'duration',
-            );
+            expect(() =>
+                Message({ message: 'test', duration: 50 }),
+            ).toThrow('duration');
         });
 
         it('should throw error for invalid type', () => {
@@ -256,7 +275,10 @@ describe('Message', () => {
         it('should throw error for invalid position', () => {
             expect(() =>
                 // biome-ignore lint/suspicious/noExplicitAny: 测试无效位置需要 any
-                Message({ message: 'test', position: 'invalid' as any }),
+                Message({
+                    message: 'test',
+                    position: 'invalid' as any,
+                }),
             ).toThrow('position');
         });
 
@@ -270,22 +292,30 @@ describe('Message', () => {
     describe('accessibility', () => {
         it('should have role="alert"', () => {
             const instance = Message('test message');
-            expect(instance.element.getAttribute('role')).toBe('alert');
+            expect(instance.element.getAttribute('role')).toBe(
+                'alert',
+            );
         });
 
         it('should have aria-live="polite"', () => {
             const instance = Message('test message');
-            expect(instance.element.getAttribute('aria-live')).toBe('polite');
+            expect(instance.element.getAttribute('aria-live')).toBe(
+                'polite',
+            );
         });
 
         it('should have aria-atomic="true"', () => {
             const instance = Message('test message');
-            expect(instance.element.getAttribute('aria-atomic')).toBe('true');
+            expect(instance.element.getAttribute('aria-atomic')).toBe(
+                'true',
+            );
         });
 
         it('should have tabindex="0" for focus', () => {
             const instance = Message('test message');
-            expect(instance.element.getAttribute('tabindex')).toBe('0');
+            expect(instance.element.getAttribute('tabindex')).toBe(
+                '0',
+            );
         });
 
         it('should close on Escape key', () => {
@@ -297,7 +327,9 @@ describe('Message', () => {
             });
 
             // 模拟 Escape 键
-            const event = new KeyboardEvent('keydown', { key: 'Escape' });
+            const event = new KeyboardEvent('keydown', {
+                key: 'Escape',
+            });
             instance.element.dispatchEvent(event);
 
             vi.advanceTimersByTime(400);
@@ -312,9 +344,18 @@ describe('Message', () => {
 
     describe('message stacking', () => {
         it('should stack messages at top position', () => {
-            const instance1 = Message({ message: 'first', position: 'top' });
-            const instance2 = Message({ message: 'second', position: 'top' });
-            const instance3 = Message({ message: 'third', position: 'top' });
+            const instance1 = Message({
+                message: 'first',
+                position: 'top',
+            });
+            const instance2 = Message({
+                message: 'second',
+                position: 'top',
+            });
+            const instance3 = Message({
+                message: 'third',
+                position: 'top',
+            });
 
             // 第一条消息应该在基础位置 (20px)
             expect(instance1.element.style.top).toBe('20px');
@@ -333,7 +374,10 @@ describe('Message', () => {
         });
 
         it('should stack messages at bottom position', () => {
-            const instance1 = Message({ message: 'first', position: 'bottom' });
+            const instance1 = Message({
+                message: 'first',
+                position: 'bottom',
+            });
             const instance2 = Message({
                 message: 'second',
                 position: 'bottom',
@@ -350,7 +394,10 @@ describe('Message', () => {
         });
 
         it('should stack messages independently at different positions', () => {
-            const instanceTop = Message({ message: 'top', position: 'top' });
+            const instanceTop = Message({
+                message: 'top',
+                position: 'top',
+            });
             const instanceBottom = Message({
                 message: 'bottom',
                 position: 'bottom',
@@ -371,7 +418,9 @@ describe('Message', () => {
                 message: 'test',
                 position: 'top-right',
             });
-            expect(instance.element.dataset.position).toBe('top-right');
+            expect(instance.element.dataset.position).toBe(
+                'top-right',
+            );
         });
     });
 
@@ -425,9 +474,18 @@ describe('Message', () => {
         it('should recalculate positions when message is removed', () => {
             vi.useFakeTimers();
 
-            const instance1 = Message({ message: 'first', position: 'top' });
-            const instance2 = Message({ message: 'second', position: 'top' });
-            const instance3 = Message({ message: 'third', position: 'top' });
+            const instance1 = Message({
+                message: 'first',
+                position: 'top',
+            });
+            const instance2 = Message({
+                message: 'second',
+                position: 'top',
+            });
+            const instance3 = Message({
+                message: 'third',
+                position: 'top',
+            });
 
             // 记录初始位置
             const initialTop2 = instance2.element.style.top;
@@ -456,7 +514,10 @@ describe('Message', () => {
         it('should not affect messages at different positions', () => {
             vi.useFakeTimers();
 
-            const instanceTop = Message({ message: 'top', position: 'top' });
+            const instanceTop = Message({
+                message: 'top',
+                position: 'top',
+            });
             const instanceBottom = Message({
                 message: 'bottom',
                 position: 'bottom',
@@ -473,9 +534,18 @@ describe('Message', () => {
         it('should handle removing middle message', () => {
             vi.useFakeTimers();
 
-            const instance1 = Message({ message: 'first', position: 'top' });
-            const instance2 = Message({ message: 'second', position: 'top' });
-            const instance3 = Message({ message: 'third', position: 'top' });
+            const instance1 = Message({
+                message: 'first',
+                position: 'top',
+            });
+            const instance2 = Message({
+                message: 'second',
+                position: 'top',
+            });
+            const instance3 = Message({
+                message: 'third',
+                position: 'top',
+            });
 
             // 关闭中间的消息
             instance2.close();

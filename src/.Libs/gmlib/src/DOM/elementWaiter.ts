@@ -38,7 +38,8 @@ export const returnElement = <T>(
 ) => {
     // 延时触发
     setTimeout(() => {
-        const element = options.parent.querySelector<HTMLElement>(selector);
+        const element =
+            options.parent.querySelector<HTMLElement>(selector);
         // 空元素, 抛出异常
         if (!element) {
             reject(new Error(`Element "${selector}" not found`));
@@ -78,7 +79,8 @@ export const getElementByTimer = <T>(
         }
 
         // 尝试获取元素
-        const element = options.parent.querySelector<HTMLElement>(selector);
+        const element =
+            options.parent.querySelector<HTMLElement>(selector);
 
         // 获取到元素时
         if (element) {
@@ -126,7 +128,9 @@ const getElementByMutationObserver = <T>(
                 const addedElement = addNode as HTMLElement;
                 const element = addedElement.matches(selector)
                     ? addedElement
-                    : addedElement.querySelector<HTMLElement>(selector);
+                    : addedElement.querySelector<HTMLElement>(
+                          selector,
+                      );
 
                 // 如果获取到元素
                 if (element) {
@@ -188,9 +192,16 @@ export function elementWaiter<T extends HTMLElement>(
     return new Promise((resolve, reject) => {
         // 分支1 - 元素已经载入, 直接获取到元素
         const targetElement =
-            elementWaiterOptions.parent.querySelector<HTMLElement>(selector);
+            elementWaiterOptions.parent.querySelector<HTMLElement>(
+                selector,
+            );
         if (targetElement) {
-            returnElement(selector, elementWaiterOptions, resolve, reject);
+            returnElement(
+                selector,
+                elementWaiterOptions,
+                resolve,
+                reject,
+            );
             return;
         }
 
@@ -206,6 +217,11 @@ export function elementWaiter<T extends HTMLElement>(
         }
 
         // 分支3 - 元素未载入, 浏览器无MutationObserver类, 使用定时器获取元素
-        getElementByTimer(selector, elementWaiterOptions, resolve, reject);
+        getElementByTimer(
+            selector,
+            elementWaiterOptions,
+            resolve,
+            reject,
+        );
     });
 }

@@ -26,9 +26,9 @@ describe('getCookie', () => {
         it('should reject when key not found in cookie text', async () => {
             const cookieText = 'userId=12345; sessionId=abc';
 
-            await expect(getCookie(cookieText, 'notExist')).rejects.toThrow(
-                '获取 Cookie 失败, key 不存在.',
-            );
+            await expect(
+                getCookie(cookieText, 'notExist'),
+            ).rejects.toThrow('获取 Cookie 失败, key 不存在.');
         });
 
         it('should reject when no key provided for cookie text', async () => {
@@ -106,9 +106,9 @@ describe('getCookie', () => {
                 },
             );
 
-            await expect(getCookie('.example.com', 'notExist')).rejects.toThrow(
-                '获取 Cookie 失败, key 不存在.',
-            );
+            await expect(
+                getCookie('.example.com', 'notExist'),
+            ).rejects.toThrow('获取 Cookie 失败, key 不存在.');
         });
 
         it('should reject when domain has no cookies', async () => {

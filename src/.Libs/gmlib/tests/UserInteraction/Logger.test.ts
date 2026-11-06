@@ -5,13 +5,15 @@ type LoggerMethod = 'log' | 'info' | 'warn' | 'error';
 
 describe('Logger', () => {
     // 保存各 console 方法的原始引用
-    const originalMethods: Record<LoggerMethod, (...args: unknown[]) => void> =
-        {
-            log: console.log,
-            info: console.info,
-            warn: console.warn,
-            error: console.error,
-        };
+    const originalMethods: Record<
+        LoggerMethod,
+        (...args: unknown[]) => void
+    > = {
+        log: console.log,
+        info: console.info,
+        warn: console.warn,
+        error: console.error,
+    };
 
     // 各方法的调用记录
     const calls: Record<LoggerMethod, unknown[][]> = {
@@ -28,18 +30,22 @@ describe('Logger', () => {
         });
 
         // 替换 console 方法，记录调用参数
-        (Object.keys(originalMethods) as LoggerMethod[]).forEach((method) => {
-            console[method] = (...args: unknown[]) => {
-                calls[method].push(args);
-            };
-        });
+        (Object.keys(originalMethods) as LoggerMethod[]).forEach(
+            (method) => {
+                console[method] = (...args: unknown[]) => {
+                    calls[method].push(args);
+                };
+            },
+        );
     });
 
     afterEach(() => {
         // 恢复原始 console 方法
-        (Object.keys(originalMethods) as LoggerMethod[]).forEach((method) => {
-            console[method] = originalMethods[method];
-        });
+        (Object.keys(originalMethods) as LoggerMethod[]).forEach(
+            (method) => {
+                console[method] = originalMethods[method];
+            },
+        );
     });
 
     describe('constructor', () => {
@@ -61,7 +67,9 @@ describe('Logger', () => {
 
             expect(calls[method]).toHaveLength(1);
             expect(calls[method][0][0]).toBe('%cGmLib');
-            expect(calls[method][0][1]).toContain('background: #f98aad');
+            expect(calls[method][0][1]).toContain(
+                'background: #f98aad',
+            );
             expect(calls[method][0][1]).toContain('color: #ffffff');
             expect(calls[method][0]).toContain('hello');
         });

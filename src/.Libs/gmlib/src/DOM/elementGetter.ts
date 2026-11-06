@@ -44,13 +44,25 @@ export function elementGetter<T extends HTMLElement>(
     return new Promise((resolve, reject) => {
         // 分支1 - 元素已存在，直接获取
         const targetElement =
-            elementGetterOptions.parent.querySelector<HTMLElement>(selector);
+            elementGetterOptions.parent.querySelector<HTMLElement>(
+                selector,
+            );
         if (targetElement) {
-            returnElement(selector, elementGetterOptions, resolve, reject);
+            returnElement(
+                selector,
+                elementGetterOptions,
+                resolve,
+                reject,
+            );
             return;
         }
 
         // 分支2 - 元素不存在，通过定时器轮询获取
-        getElementByTimer(selector, elementGetterOptions, resolve, reject);
+        getElementByTimer(
+            selector,
+            elementGetterOptions,
+            resolve,
+            reject,
+        );
     });
 }

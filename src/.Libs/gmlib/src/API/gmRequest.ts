@@ -86,7 +86,8 @@ export function gmRequest<
             return {
                 url: param1.url,
                 method: param1.method || 'GET',
-                param: param1.method === 'POST' ? param1.data : void 0,
+                param:
+                    param1.method === 'POST' ? param1.data : void 0,
                 GMXmlHttpRequestConfig: param1,
             };
         }
@@ -116,7 +117,9 @@ export function gmRequest<
     }
     // 判断: 如果是 POST 请求, 写入请求体中
     if (params.method === 'POST' && params.param) {
-        params.GMXmlHttpRequestConfig.data = JSON.stringify(params.param);
+        params.GMXmlHttpRequestConfig.data = JSON.stringify(
+            params.param,
+        );
     }
 
     // 发送网络请求 (通过 Promise)
@@ -137,7 +140,9 @@ export function gmRequest<
                 if (!response.responseText) {
                     return resolve(undefined);
                 }
-                resolve(parseResponseText(response.responseText) as T);
+                resolve(
+                    parseResponseText(response.responseText) as T,
+                );
             },
             onerror(error: unknown) {
                 reject(error);

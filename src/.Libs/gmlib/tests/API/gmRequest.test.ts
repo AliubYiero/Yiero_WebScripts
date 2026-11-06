@@ -19,7 +19,9 @@ describe('gmRequest', () => {
             const mockData = { id: 1, name: 'test' };
             mockRequestSuccess(JSON.stringify(mockData));
 
-            const result = await gmRequest('https://api.example.com/data');
+            const result = await gmRequest(
+                'https://api.example.com/data',
+            );
 
             expect(result).toEqual(mockData);
         });
@@ -46,7 +48,8 @@ describe('gmRequest', () => {
                 page: '1',
             });
 
-            const callArgs = gmApiMock.GM_xmlhttpRequest.mock.calls[0][0];
+            const callArgs =
+                gmApiMock.GM_xmlhttpRequest.mock.calls[0][0];
             expect(callArgs.url).toContain('query=test');
             expect(callArgs.url).toContain('page=1');
             expect(callArgs.method).toBe('GET');
@@ -55,7 +58,9 @@ describe('gmRequest', () => {
         it('should return undefined for empty response', async () => {
             mockRequestSuccess('');
 
-            const result = await gmRequest('https://api.example.com/empty');
+            const result = await gmRequest(
+                'https://api.example.com/empty',
+            );
 
             expect(result).toBeUndefined();
         });
@@ -66,9 +71,14 @@ describe('gmRequest', () => {
             const postData = { name: 'test', value: 123 };
             mockRequestSuccess('created');
 
-            await gmRequest('https://api.example.com/create', 'POST', postData);
+            await gmRequest(
+                'https://api.example.com/create',
+                'POST',
+                postData,
+            );
 
-            const callArgs = gmApiMock.GM_xmlhttpRequest.mock.calls[0][0];
+            const callArgs =
+                gmApiMock.GM_xmlhttpRequest.mock.calls[0][0];
             expect(callArgs.method).toBe('POST');
             expect(callArgs.data).toBe(JSON.stringify(postData));
         });
@@ -104,8 +114,11 @@ describe('gmRequest', () => {
             });
 
             expect(result).toEqual(mockData);
-            const callArgs = gmApiMock.GM_xmlhttpRequest.mock.calls[0][0];
-            expect(callArgs.url).toBe('https://api.example.com/config');
+            const callArgs =
+                gmApiMock.GM_xmlhttpRequest.mock.calls[0][0];
+            expect(callArgs.url).toBe(
+                'https://api.example.com/config',
+            );
         });
     });
 });

@@ -153,7 +153,8 @@ export function onKeyup(
     };
 
     // 判断是否使用了快捷监听条件
-    const hasShortcutFilter = key !== undefined || ctrl || alt || shift || meta;
+    const hasShortcutFilter =
+        key !== undefined || ctrl || alt || shift || meta;
 
     // 创建包装回调，处理快捷监听条件过滤和 once 逻辑
     let wrappedCallback: KeyupCallback;
@@ -170,7 +171,8 @@ export function onKeyup(
 
                     // 对于字母键，不区分大小写比较
                     const isMatch =
-                        eventKey.length === 1 && expectedKey.length === 1
+                        eventKey.length === 1 &&
+                        expectedKey.length === 1
                             ? eventKey.toLowerCase() ===
                               expectedKey.toLowerCase()
                             : eventKey === expectedKey;
@@ -217,7 +219,8 @@ export function onKeyup(
 
                     // 对于字母键，不区分大小写比较
                     const isMatch =
-                        eventKey.length === 1 && expectedKey.length === 1
+                        eventKey.length === 1 &&
+                        expectedKey.length === 1
                             ? eventKey.toLowerCase() ===
                               expectedKey.toLowerCase()
                             : eventKey === expectedKey;
@@ -376,7 +379,11 @@ export function onKeyupMultiple(
     bindings: IKeyupBinding[],
     options?: IKeyupMultipleOptions,
 ): Unsubscribe {
-    const { target = window, capture = false, passive = false } = options || {};
+    const {
+        target = window,
+        capture = false,
+        passive = false,
+    } = options || {};
 
     const eventOptions: AddEventListenerOptions = {
         capture,
@@ -408,7 +415,8 @@ export function onKeyupMultiple(
 
                     // 对于字母键，不区分大小写比较
                     const isMatch =
-                        eventKey.length === 1 && expectedKey.length === 1
+                        eventKey.length === 1 &&
+                        expectedKey.length === 1
                             ? eventKey.toLowerCase() ===
                               expectedKey.toLowerCase()
                             : eventKey === expectedKey;

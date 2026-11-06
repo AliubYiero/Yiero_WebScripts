@@ -36,7 +36,9 @@ export function scroll(
     // 重载2
     if (!targetElement || typeof targetElement === 'number') {
         scrollPercent = (targetElement || 0.5) as number;
-        const yOffset = Math.round(document.body.clientHeight * scrollPercent);
+        const yOffset = Math.round(
+            document.body.clientHeight * scrollPercent,
+        );
         window.scrollTo({
             top: yOffset,
             behavior: 'smooth',
@@ -56,7 +58,9 @@ export function scroll(
     }
     const { top: targetTop } = targetElement.getBoundingClientRect();
     const yOffset =
-        targetTop - containerTop - Math.round(containerHeight * scrollPercent);
+        targetTop -
+        containerTop -
+        Math.round(containerHeight * scrollPercent);
     container.scrollBy({
         top: yOffset,
         behavior: 'smooth',

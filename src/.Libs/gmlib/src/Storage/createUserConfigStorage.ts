@@ -90,7 +90,10 @@ export function createUserConfigStorage<T extends object>(
             const storageKey = `${groupName}.${configKey}`;
             const storageName = `${configKey}Store`;
             const defaultValue = inferDefaultValue(item);
-            result[storageName] = new GmStorage(storageKey, defaultValue);
+            result[storageName] = new GmStorage(
+                storageKey,
+                defaultValue,
+            );
         }
     }
 

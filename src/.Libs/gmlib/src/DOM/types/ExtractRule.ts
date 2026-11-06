@@ -1,7 +1,12 @@
 /**
  * 支持提取的数据类型
  */
-export type ExtractType = 'string' | 'number' | 'boolean' | 'url' | 'element';
+export type ExtractType =
+    | 'string'
+    | 'number'
+    | 'boolean'
+    | 'url'
+    | 'element';
 
 /**
  * 提取规则配置项

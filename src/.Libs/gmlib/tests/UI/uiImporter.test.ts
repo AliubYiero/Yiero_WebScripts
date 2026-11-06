@@ -19,10 +19,12 @@ describe('uiImporter', () => {
 
         expect(result.appendNodeList.length).toBe(1);
         expect(result.appendNodeList[0].nodeName).toBe('DIV');
-        expect(document.body.querySelector('#test-div')).not.toBeNull();
-        expect(document.body.querySelector('#test-div')?.textContent).toBe(
-            'Hello World',
-        );
+        expect(
+            document.body.querySelector('#test-div'),
+        ).not.toBeNull();
+        expect(
+            document.body.querySelector('#test-div')?.textContent,
+        ).toBe('Hello World');
     });
 
     it('should parse CSS and append to document', () => {
@@ -32,7 +34,9 @@ describe('uiImporter', () => {
 
         expect(result.styleNode).toBeDefined();
         expect(result.styleNode?.tagName).toBe('STYLE');
-        expect(gmApiMock.GM_addStyle).toHaveBeenCalledWith(cssContent);
+        expect(gmApiMock.GM_addStyle).toHaveBeenCalledWith(
+            cssContent,
+        );
     });
 
     it('should filter script tags by default', () => {
@@ -88,9 +92,13 @@ describe('uiImporter', () => {
         });
 
         expect(result.appendNodeList.length).toBe(1);
-        expect(customContainer.querySelector('#test-div')).not.toBeNull();
         expect(
-            document.body.querySelector('#custom-container > #test-div'),
+            customContainer.querySelector('#test-div'),
+        ).not.toBeNull();
+        expect(
+            document.body.querySelector(
+                '#custom-container > #test-div',
+            ),
         ).not.toBeNull();
     });
 });

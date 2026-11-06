@@ -33,7 +33,10 @@ describe('gmDownload', () => {
                 // biome-ignore lint/suspicious/noExplicitAny: mock 实现需要灵活类型
                 (config: any) => {
                     setTimeout(
-                        () => config.onerror?.({ error: 'download_failed' }),
+                        () =>
+                            config.onerror?.({
+                                error: 'download_failed',
+                            }),
                         0,
                     );
                     // biome-ignore lint/suspicious/noExplicitAny: mock 返回值
@@ -42,7 +45,10 @@ describe('gmDownload', () => {
             );
 
             await expect(
-                gmDownload('https://example.com/file.txt', 'file.txt'),
+                gmDownload(
+                    'https://example.com/file.txt',
+                    'file.txt',
+                ),
             ).rejects.toBe('download_failed');
         });
 
@@ -57,7 +63,10 @@ describe('gmDownload', () => {
             );
 
             await expect(
-                gmDownload('https://example.com/file.txt', 'file.txt'),
+                gmDownload(
+                    'https://example.com/file.txt',
+                    'file.txt',
+                ),
             ).rejects.toBe('time_out');
         });
     });
@@ -88,7 +97,9 @@ describe('gmDownload', () => {
                 },
             );
 
-            const blob = new Blob(['test content'], { type: 'text/plain' });
+            const blob = new Blob(['test content'], {
+                type: 'text/plain',
+            });
             const result = await gmDownload.blob(blob, 'test.txt');
 
             expect(result).toBe(true);
@@ -120,7 +131,10 @@ describe('gmDownload', () => {
                 },
             );
 
-            const result = await gmDownload.text('Hello World', 'hello.txt');
+            const result = await gmDownload.text(
+                'Hello World',
+                'hello.txt',
+            );
 
             expect(result).toBe(true);
             expect(createObjectURLCalls).toBe(1);

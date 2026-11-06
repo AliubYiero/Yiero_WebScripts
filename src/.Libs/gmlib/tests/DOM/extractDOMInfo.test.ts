@@ -15,7 +15,8 @@ describe('extractDOMInfo', () => {
 
     describe('基础文本提取', () => {
         it('应提取元素的 textContent', () => {
-            container.innerHTML = '<span id="test">Hello World</span>';
+            container.innerHTML =
+                '<span id="test">Hello World</span>';
 
             const result = extractDOMInfo('#test', { key: 'text' });
 
@@ -23,7 +24,8 @@ describe('extractDOMInfo', () => {
         });
 
         it('应自动 trim 文本内容', () => {
-            container.innerHTML = '<span id="test">  Hello World  </span>';
+            container.innerHTML =
+                '<span id="test">  Hello World  </span>';
 
             const result = extractDOMInfo('#test', { key: 'text' });
 
@@ -33,7 +35,9 @@ describe('extractDOMInfo', () => {
 
     describe('元素不存在处理', () => {
         it('元素不存在时应返回 null', () => {
-            const result = extractDOMInfo('#non-existent', { key: 'text' });
+            const result = extractDOMInfo('#non-existent', {
+                key: 'text',
+            });
 
             expect(result).toEqual({ text: null });
         });
@@ -119,7 +123,8 @@ describe('extractDOMInfo', () => {
         });
 
         it('checkbox 应返回 checked 状态', () => {
-            container.innerHTML = '<input type="checkbox" id="test" checked>';
+            container.innerHTML =
+                '<input type="checkbox" id="test" checked>';
 
             const result = extractDOMInfo('#test', {
                 key: 'flag',
@@ -182,7 +187,8 @@ describe('extractDOMInfo', () => {
 
     describe('表单元素自动推断', () => {
         it('INPUT 元素应自动读取 value', () => {
-            container.innerHTML = '<input class="username" value="admin" />';
+            container.innerHTML =
+                '<input class="username" value="admin" />';
 
             const result = extractDOMInfo(container, {
                 key: 'username',
@@ -236,7 +242,8 @@ describe('extractDOMInfo', () => {
 
     describe('attribute 属性获取', () => {
         it('应获取指定属性的值', () => {
-            container.innerHTML = '<div class="item" data-id="123">内容</div>';
+            container.innerHTML =
+                '<div class="item" data-id="123">内容</div>';
 
             const result = extractDOMInfo(container, {
                 key: 'id',
@@ -287,7 +294,8 @@ describe('extractDOMInfo', () => {
         });
 
         it('boolean 类型通过 attribute 判断属性存在性', () => {
-            container.innerHTML = '<div class="item" data-active>内容</div>';
+            container.innerHTML =
+                '<div class="item" data-active>内容</div>';
 
             const result = extractDOMInfo(container, {
                 key: 'isActive',
@@ -320,21 +328,33 @@ describe('extractDOMInfo', () => {
 
             const result = extractDOMInfo(container, [
                 { key: 'name', selector: '.name' },
-                { key: 'nameElement', selector: '.name', type: 'element' },
+                {
+                    key: 'nameElement',
+                    selector: '.name',
+                    type: 'element',
+                },
             ]);
 
             expect(result.name).toBe('张三');
             expect(result.nameElement).toBeInstanceOf(HTMLElement);
             // 两次提取的是同一个元素
-            expect((result.nameElement as HTMLElement).textContent).toBe(
-                '张三',
-            );
+            expect(
+                (result.nameElement as HTMLElement).textContent,
+            ).toBe('张三');
         });
 
         it('不存在的 selector 也应缓存', () => {
             const result = extractDOMInfo(container, [
-                { key: 'missing1', selector: '.not-exist', defaultValue: 'A' },
-                { key: 'missing2', selector: '.not-exist', defaultValue: 'B' },
+                {
+                    key: 'missing1',
+                    selector: '.not-exist',
+                    defaultValue: 'A',
+                },
+                {
+                    key: 'missing2',
+                    selector: '.not-exist',
+                    defaultValue: 'B',
+                },
             ]);
 
             expect(result.missing1).toBe('A');

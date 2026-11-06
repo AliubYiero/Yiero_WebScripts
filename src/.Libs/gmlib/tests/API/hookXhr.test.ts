@@ -4,9 +4,14 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 const originalXhrOpen = XMLHttpRequest.prototype.open;
 
 describe('hookXhr', () => {
-    let hookXhr: <T extends string | Record<string, unknown> | Document>(
+    let hookXhr: <
+        T extends string | Record<string, unknown> | Document,
+    >(
         hookUrl: (url: string) => boolean,
-        callback: (response: T, requestUrl: string) => undefined | string,
+        callback: (
+            response: T,
+            requestUrl: string,
+        ) => undefined | string,
     ) => void;
 
     beforeAll(async () => {
@@ -28,7 +33,9 @@ describe('hookXhr', () => {
 
     it('should hook matching URL and modify response', () => {
         // 验证 open 方法已被替换
-        expect(XMLHttpRequest.prototype.open).not.toBe(originalXhrOpen);
+        expect(XMLHttpRequest.prototype.open).not.toBe(
+            originalXhrOpen,
+        );
     });
 
     it('should only hook once even when called multiple times', () => {

@@ -86,7 +86,9 @@ function calculateStackOffset(position: string): {
 
     // 计算累计偏移量 (消息高度 + 间距)
     const totalOffset = samePositionMessages.reduce((acc, msg) => {
-        return acc + msg.element.offsetHeight + MESSAGE_STACK_CONFIG.GAP;
+        return (
+            acc + msg.element.offsetHeight + MESSAGE_STACK_CONFIG.GAP
+        );
     }, 0);
 
     const isBottom = position.includes('bottom');
@@ -98,7 +100,9 @@ function calculateStackOffset(position: string): {
         };
     } else {
         // 顶部/中间位置: 向下堆叠
-        return { top: `${MESSAGE_STACK_CONFIG.BASE_OFFSET + totalOffset}px` };
+        return {
+            top: `${MESSAGE_STACK_CONFIG.BASE_OFFSET + totalOffset}px`,
+        };
     }
 }
 
@@ -144,7 +148,10 @@ function enforceMessageLimit(): void {
  * @param isEnter - 是否为入场动画
  * @returns translateY 偏移量 (px)
  */
-function getAnimationOffset(position: string, isEnter: boolean): number {
+function getAnimationOffset(
+    position: string,
+    isEnter: boolean,
+): number {
     const isBottom = position.includes('bottom');
     if (isEnter) {
         return 0;
@@ -164,7 +171,9 @@ function validateMessageOptions(
 ): asserts detail is MessageDetail {
     // 校验 message
     if (!detail.message || typeof detail.message !== 'string') {
-        throw new Error('Message: message 参数必须是有效的非空字符串');
+        throw new Error(
+            'Message: message 参数必须是有效的非空字符串',
+        );
     }
 
     // 校验 duration
@@ -182,13 +191,22 @@ function validateMessageOptions(
 
     // 校验 type
 
-    const validTypes = ['success', 'warning', 'error', 'info'] as const;
+    const validTypes = [
+        'success',
+        'warning',
+        'error',
+        'info',
+    ] as const;
 
     if (
         detail.type !== undefined &&
-        !validTypes.includes(detail.type as (typeof validTypes)[number])
+        !validTypes.includes(
+            detail.type as (typeof validTypes)[number],
+        )
     ) {
-        throw new Error(`Message: type 必须是 ${validTypes.join(' | ')} 之一`);
+        throw new Error(
+            `Message: type 必须是 ${validTypes.join(' | ')} 之一`,
+        );
     }
 
     // 校验 position
@@ -474,9 +492,14 @@ function recalculateMessagePositions(): void {
 }
 
 // 关闭消息函数
-function closeMessage(element: HTMLElement, position: string = 'top') {
+function closeMessage(
+    element: HTMLElement,
+    position: string = 'top',
+) {
     // 从活动消息列表中移除
-    const index = activeMessages.findIndex((msg) => msg.element === element);
+    const index = activeMessages.findIndex(
+        (msg) => msg.element === element,
+    );
     if (index !== -1) {
         activeMessages.splice(index, 1);
     }
@@ -496,7 +519,12 @@ function closeMessage(element: HTMLElement, position: string = 'top') {
 }
 
 // 添加快捷方法
-const messageTypes_shortcuts = ['success', 'warning', 'error', 'info'] as const;
+const messageTypes_shortcuts = [
+    'success',
+    'warning',
+    'error',
+    'info',
+] as const;
 messageTypes_shortcuts.forEach((type) => {
     Message[type] = (
         message: string,

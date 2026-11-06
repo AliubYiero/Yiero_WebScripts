@@ -26,7 +26,8 @@ describe('elementGetter', () => {
         const promise = elementGetter('#delayed-element');
 
         setTimeout(() => {
-            container.innerHTML = '<div id="delayed-element">Delayed</div>';
+            container.innerHTML =
+                '<div id="delayed-element">Delayed</div>';
         }, 50);
 
         const element = await promise;

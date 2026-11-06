@@ -66,7 +66,10 @@ export function getCookie(domain: string): Promise<ICookie[]>;
  * console.log(userId); // "1747564175"
  * ```
  */
-export function getCookie(domain: string, key: string): Promise<string>;
+export function getCookie(
+    domain: string,
+    key: string,
+): Promise<string>;
 
 /**
  * 解析网页 Cookie 文本内容，获取指定键名对应的 Cookie 值
@@ -95,8 +98,8 @@ export function getCookie(
 ): Promise<string | ICookie[]> {
     // 判断: 传入的第一个参数是 domain 域名 还是 Cookie 文本内容
     // 如果是 Cookie 文本内容, 解析 Cookie 内容, 返回对应的键值
-    const isTextCookie = [/^\w+=[^=;]+$/, /^\w+=[^=;]+;/].some((reg) =>
-        reg.test(content),
+    const isTextCookie = [/^\w+=[^=;]+$/, /^\w+=[^=;]+;/].some(
+        (reg) => reg.test(content),
     );
     if (isTextCookie) {
         if (!key) {
@@ -111,7 +114,9 @@ export function getCookie(
         const cookieMap = new Map<string, string>(cookieList);
         const cookieValue = cookieMap.get(key);
         if (!cookieValue) {
-            return Promise.reject(new Error('获取 Cookie 失败, key 不存在.'));
+            return Promise.reject(
+                new Error('获取 Cookie 失败, key 不存在.'),
+            );
         }
         return Promise.resolve(cookieValue);
     }
@@ -121,7 +126,9 @@ export function getCookie(
         const env = environmentTest();
         if (env !== 'ScriptCat') {
             return reject(
-                new Error(`当前脚本不支持 ${env} 环境, 仅支持 ScriptCat .`),
+                new Error(
+                    `当前脚本不支持 ${env} 环境, 仅支持 ScriptCat .`,
+                ),
             );
         }
 
@@ -134,7 +141,9 @@ export function getCookie(
                 // 如果没有 cookie , 报错
                 if (!cookieList) {
                     reject(
-                        new Error('获取 Cookie 失败, 该域名下没有 cookie. '),
+                        new Error(
+                            '获取 Cookie 失败, 该域名下没有 cookie. ',
+                        ),
                     );
                     return;
                 }
@@ -151,7 +160,9 @@ export function getCookie(
 
                 // 如果没有找到对应的 key, 报错
                 if (!userIdCookie) {
-                    reject(new Error('获取 Cookie 失败, key 不存在. '));
+                    reject(
+                        new Error('获取 Cookie 失败, key 不存在. '),
+                    );
                     return;
                 }
 

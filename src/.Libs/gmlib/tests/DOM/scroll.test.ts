@@ -108,7 +108,10 @@ describe('scroll', () => {
 
             // 创建 mock container
             const container = {
-                getBoundingClientRect: () => ({ top: 100, height: 400 }),
+                getBoundingClientRect: () => ({
+                    top: 100,
+                    height: 400,
+                }),
                 scrollBy: (options: ScrollToOptions) => {
                     callArgs = options;
                 },

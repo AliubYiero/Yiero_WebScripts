@@ -12,7 +12,11 @@ type ObjectForEachCallback<T> = (
 /**
  * 对象存储映射回调函数类型
  */
-type ObjectMapCallback<T, U> = (value: T[keyof T], key: keyof T, obj: T) => U;
+type ObjectMapCallback<T, U> = (
+    value: T[keyof T],
+    key: keyof T,
+    obj: T,
+) => U;
 
 /**
  * 对象存储过滤回调函数类型
@@ -400,7 +404,9 @@ export class GmObjectStorage<
      * }
      * ```
      */
-    find(callback: ObjectFilterCallback<T>): [keyof T, T[keyof T]] | undefined {
+    find(
+        callback: ObjectFilterCallback<T>,
+    ): [keyof T, T[keyof T]] | undefined {
         const obj = this.get();
         for (const key in obj) {
             if (

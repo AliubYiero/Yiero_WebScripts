@@ -84,13 +84,17 @@ export function setValue(
     const { triggerFocusBlur = false } = options || {};
 
     if (triggerFocusBlur) {
-        element.dispatchEvent(new FocusEvent('focus', { bubbles: true }));
+        element.dispatchEvent(
+            new FocusEvent('focus', { bubbles: true }),
+        );
     }
 
     element.dispatchEvent(new InputEvent('input', { bubbles: true }));
     element.dispatchEvent(new Event('change', { bubbles: true }));
 
     if (triggerFocusBlur) {
-        element.dispatchEvent(new FocusEvent('blur', { bubbles: true }));
+        element.dispatchEvent(
+            new FocusEvent('blur', { bubbles: true }),
+        );
     }
 }

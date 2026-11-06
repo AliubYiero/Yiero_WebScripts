@@ -62,7 +62,9 @@ describe('gmMenuCommand', () => {
             gmMenuCommand.create('Test Menu', () => {}, true);
             const newOnClick = () => console.log('new click');
 
-            gmMenuCommand.modify('Test Menu', { onClick: newOnClick });
+            gmMenuCommand.modify('Test Menu', {
+                onClick: newOnClick,
+            });
 
             const command = gmMenuCommand.get('Test Menu');
             expect(command.onClick).toBe(newOnClick);
@@ -135,7 +137,9 @@ describe('gmMenuCommand', () => {
 
             expect(gmMenuCommand.list.length).toBe(3);
             // batch 结束后统一 render 一次
-            expect(gmApiMock.GM_registerMenuCommand).toHaveBeenCalledTimes(3);
+            expect(
+                gmApiMock.GM_registerMenuCommand,
+            ).toHaveBeenCalledTimes(3);
         });
 
         it('should support chain after batch', () => {
@@ -170,8 +174,12 @@ describe('gmMenuCommand', () => {
 
             // create 自动 render 了 2 次，手动调用第 3 次
             // register: 1 + 1 + 1 = 3
-            expect(gmApiMock.GM_registerMenuCommand).toHaveBeenCalledTimes(2);
-            expect(gmApiMock.GM_unregisterMenuCommand).toHaveBeenCalledTimes(3);
+            expect(
+                gmApiMock.GM_registerMenuCommand,
+            ).toHaveBeenCalledTimes(2);
+            expect(
+                gmApiMock.GM_unregisterMenuCommand,
+            ).toHaveBeenCalledTimes(3);
         });
     });
 });

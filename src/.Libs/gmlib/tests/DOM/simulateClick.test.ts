@@ -1,4 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import {
+    afterEach,
+    beforeEach,
+    describe,
+    expect,
+    it,
+    vi,
+} from 'vitest';
 import { simulateClick } from '../../src/DOM/simulateClick';
 
 describe('simulateClick', () => {
@@ -234,14 +241,20 @@ describe('simulateClick', () => {
             button.addEventListener('mousedown', () =>
                 eventOrder.push('mousedown'),
             );
-            button.addEventListener('click', () => eventOrder.push('click'));
+            button.addEventListener('click', () =>
+                eventOrder.push('click'),
+            );
             button.addEventListener('mouseup', () =>
                 eventOrder.push('mouseup'),
             );
 
             simulateClick(button);
 
-            expect(eventOrder).toEqual(['mousedown', 'click', 'mouseup']);
+            expect(eventOrder).toEqual([
+                'mousedown',
+                'click',
+                'mouseup',
+            ]);
         });
     });
 });

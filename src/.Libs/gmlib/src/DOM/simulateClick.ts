@@ -139,7 +139,13 @@ export function simulateClick(
     };
 
     // 如果元素可交互，先聚焦
-    const focusableElements = ['INPUT', 'TEXTAREA', 'SELECT', 'BUTTON', 'A'];
+    const focusableElements = [
+        'INPUT',
+        'TEXTAREA',
+        'SELECT',
+        'BUTTON',
+        'A',
+    ];
     if (
         focusableElements.includes(target.tagName) ||
         target.getAttribute('tabindex') !== null

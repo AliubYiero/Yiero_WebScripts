@@ -47,7 +47,9 @@ describe('GmStorage', () => {
         const callback2 = (_changeDetail: unknown) => {};
 
         storage.updateListener(callback1);
-        const firstListenerId = Array.from(gmApiMock.getListeners().keys())[0];
+        const firstListenerId = Array.from(
+            gmApiMock.getListeners().keys(),
+        )[0];
 
         storage.updateListener(callback2);
 
@@ -55,7 +57,9 @@ describe('GmStorage', () => {
         // 监听器数量应该仍然是 1（新的监听器替换了旧的）
         expect(gmApiMock.getListeners().size).toBe(1);
         // 新的监听器 ID 应该不同
-        const secondListenerId = Array.from(gmApiMock.getListeners().keys())[0];
+        const secondListenerId = Array.from(
+            gmApiMock.getListeners().keys(),
+        )[0];
         expect(secondListenerId).not.toBe(firstListenerId);
     });
 });

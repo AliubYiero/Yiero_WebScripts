@@ -71,7 +71,11 @@ describe('GmObjectStorage', () => {
 
     describe('Basic operations', () => {
         it('should set entire object', () => {
-            storage.set({ theme: 'dark', fontSize: 16, notifications: false });
+            storage.set({
+                theme: 'dark',
+                fontSize: 16,
+                notifications: false,
+            });
             expect(storage.get()).toEqual({
                 theme: 'dark',
                 fontSize: 16,
@@ -116,11 +120,12 @@ describe('GmObjectStorage', () => {
         });
 
         it('should getItem return undefined for non-existent key', () => {
-            const dynamicStorage = new GmObjectStorage<Record<string, unknown>>(
-                'dynamic',
-                {},
-            );
-            expect(dynamicStorage.getItem('nonexistent')).toBeUndefined();
+            const dynamicStorage = new GmObjectStorage<
+                Record<string, unknown>
+            >('dynamic', {});
+            expect(
+                dynamicStorage.getItem('nonexistent'),
+            ).toBeUndefined();
         });
 
         it('should setItem update value', () => {
@@ -157,7 +162,10 @@ describe('GmObjectStorage', () => {
 
         it('should pick ignore non-existent keys', () => {
             // biome-ignore lint/suspicious/noExplicitAny: 测试不存在的键需要 any
-            const picked = storage.pick('theme', 'nonexistent' as any);
+            const picked = storage.pick(
+                'theme',
+                'nonexistent' as any,
+            );
             expect(picked).toEqual({ theme: 'light' });
         });
 
@@ -193,7 +201,9 @@ describe('GmObjectStorage', () => {
     describe('Map and Filter', () => {
         it('should map return new object without modifying storage', () => {
             const mapped = storage.map((value) => {
-                return typeof value === 'string' ? value.toUpperCase() : value;
+                return typeof value === 'string'
+                    ? value.toUpperCase()
+                    : value;
             });
             expect(mapped).toEqual({
                 theme: 'LIGHT',
@@ -208,29 +218,26 @@ describe('GmObjectStorage', () => {
         });
 
         it('should mapInPlace update storage', () => {
-            const numStorage = new GmObjectStorage<Record<string, number>>(
-                'num',
-                { a: 1, b: 2, c: 3 },
-            );
+            const numStorage = new GmObjectStorage<
+                Record<string, number>
+            >('num', { a: 1, b: 2, c: 3 });
             numStorage.mapInPlace((value) => value * 2);
             expect(numStorage.get()).toEqual({ a: 2, b: 4, c: 6 });
         });
 
         it('should filter return new object without modifying storage', () => {
-            const numStorage = new GmObjectStorage<Record<string, number>>(
-                'num',
-                { a: 1, b: 2, c: 3 },
-            );
+            const numStorage = new GmObjectStorage<
+                Record<string, number>
+            >('num', { a: 1, b: 2, c: 3 });
             const filtered = numStorage.filter((value) => value > 1);
             expect(filtered).toEqual({ b: 2, c: 3 });
             expect(numStorage.get()).toEqual({ a: 1, b: 2, c: 3 });
         });
 
         it('should filterInPlace update storage', () => {
-            const numStorage = new GmObjectStorage<Record<string, number>>(
-                'num',
-                { a: 1, b: 2, c: 3 },
-            );
+            const numStorage = new GmObjectStorage<
+                Record<string, number>
+            >('num', { a: 1, b: 2, c: 3 });
             numStorage.filterInPlace((value) => value > 1);
             expect(numStorage.get()).toEqual({ b: 2, c: 3 });
         });
@@ -238,39 +245,48 @@ describe('GmObjectStorage', () => {
 
     describe('Find methods', () => {
         it('should find return first matching entry', () => {
-            const numStorage = new GmObjectStorage<Record<string, number>>(
-                'num',
-                { a: 1, b: 2, c: 3 },
-            );
-            expect(numStorage.find((value) => value > 1)).toEqual(['b', 2]);
-            expect(numStorage.find((value) => value > 10)).toBeUndefined();
+            const numStorage = new GmObjectStorage<
+                Record<string, number>
+            >('num', { a: 1, b: 2, c: 3 });
+            expect(numStorage.find((value) => value > 1)).toEqual([
+                'b',
+                2,
+            ]);
+            expect(
+                numStorage.find((value) => value > 10),
+            ).toBeUndefined();
         });
 
         it('should findKey return first matching key', () => {
-            const numStorage = new GmObjectStorage<Record<string, number>>(
-                'num',
-                { a: 1, b: 2, c: 3 },
+            const numStorage = new GmObjectStorage<
+                Record<string, number>
+            >('num', { a: 1, b: 2, c: 3 });
+            expect(numStorage.findKey((value) => value > 1)).toBe(
+                'b',
             );
-            expect(numStorage.findKey((value) => value > 1)).toBe('b');
-            expect(numStorage.findKey((value) => value > 10)).toBeUndefined();
+            expect(
+                numStorage.findKey((value) => value > 10),
+            ).toBeUndefined();
         });
 
         it('should some check if any property matches', () => {
-            const numStorage = new GmObjectStorage<Record<string, number>>(
-                'num',
-                { a: 1, b: 2, c: 3 },
-            );
+            const numStorage = new GmObjectStorage<
+                Record<string, number>
+            >('num', { a: 1, b: 2, c: 3 });
             expect(numStorage.some((value) => value > 2)).toBe(true);
-            expect(numStorage.some((value) => value > 10)).toBe(false);
+            expect(numStorage.some((value) => value > 10)).toBe(
+                false,
+            );
         });
 
         it('should every check if all properties match', () => {
-            const numStorage = new GmObjectStorage<Record<string, number>>(
-                'num',
-                { a: 1, b: 2, c: 3 },
-            );
+            const numStorage = new GmObjectStorage<
+                Record<string, number>
+            >('num', { a: 1, b: 2, c: 3 });
             expect(numStorage.every((value) => value > 0)).toBe(true);
-            expect(numStorage.every((value) => value > 1)).toBe(false);
+            expect(numStorage.every((value) => value > 1)).toBe(
+                false,
+            );
         });
 
         it('should some return false for empty object', () => {
@@ -286,9 +302,8 @@ describe('GmObjectStorage', () => {
 
     describe('Reset without default', () => {
         it('should reset to empty object when no default', () => {
-            const noDefaultStorage = new GmObjectStorage<TestSettings>(
-                'no-default',
-            );
+            const noDefaultStorage =
+                new GmObjectStorage<TestSettings>('no-default');
             noDefaultStorage.set({
                 theme: 'dark',
                 fontSize: 16,

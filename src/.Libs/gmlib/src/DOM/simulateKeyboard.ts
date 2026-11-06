@@ -98,7 +98,9 @@ export function simulateKeyboard(
  *
  * @param options 键盘选项
  */
-export function simulateKeyboard(options: ISimulateKeyboardOptions): void;
+export function simulateKeyboard(
+    options: ISimulateKeyboardOptions,
+): void;
 
 /**
  * 模拟键盘事件
@@ -206,7 +208,10 @@ export function simulateKeyboard(
 
     // 如果是可打印字符，触发 keypress 事件（已废弃但保持兼容）
     if (key.length === 1 && !ctrlKey && !altKey && !metaKey) {
-        const keypressEvent = new KeyboardEvent('keypress', eventInit);
+        const keypressEvent = new KeyboardEvent(
+            'keypress',
+            eventInit,
+        );
         target.dispatchEvent(keypressEvent);
     }
 

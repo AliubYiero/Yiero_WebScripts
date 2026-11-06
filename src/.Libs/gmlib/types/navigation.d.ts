@@ -20,7 +20,11 @@ interface NavigationDestination {
 
 interface NavigateEvent extends Event {
     /** 导航类型 */
-    readonly navigationType: 'push' | 'replace' | 'traverse' | 'reload';
+    readonly navigationType:
+        | 'push'
+        | 'replace'
+        | 'traverse'
+        | 'reload';
     /** 目标 */
     readonly destination: NavigationDestination;
     /** 是否可以拦截 */
@@ -36,7 +40,9 @@ interface NavigateEvent extends Event {
     /** 下载请求 */
     readonly downloadRequest: string | null;
     /** 拦截导航 */
-    intercept(options?: { handler?: () => Promise<void> | void }): void;
+    intercept(options?: {
+        handler?: () => Promise<void> | void;
+    }): void;
     /** 滚动 */
     scroll(options?: { key?: string }): void;
 }
@@ -59,7 +65,11 @@ interface Navigation extends EventTarget {
     readonly currentEntry: NavigationHistoryEntry | null;
     /** 转换计数 */
     readonly transition: {
-        readonly navigationType: 'push' | 'replace' | 'traverse' | 'reload';
+        readonly navigationType:
+            | 'push'
+            | 'replace'
+            | 'traverse'
+            | 'reload';
         readonly from: NavigationHistoryEntry;
         readonly finished: Promise<void>;
     } | null;
@@ -70,16 +80,22 @@ interface Navigation extends EventTarget {
     /** 获取条目 */
     entries(): NavigationHistoryEntry[];
     /** 前进 */
-    forward(options?: { info?: unknown }): Promise<NavigationHistoryEntry>;
+    forward(options?: {
+        info?: unknown;
+    }): Promise<NavigationHistoryEntry>;
     /** 后退 */
-    back(options?: { info?: unknown }): Promise<NavigationHistoryEntry>;
+    back(options?: {
+        info?: unknown;
+    }): Promise<NavigationHistoryEntry>;
     /** 导航 */
     navigate(
         url: string,
         options?: { info?: unknown; history?: 'push' | 'replace' },
     ): Promise<NavigationHistoryEntry>;
     /** 重新加载 */
-    reload(options?: { info?: unknown }): Promise<NavigationHistoryEntry>;
+    reload(options?: {
+        info?: unknown;
+    }): Promise<NavigationHistoryEntry>;
     /** 更新当前条目 */
     updateCurrentEntry(options: { state: unknown }): void;
     /** 监听 navigate 事件 */

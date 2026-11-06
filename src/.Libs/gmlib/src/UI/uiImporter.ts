@@ -64,7 +64,9 @@ export const uiImporter = (
 
     // 判断: 添加 CSS 到页面中
     const styleNode =
-        (cssContent && isAppendCssToDocument && GM_addStyle(cssContent)) ||
+        (cssContent &&
+            isAppendCssToDocument &&
+            GM_addStyle(cssContent)) ||
         void 0;
 
     // 解析Dom内容
@@ -76,12 +78,15 @@ export const uiImporter = (
     ) as HTMLElement[];
     // 判断: 是否过滤 Script 节点
     if (isFilterScriptNode) {
-        nodeList = nodeList.filter((node) => node.nodeName !== 'SCRIPT');
+        nodeList = nodeList.filter(
+            (node) => node.nodeName !== 'SCRIPT',
+        );
     }
     documentFragment.append(...nodeList);
 
     // 判断: 添加 Dom 节点到页面中
-    isAppendHtmlToDocument && appendHtmlContainer.append(documentFragment);
+    isAppendHtmlToDocument &&
+        appendHtmlContainer.append(documentFragment);
 
     return {
         styleNode: styleNode,

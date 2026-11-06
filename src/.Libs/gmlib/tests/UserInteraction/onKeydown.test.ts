@@ -30,8 +30,12 @@ describe('onKeydown', () => {
             onKeydown(callback);
 
             // 模拟 window 上的 keydown 事件
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'b' }));
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'b' }),
+            );
 
             expect(keys).toEqual(['a', 'b']);
         });
@@ -45,8 +49,12 @@ describe('onKeydown', () => {
             onKeydown(callback, { target: input });
 
             // 在 input 上触发事件
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'x' }));
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'y' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'x' }),
+            );
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'y' }),
+            );
 
             expect(keys).toEqual(['x', 'y']);
         });
@@ -60,8 +68,12 @@ describe('onKeydown', () => {
             onKeydown(callback, { target: input });
 
             // 在其他元素上触发事件
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
-            container.dispatchEvent(new KeyboardEvent('keydown', { key: 'b' }));
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
+            container.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'b' }),
+            );
 
             expect(keys).toEqual([]);
         });
@@ -77,12 +89,18 @@ describe('onKeydown', () => {
             onKeydown(callback, { target: input, key: 'Enter' });
 
             // 触发不同按键
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'Enter' }),
+            );
             input.dispatchEvent(
                 new KeyboardEvent('keydown', { key: 'Escape' }),
             );
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'Enter' }),
+            );
 
             // 只有 Enter 被记录
             expect(keys).toEqual(['Enter', 'Enter']);
@@ -98,8 +116,12 @@ describe('onKeydown', () => {
             onKeydown(callback, { target: input, key: 'a' });
 
             // 触发大小写不同的 a
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'A' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'A' }),
+            );
 
             // 两者都应该被监听
             expect(keys).toEqual(['a', 'A']);
@@ -113,8 +135,12 @@ describe('onKeydown', () => {
 
             onKeydown(callback, { target: input, key: 'Enter' });
 
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'enter' }));
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'enter' }),
+            );
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'Enter' }),
+            );
 
             // 只有 Enter 被记录（enter 不匹配）
             expect(keys).toEqual(['Enter']);
@@ -128,18 +154,33 @@ describe('onKeydown', () => {
                 keys.push(e.key);
             };
 
-            onKeydown(callback, { target: input, key: 's', ctrl: true });
+            onKeydown(callback, {
+                target: input,
+                key: 's',
+                ctrl: true,
+            });
 
             // 触发不同组合
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 's' }));
             input.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 's', ctrlKey: true }),
+                new KeyboardEvent('keydown', { key: 's' }),
             );
             input.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 's', ctrlKey: false }),
+                new KeyboardEvent('keydown', {
+                    key: 's',
+                    ctrlKey: true,
+                }),
             );
             input.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 'a', ctrlKey: true }),
+                new KeyboardEvent('keydown', {
+                    key: 's',
+                    ctrlKey: false,
+                }),
+            );
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', {
+                    key: 'a',
+                    ctrlKey: true,
+                }),
             );
 
             // 只有 Ctrl+S 被记录
@@ -152,13 +193,23 @@ describe('onKeydown', () => {
                 keys.push(e.key);
             };
 
-            onKeydown(callback, { target: input, key: 'Enter', shift: true });
+            onKeydown(callback, {
+                target: input,
+                key: 'Enter',
+                shift: true,
+            });
 
             input.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 'Enter', shiftKey: false }),
+                new KeyboardEvent('keydown', {
+                    key: 'Enter',
+                    shiftKey: false,
+                }),
             );
             input.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true }),
+                new KeyboardEvent('keydown', {
+                    key: 'Enter',
+                    shiftKey: true,
+                }),
             );
 
             expect(keys).toEqual(['Enter']);
@@ -170,13 +221,23 @@ describe('onKeydown', () => {
                 keys.push(e.key);
             };
 
-            onKeydown(callback, { target: input, key: 'Tab', alt: true });
+            onKeydown(callback, {
+                target: input,
+                key: 'Tab',
+                alt: true,
+            });
 
             input.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 'Tab', altKey: false }),
+                new KeyboardEvent('keydown', {
+                    key: 'Tab',
+                    altKey: false,
+                }),
             );
             input.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 'Tab', altKey: true }),
+                new KeyboardEvent('keydown', {
+                    key: 'Tab',
+                    altKey: true,
+                }),
             );
 
             expect(keys).toEqual(['Tab']);
@@ -188,13 +249,23 @@ describe('onKeydown', () => {
                 keys.push(e.key);
             };
 
-            onKeydown(callback, { target: input, key: 's', meta: true });
+            onKeydown(callback, {
+                target: input,
+                key: 's',
+                meta: true,
+            });
 
             input.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 's', metaKey: false }),
+                new KeyboardEvent('keydown', {
+                    key: 's',
+                    metaKey: false,
+                }),
             );
             input.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 's', metaKey: true }),
+                new KeyboardEvent('keydown', {
+                    key: 's',
+                    metaKey: true,
+                }),
             );
 
             expect(keys).toEqual(['s']);
@@ -249,13 +320,23 @@ describe('onKeydown', () => {
             };
 
             // 明确要求没有 Ctrl 键
-            onKeydown(callback, { target: input, key: 's', ctrl: false });
+            onKeydown(callback, {
+                target: input,
+                key: 's',
+                ctrl: false,
+            });
 
             input.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 's', ctrlKey: true }),
+                new KeyboardEvent('keydown', {
+                    key: 's',
+                    ctrlKey: true,
+                }),
             );
             input.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 's', ctrlKey: false }),
+                new KeyboardEvent('keydown', {
+                    key: 's',
+                    ctrlKey: false,
+                }),
             );
 
             // 只有没有 Ctrl 的 s 被记录
@@ -274,7 +355,10 @@ describe('onKeydown', () => {
             });
 
             input.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 's', ctrlKey: true }),
+                new KeyboardEvent('keydown', {
+                    key: 's',
+                    ctrlKey: true,
+                }),
             );
             expect(triggered.length).toBe(1);
         });
@@ -301,7 +385,9 @@ describe('onKeydown', () => {
                 key: 'Enter',
             });
 
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'Enter' }),
+            );
             expect(triggered.length).toBe(1);
         });
 
@@ -344,14 +430,18 @@ describe('onKeydown', () => {
             const off = onKeydown(callback, { target: input });
 
             // 触发一次事件
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
             expect(keys).toEqual(['a']);
 
             // 取消监听
             off();
 
             // 再次触发事件，不应再被监听
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'b' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'b' }),
+            );
             expect(keys).toEqual(['a']); // 还是只有 'a'
         });
 
@@ -363,12 +453,16 @@ describe('onKeydown', () => {
 
             const off = onKeydown(callback);
 
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
             expect(keys).toEqual(['a']);
 
             off();
 
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'b' }));
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'b' }),
+            );
             expect(keys).toEqual(['a']);
         });
 
@@ -380,12 +474,16 @@ describe('onKeydown', () => {
                 key: 'Enter',
             });
 
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'Enter' }),
+            );
             expect(keys).toEqual(['Enter']);
 
             off();
 
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'Enter' }),
+            );
             expect(keys).toEqual(['Enter']); // 不再更新
         });
     });
@@ -400,9 +498,15 @@ describe('onKeydown', () => {
             onKeydown(callback, { target: input, once: true });
 
             // 触发多次事件
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'b' }));
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'c' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'b' }),
+            );
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'c' }),
+            );
 
             // 只有第一次被监听
             expect(keys).toEqual(['a']);
@@ -418,12 +522,20 @@ describe('onKeydown', () => {
             });
 
             // 触发非 Enter 键
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'b' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'b' }),
+            );
 
             // 触发 Enter 键
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'Enter' }),
+            );
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'Enter' }),
+            );
 
             // 只有第一次 Enter 被记录
             expect(keys).toEqual(['Enter']);
@@ -454,7 +566,10 @@ describe('onKeydown', () => {
 
             // 在 input 上触发事件
             input.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 'a', bubbles: true }),
+                new KeyboardEvent('keydown', {
+                    key: 'a',
+                    bubbles: true,
+                }),
             );
 
             // 捕获阶段先于冒泡阶段
@@ -512,7 +627,9 @@ describe('onKeydown', () => {
 
             onKeydown(callback, { target: document });
 
-            document.dispatchEvent(new KeyboardEvent('keydown', { key: 'x' }));
+            document.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'x' }),
+            );
 
             expect(keys).toEqual(['x']);
         });
@@ -529,7 +646,9 @@ describe('onKeydown', () => {
             onKeydown(callback1, { target: input });
             onKeydown(callback2, { target: input });
 
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
 
             expect(keys1).toEqual(['a']);
             expect(keys2).toEqual(['a']);
@@ -546,7 +665,9 @@ describe('onKeydown', () => {
             onKeydown(callback2, { target: input });
 
             // 触发事件
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
             expect(keys1).toEqual(['a']);
             expect(keys2).toEqual(['a']);
 
@@ -554,7 +675,9 @@ describe('onKeydown', () => {
             off1();
 
             // 再次触发事件
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'b' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'b' }),
+            );
             expect(keys1).toEqual(['a']); // 不再更新
             expect(keys2).toEqual(['a', 'b']);
         });
@@ -587,10 +710,18 @@ describe('onKeydownMultiple', () => {
                 { key: 'c', callback: () => keys.push('c') },
             ]);
 
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'b' }));
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'c' }));
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'd' }));
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'b' }),
+            );
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'c' }),
+            );
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'd' }),
+            );
 
             expect(keys).toEqual(['a', 'b', 'c']);
         });
@@ -600,13 +731,21 @@ describe('onKeydownMultiple', () => {
 
             onKeydownMultiple(
                 [
-                    { key: 'Enter', callback: () => keys.push('Enter') },
-                    { key: 'Escape', callback: () => keys.push('Escape') },
+                    {
+                        key: 'Enter',
+                        callback: () => keys.push('Enter'),
+                    },
+                    {
+                        key: 'Escape',
+                        callback: () => keys.push('Escape'),
+                    },
                 ],
                 { target: input },
             );
 
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'Enter' }),
+            );
             input.dispatchEvent(
                 new KeyboardEvent('keydown', { key: 'Escape' }),
             );
@@ -621,12 +760,23 @@ describe('onKeydownMultiple', () => {
             const results: string[] = [];
 
             onKeydownMultiple([
-                { key: 's', ctrl: true, callback: () => results.push('save') },
-                { key: 's', ctrl: true, callback: () => results.push('log') },
+                {
+                    key: 's',
+                    ctrl: true,
+                    callback: () => results.push('save'),
+                },
+                {
+                    key: 's',
+                    ctrl: true,
+                    callback: () => results.push('log'),
+                },
             ]);
 
             window.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 's', ctrlKey: true }),
+                new KeyboardEvent('keydown', {
+                    key: 's',
+                    ctrlKey: true,
+                }),
             );
 
             expect(results).toEqual(['save', 'log']);
@@ -638,17 +788,33 @@ describe('onKeydownMultiple', () => {
             const actions: string[] = [];
 
             onKeydownMultiple([
-                { key: 's', ctrl: true, callback: () => actions.push('save') },
-                { key: 'o', ctrl: true, callback: () => actions.push('open') },
+                {
+                    key: 's',
+                    ctrl: true,
+                    callback: () => actions.push('save'),
+                },
+                {
+                    key: 'o',
+                    ctrl: true,
+                    callback: () => actions.push('open'),
+                },
             ]);
 
             window.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 's', ctrlKey: true }),
+                new KeyboardEvent('keydown', {
+                    key: 's',
+                    ctrlKey: true,
+                }),
             );
             window.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 'o', ctrlKey: true }),
+                new KeyboardEvent('keydown', {
+                    key: 'o',
+                    ctrlKey: true,
+                }),
             );
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 's' }));
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 's' }),
+            );
 
             expect(actions).toEqual(['save', 'open']);
         });
@@ -665,7 +831,10 @@ describe('onKeydownMultiple', () => {
             ]);
 
             window.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 'Enter', shiftKey: true }),
+                new KeyboardEvent('keydown', {
+                    key: 'Enter',
+                    shiftKey: true,
+                }),
             );
             window.dispatchEvent(
                 new KeyboardEvent('keydown', { key: 'Enter' }),
@@ -694,7 +863,10 @@ describe('onKeydownMultiple', () => {
                 }),
             );
             window.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 's', ctrlKey: true }),
+                new KeyboardEvent('keydown', {
+                    key: 's',
+                    ctrlKey: true,
+                }),
             );
 
             expect(actions).toEqual(['save-as']);
@@ -705,9 +877,13 @@ describe('onKeydownMultiple', () => {
         it('should listen to all keys when key is not specified', () => {
             const keys: string[] = [];
 
-            onKeydownMultiple([{ callback: (e) => keys.push(e.key) }]);
+            onKeydownMultiple([
+                { callback: (e) => keys.push(e.key) },
+            ]);
 
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
             window.dispatchEvent(
                 new KeyboardEvent('keydown', { key: 'Enter' }),
             );
@@ -726,12 +902,20 @@ describe('onKeydownMultiple', () => {
             ]);
 
             window.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 'a', ctrlKey: true }),
+                new KeyboardEvent('keydown', {
+                    key: 'a',
+                    ctrlKey: true,
+                }),
             );
             window.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 'b', ctrlKey: true }),
+                new KeyboardEvent('keydown', {
+                    key: 'b',
+                    ctrlKey: true,
+                }),
             );
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
 
             expect(keys).toEqual(['a', 'b']);
         });
@@ -739,7 +923,9 @@ describe('onKeydownMultiple', () => {
 
     describe('unsubscribe', () => {
         it('should return unsubscribe function', () => {
-            const off = onKeydownMultiple([{ key: 'a', callback: () => {} }]);
+            const off = onKeydownMultiple([
+                { key: 'a', callback: () => {} },
+            ]);
 
             expect(typeof off).toBe('function');
         });
@@ -753,13 +939,21 @@ describe('onKeydownMultiple', () => {
                 { key: 'c', callback: () => keys.push('c') },
             ]);
 
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'b' }));
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'b' }),
+            );
 
             off();
 
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'c' }));
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'c' }),
+            );
 
             expect(keys).toEqual(['a', 'b']);
         });
@@ -768,16 +962,25 @@ describe('onKeydownMultiple', () => {
             const keys: string[] = [];
 
             const off = onKeydownMultiple(
-                [{ key: 'Enter', callback: () => keys.push('Enter') }],
+                [
+                    {
+                        key: 'Enter',
+                        callback: () => keys.push('Enter'),
+                    },
+                ],
                 { target: input },
             );
 
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'Enter' }),
+            );
             expect(keys).toEqual(['Enter']);
 
             off();
 
-            input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' }));
+            input.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'Enter' }),
+            );
             expect(keys).toEqual(['Enter']);
         });
     });
@@ -797,7 +1000,10 @@ describe('onKeydownMultiple', () => {
             });
 
             input.dispatchEvent(
-                new KeyboardEvent('keydown', { key: 'a', bubbles: true }),
+                new KeyboardEvent('keydown', {
+                    key: 'a',
+                    bubbles: true,
+                }),
             );
 
             expect(eventOrder).toEqual(['multiple', 'single']);
@@ -805,7 +1011,9 @@ describe('onKeydownMultiple', () => {
 
         it('should accept passive option', () => {
             expect(() => {
-                onKeydownMultiple([{ callback: () => {} }], { passive: true });
+                onKeydownMultiple([{ callback: () => {} }], {
+                    passive: true,
+                });
             }).not.toThrow();
         });
     });
@@ -814,10 +1022,16 @@ describe('onKeydownMultiple', () => {
         it('should be case-insensitive for letter keys', () => {
             const keys: string[] = [];
 
-            onKeydownMultiple([{ key: 'a', callback: () => keys.push('a') }]);
+            onKeydownMultiple([
+                { key: 'a', callback: () => keys.push('a') },
+            ]);
 
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'A' }));
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'A' }),
+            );
 
             expect(keys).toEqual(['a', 'a']);
         });
@@ -830,7 +1044,9 @@ describe('onKeydownMultiple', () => {
             expect(typeof off).toBe('function');
 
             // 不应该抛出错误
-            window.dispatchEvent(new KeyboardEvent('keydown', { key: 'a' }));
+            window.dispatchEvent(
+                new KeyboardEvent('keydown', { key: 'a' }),
+            );
 
             off();
         });

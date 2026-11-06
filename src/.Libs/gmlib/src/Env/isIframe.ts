@@ -3,7 +3,8 @@
  */
 export const isIframe = (): boolean => {
     return Boolean(
-        (window.frameElement && window.frameElement.tagName === 'IFRAME') ||
+        (window.frameElement &&
+            window.frameElement.tagName === 'IFRAME') ||
             window !== window.top,
     );
 };
