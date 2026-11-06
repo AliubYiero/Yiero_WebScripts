@@ -61,6 +61,18 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm browser:pair` — 生成一次性配对码（脚本猫 / sctl Browser 各一次）
 - `pnpm browser:status` — 实例、扩展、daemon、两条通道的接入状态
 - `pnpm browser:attach [--url <地址>] [--screenshot]` — Playwright 接管页面
+- `pnpm browser:mcp` — 启动 stdio MCP server（agent 首选接管方式）
+- `pnpm browser:mcp:config` — 打印 DSH 的 MCP 配置片段
+- `pnpm browser:mcp:config:json` — 打印通用 MCP 客户端 JSON
+- `pnpm browser:mcp:check` — 确保 daemon 可达并打印状态
+
+MCP 是 agent 接管浏览器的首选方式：`sctl mcp` 外面包了一层
+`script/browser/mcp-bridge.mjs`（零构建，不走 tsx），会自动拉
+daemon、固定 `SCTL_DATA_DIR`。若宿主沙箱拦住 sctl 写数据目录，
+先在普通终端跑 `pnpm browser:serve`。DSH desktop 改
+`~/.dsh/profiles/desktop/cordis.patch.yml` 后要完全重启并开新会话，
+工具名形如 `mcp__sctl__page_snapshot`。细节见
+`docs/agents/browser-harness.md`。
 
 两条通道别混：`sctl status` 的 `extension connected` 指脚本猫
 （脚本管理，可选）；`sctl browsers` 里的实例才是 sctl Browser

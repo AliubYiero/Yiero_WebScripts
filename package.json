@@ -14,7 +14,7 @@
         "check:biome": "biome check script/workspace script/release",
         "release:tag": "tsx script/release/cli/tag.ts",
         "release:retag": "tsx script/release/cli/retag.ts",
-        "test": "tsx --test script/workspace/test/*.test.ts script/release/test/*.test.ts script/browser/test/*.test.ts",
+        "test": "tsx --test script/workspace/test/*.test.ts script/release/test/*.test.ts script/browser/test/*.test.ts && node --test script/browser/test/mcp-bridge.test.mjs",
         "test:libs": "tsx script/workspace/cli/check-libs.ts test",
         "typecheck": "tsc -p tsconfig.json --noEmit",
         "typecheck:libs": "tsx script/workspace/cli/check-libs.ts typecheck",
@@ -28,7 +28,11 @@
         "browser:pair": "tsx script/browser/cli.ts pair",
         "browser:status": "tsx script/browser/cli.ts status",
         "browser:attach": "tsx script/browser/cli.ts attach",
-        "browser:doctor": "tsx script/browser/cli.ts doctor"
+        "browser:doctor": "tsx script/browser/cli.ts doctor",
+        "browser:mcp": "node script/browser/mcp-bridge.mjs",
+        "browser:mcp:config": "node script/browser/mcp-bridge.mjs --print-config dsh",
+        "browser:mcp:config:json": "node script/browser/mcp-bridge.mjs --print-config json",
+        "browser:mcp:check": "node script/browser/mcp-bridge.mjs --check"
     },
     "keywords": [],
     "author": "Yiero",
