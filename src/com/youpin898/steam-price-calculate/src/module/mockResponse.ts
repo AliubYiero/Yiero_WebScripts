@@ -194,20 +194,18 @@ export const mockResponse = () => {
                 )
             );
         },
-        (
-            response:
-                | QuerySaleTemplateResponse
-                | QueryTemplateDetailResponse,
-            requestUrl,
-        ) => {
+        // gmlib 0.4 起 hookXhr 把回调参数收窄为
+        // `string | Record<string, unknown> | Document`；
+        // 这里已按 URL 分流，断言成对应响应类型。
+        (response, requestUrl) => {
             if (requestUrl.includes('querySaleTemplate')) {
                 handleResponseRoute['querySaleTemplate'](
-                    response as QuerySaleTemplateResponse,
+                    response as unknown as QuerySaleTemplateResponse,
                 );
             }
             if (requestUrl.includes('queryTemplateDetail')) {
                 handleResponseRoute['queryTemplateDetail'](
-                    response as QueryTemplateDetailResponse,
+                    response as unknown as QueryTemplateDetailResponse,
                 );
             }
         },
