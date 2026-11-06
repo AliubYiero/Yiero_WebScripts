@@ -37,7 +37,7 @@
     "dependencies": {
         "@chenglou/pretext": "^0.0.6",
         "@yiero/bilibili-api-lib": "workspace:*",
-        "@yiero/gmlib": "0.4.6",
+        "@yiero/gmlib": "workspace:*",
         "radash": "^12.1.1"
     }
 }

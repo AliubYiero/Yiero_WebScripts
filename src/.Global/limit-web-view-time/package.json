@@ -34,7 +34,7 @@
         "yamljs": "^0.3.0"
     },
     "dependencies": {
-        "@yiero/gmlib": "^0.3.2",
+        "@yiero/gmlib": "workspace:*",
         "radash": "^12.1.1"
     }
 }

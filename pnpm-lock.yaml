@@ -27,8 +27,8 @@ importers:
   src/.Global/global-css-import:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.3.5
-        version: 0.3.9
+        specifier: workspace:*
+        version: link:../../.Libs/gmlib
     devDependencies:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
@@ -85,8 +85,8 @@ importers:
   src/.Global/limit-web-view-time:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.3.2
-        version: 0.3.9
+        specifier: workspace:*
+        version: link:../../.Libs/gmlib
       radash:
         specifier: ^12.1.1
         version: 12.1.1
@@ -191,8 +191,8 @@ importers:
   src/cn/minamini/get-song-info:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.3.2
-        version: 0.3.9
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
     devDependencies:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
@@ -246,8 +246,8 @@ importers:
   src/com/bilibili/bilibili-index-video-filter:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.3.2
-        version: 0.3.9
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
     devDependencies:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
@@ -304,8 +304,8 @@ importers:
         specifier: workspace:*
         version: link:../../../.Libs/bilibili-api-lib
       '@yiero/gmlib':
-        specifier: ^0.4.6
-        version: 0.4.7
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
       radash:
         specifier: ^12.1.1
         version: 12.1.1
@@ -365,8 +365,8 @@ importers:
   src/com/bilibili/bilibili-live-chat-style:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.4.3
-        version: 0.4.7
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
     devDependencies:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
@@ -423,8 +423,8 @@ importers:
         specifier: workspace:*
         version: link:../../../.Libs/bilibili-api-lib
       '@yiero/gmlib':
-        specifier: ^0.3.5
-        version: 0.3.9
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
     devDependencies:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
@@ -481,8 +481,8 @@ importers:
   src/com/bilibili/bilibili-live-record:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.1.12
-        version: 0.1.23
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
       lit:
         specifier: ^3.3.2
         version: 3.3.3
@@ -539,8 +539,8 @@ importers:
   src/com/bilibili/bilibili-live-repeat-danmaku-block:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.3.1
-        version: 0.3.9
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
     devDependencies:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
@@ -594,8 +594,8 @@ importers:
   src/com/bilibili/bilibili-live-speaker:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.1.12
-        version: 0.1.23
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
     devDependencies:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
@@ -652,8 +652,8 @@ importers:
         specifier: workspace:*
         version: link:../../../.Libs/bilibili-api-lib
       '@yiero/gmlib':
-        specifier: ^0.4.6
-        version: 0.4.7
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
       radash:
         specifier: ^12.1.1
         version: 12.1.1
@@ -713,8 +713,8 @@ importers:
         specifier: workspace:*
         version: link:../../../.Libs/bilibili-api-lib
       '@yiero/gmlib':
-        specifier: ^0.3.5
-        version: 0.3.9
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
       radash:
         specifier: ^12.1.1
         version: 12.1.1
@@ -774,8 +774,8 @@ importers:
   src/com/bilibili/bilibili-video-auto-add-favorites:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.4.7
-        version: 0.4.7
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
       radash:
         specifier: ^12.1.1
         version: 12.1.1
@@ -835,8 +835,8 @@ importers:
   src/com/bilibili/bilibili-video-playback-rate-remember:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.4.7
-        version: 0.4.7
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
       radash:
         specifier: ^12.1.1
         version: 12.1.1
@@ -899,8 +899,8 @@ importers:
         specifier: workspace:*
         version: link:../../../.Libs/bilibili-api-lib
       '@yiero/gmlib':
-        specifier: 0.4.6
-        version: 0.4.6
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
       radash:
         specifier: ^12.1.1
         version: 12.1.1
@@ -960,8 +960,8 @@ importers:
   src/com/bilibili/bilibili-video-watch-sign:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.1.12
-        version: 0.1.23
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
       radash:
         specifier: ^12.1.1
         version: 12.1.1
@@ -1006,8 +1006,8 @@ importers:
   src/com/bilibili/quin-live-record-video-collect:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.1.12
-        version: 0.1.23
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
       radash:
         specifier: ^12.1.1
         version: 12.1.1
@@ -1064,8 +1064,8 @@ importers:
   src/com/orzice/package-capacity-calculate:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.1.12
-        version: 0.1.23
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
     devDependencies:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
@@ -1119,8 +1119,8 @@ importers:
   src/com/qidian/auto-scroll:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.4.3
-        version: 0.4.7
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
       radash:
         specifier: ^12.1.1
         version: 12.1.1
@@ -1177,8 +1177,8 @@ importers:
   src/com/qq/poe2-market-quick-jump:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.4.6
-        version: 0.4.7
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
       radash:
         specifier: ^12.1.1
         version: 12.1.1
@@ -1238,8 +1238,8 @@ importers:
   src/com/qq/poe2_trade_data_match:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.4.6
-        version: 0.4.7
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
     devDependencies:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
@@ -1296,8 +1296,8 @@ importers:
   src/com/youpin898/steam-price-calculate:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.3.4
-        version: 0.3.9
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
       radash:
         specifier: ^12.1.1
         version: 12.1.1
@@ -1357,8 +1357,8 @@ importers:
   src/gg/dak/dakgg-data-collecter:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.3.2
-        version: 0.3.9
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
     devDependencies:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
@@ -1412,8 +1412,8 @@ importers:
   src/live/laplace/eternal_return-live-redeem-code-listener:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.3.2
-        version: 0.3.9
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
     devDependencies:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
@@ -1467,8 +1467,8 @@ importers:
   src/me/mikannani/animation-magnet-download:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.3.2
-        version: 0.3.9
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
     devDependencies:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
@@ -1522,8 +1522,8 @@ importers:
   src/moe/cangku/cangku-download-link-jumper:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.3.2
-        version: 0.3.9
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
     devDependencies:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
@@ -1577,8 +1577,8 @@ importers:
   src/qq/weread/wechat-reader-auto-scroll:
     dependencies:
       '@yiero/gmlib':
-        specifier: ^0.3.2
-        version: 0.3.9
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
     devDependencies:
       '@rollup/plugin-replace':
         specifier: ^6.0.2
@@ -2594,9 +2594,6 @@ packages:
   '@types/node@25.5.0':
     resolution: {integrity: sha512-jp2P3tQMSxWugkCUKLRPVUpGaL5MVFwF8RDuSRztfwgN1wmqJeMSbKlnEtQqU8UrhTmzEmZdu2I6v2dpp7XIxw==}
 
-  '@types/tampermonkey@5.5.0':
-    resolution: {integrity: sha512-I90oAlYhgP7DFr5LbwdvPNSd51SULGT6zLw6A+nK4FtRlgDsAYtKShWhsxjmU6LzSWI2XbPq8oAQE/ckZHW2LQ==}
-
   '@types/trusted-types@2.0.7':
     resolution: {integrity: sha512-ScaPdn1dQczgbl0QFTeTOmVHFULt394XJgOQNoyVhZ6r2vLnMLJfBPd53SB52T/3G36VI1/g2MZaX0cwDuXsfw==}
 
@@ -2684,18 +2681,6 @@ packages:
 
   '@vitest/utils@4.1.12':
     resolution: {integrity: sha512-Q3awXrwOfEV+qc3WmO5ONyE0yO7Q1gQ9/oyHxGLZ/pl7N3NO/ZztqQwKLuwMkV+CA1JYSIeO3gkHnRDIo4AVaA==}
-
-  '@yiero/gmlib@0.1.23':
-    resolution: {integrity: sha512-05v/lIPVfLEr4rwQbvOK4FtYteZiCV+b/1VVNOKPs0mwhc3t2buAiCRuEVsHudx3IhVsbx6LVVyqZtRjIQSV9w==}
-
-  '@yiero/gmlib@0.3.9':
-    resolution: {integrity: sha512-vE1PaZGndE0s+/Q06PdWOKqIuWlICFiLKh2kNG/F1ZLF0vTxhuEKDN5F7jRATfpM/4n5koUvAP8thfiogoIo6w==}
-
-  '@yiero/gmlib@0.4.6':
-    resolution: {integrity: sha512-1abcBcZlgDwJZ0tvfD3CDDL602OhNhPqYwYqUkOTzXLTR3CoxUFAsHr1XmDAESempav5nCOuMq4ZUxG5iRPO7w==}
-
-  '@yiero/gmlib@0.4.7':
-    resolution: {integrity: sha512-/+595LoByboPmp7zqkq4X6Ujo1lBhc8bywQmPx6I4+c7NTzILQ/QuBvgVxOWNyaWQwIbF8VVXoTs6r7JXZF01w==}
 
   '@yiero/vite-plugin-scriptcat-auto-icon@1.0.0':
     resolution: {integrity: sha512-OAQ4W2KuqwJTROVPKgXr6hq3jx4ssXX9ghX6+b4SUyGCBcJDT5/Q17rFjdtjnioXSiZ2JGs6GbkC6RkaP63Bdg==}
@@ -4435,8 +4420,6 @@ snapshots:
     dependencies:
       undici-types: 7.18.2
 
-  '@types/tampermonkey@5.5.0': {}
-
   '@types/trusted-types@2.0.7': {}
 
   '@types/whatwg-mimetype@3.0.2': {}
@@ -4559,16 +4542,6 @@ snapshots:
       '@vitest/pretty-format': 4.1.12
       convert-source-map: 2.0.0
       tinyrainbow: 3.2.0
-
-  '@yiero/gmlib@0.1.23':
-    dependencies:
-      '@types/tampermonkey': 5.5.0
-
-  '@yiero/gmlib@0.3.9': {}
-
-  '@yiero/gmlib@0.4.6': {}
-
-  '@yiero/gmlib@0.4.7': {}
 
   '@yiero/vite-plugin-scriptcat-auto-icon@1.0.0': {}
 

@@ -36,6 +36,6 @@
     },
     "dependencies": {
         "@yiero/bilibili-api-lib": "workspace:*",
-        "@yiero/gmlib": "^0.3.5"
+        "@yiero/gmlib": "workspace:*"
     }
 }
