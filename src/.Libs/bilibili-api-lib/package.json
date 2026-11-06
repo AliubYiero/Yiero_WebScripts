@@ -39,7 +39,8 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/AliubYiero/bilibili-api-lib.git"
+        "url": "git+https://github.com/AliubYiero/Yiero_WebScripts.git",
+        "directory": "src/.Libs/bilibili-api-lib"
     },
     "keywords": [
         "bilibili"

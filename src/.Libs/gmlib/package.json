@@ -40,7 +40,8 @@
         "utils"
     ],
     "repository": {
-        "url": "git+https://github.com/AliubYiero/GmLib.git"
+        "url": "git+https://github.com/AliubYiero/Yiero_WebScripts.git",
+        "directory": "src/.Libs/gmlib"
     },
     "publishConfig": {
         "access": "public"
