@@ -42,6 +42,10 @@ Vite 的四种 `mode`：`development`（开发，名称带 `[Dev]`）、`sync`�
 
 `src/com/bilibili/.bilibili-api-lib/`：本仓自产、可独立发布的库（`@yiero/bilibili-api-lib`），被 5 个脚本项目引用。进入 workspace 后以 `workspace:*` 引用，必须先构建它再构建引用方。
 
+## 版本标签
+
+git 标签，格式 `<域>/<子域>/<项目名>/v<版本>`，与 `src/` 下的目录逐段对应（`src/` 前缀省略）。段首的点目录写作下划线：`.Global` → `_Global`、`.bilibili-api-lib` → `_bilibili-api-lib`。见 `docs/adr/0003-tag-naming.md`。
+
 ## 例外项目
 
 `src/com/bilibili/bilibili-video-watch-sign/`：不使用 scriptcat 插件家族（自建 `vite.config.{common,development,production}.ts` + `vite-plugin-singlefile`）、没有 `backup/` 目录、`dist/` 入库。它在统一命令下有与其他项目不同的行为，属于需要登记和逐步收敛的例外，而不是「待修复的 bug」。

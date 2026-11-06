@@ -20,9 +20,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm build --project src/com/bilibili/xxx` — 只构建计划里的某个项目
 - `pnpm new:script 域/子域/项目名` — 用 `templates/ts-template` 生成新脚本项目
 - `pnpm check:template` — 体检模板（必备文件、依赖族、元数据键）
+- `pnpm check:tags` — 校验 git 标签是否符合「域/子域/项目/v版本」（`--remote` 一并比对远程）
+- `pnpm release:tag <项目>` — 给某项目的当前版本打标签（`--push` 顺手推远程）
+- `pnpm release:retag` — 标签命名迁移：默认只打印计划，`--apply` 建新名、`--push` 推远程、`--delete-old-local`/`--delete-old-remote` 清理旧名（须配 `--confirm`）
 - `pnpm test` — 运行 workspace 工具脚本自测
 - `pnpm typecheck` — 对 `script/` 做 TypeScript 类型检查
-- `pnpm verify` — 依次跑 typecheck、模板体检与自测
+- `pnpm verify` — 依次跑 typecheck、模板体检、标签校验与自测
 
 对单个脚本项目执行（进项目目录，或在根目录用 `pnpm --filter @webscripts/<目录名> ...`）：
 
@@ -54,6 +57,12 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - 只用 `.browser-harness/` 这套独立配置，不改日常浏览器的 Profile
 - 配对码只在终端里出现时手填进扩展，别写进对话、日志或 MCP 配置
 - 动手前先 `pnpm browser:doctor`，红项按提示补齐再往下走
+
+## 版本标签
+
+标签名与工作区目录同构：`<域>/<子域>/<项目名>/v<版本>`（省略 `src/`，段首的点目录写成下划线，如 `_Global/`、`com/bilibili/_bilibili-api-lib/`）。标签是轻量标签。见 `docs/adr/0003-tag-naming.md`。
+
+发版时用 `pnpm release:tag <项目> --push`；`pnpm check:tags --remote` 校验本地与 GitHub 两侧一致。标签名的解析与生成集中在 `script/release/tag-name.ts`，不要在别处自己 `split('/')`。
 
 ## 代码风格
 
