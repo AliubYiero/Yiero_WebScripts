@@ -157,6 +157,8 @@ pnpm browser:attach --url https://example.com --screenshot
 → 新开标签并 `goto` → 打印 URL 与标题 → 需要时截图到
 `artifacts/attach-<时间戳>.png` → `browser.close()`（只是断开，
 浏览器和标签都留着）→ `sctl cdp close`。
+不带 `--url` 时不会新开标签页：直接操作最近打开的那个页面，
+截图和「当前页面」日志都指向它；带 `--url` 时才新建标签并导航。
 `--keep` 表示断开后不关端点（自己接着调试用）。
 
 在脚本里接的时候，模块在 `script/browser/playwright.ts`：
