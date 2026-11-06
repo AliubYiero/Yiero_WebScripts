@@ -34,9 +34,10 @@ changelog 与 issue 引用都指向旧仓库的提交）。
 
 **两个库的源码与历史并入本仓，本仓成为唯一真相源。** gmlib 从旧仓
 库整史导入，导入提交有两个父：第一父是本仓主线，第二父是旧仓库的
-历史，所以 `git log -- src/.Libs/gmlib` 能一直追到底，而主线只多一
-个提交。bilibili-api-lib 从原来的脚本目录迁入，历史随路径重命名一
-起保留。
+历史（85 个提交，`git log 7bf319d^2` 可翻到）。路径在导入时改了，
+所以按路径的 `git log -- src/.Libs/gmlib` 追不过去，翻旧改动要走第
+二父；主线本身只多一个提交。bilibili-api-lib 从原来的脚本目录迁
+入，历史随路径重命名一起保留。
 
 **库放在库域 `src/.Libs/<库名>/`，两层。** `src/.Libs` 与
 `.Global`、`.Crontab` 同级，是特殊目录，但**不**进特殊目录清单：
@@ -91,8 +92,9 @@ TypeScript 时 `typecheck:libs` 直接失败（门禁不能静默放行）；没
   各自带 `node_modules` 与锁文件；根 `pnpm install` 同时装库的
   `devDependencies`（rslib、vitest、happy-dom、typescript、biome）。
   好处是版本统一，代价是升级一次影响全仓，库不再能独立锁版本、也
-  不能自己换一套构建/测试工具——`gmlib` 仍留一个 `biome.json` 覆盖
-  少量规则，但 biome 的版本本身来自根。
+  不能自己换一套构建/测试工具——`gmlib` 仍留一个自己的
+  `biome.json`（`bilibili-api-lib` 直接用根配置），但 biome 的版本
+  本身来自根。
 - 库不参与脚本那套生命周期：没有 `banner/`、没有备份归档、不进
   README 表格、不参与「版本是否已归档」的判断，`pnpm commit` /
   `pnpm release:tag` 在库目录里不会触发归档构建。
@@ -100,7 +102,9 @@ TypeScript 时 `typecheck:libs` 直接失败（门禁不能静默放行）；没
   `CLAUDE.md` 只写「库在哪、怎么引用、怎么发版」，避免两处都写全
   部细节。
 - 上游仓库 `AliubYiero/GmLib` 已归档、只读，不再接受提交；历史留
-  在导入提交的第二父提交里，需要翻旧 issue 或 blame 时仍可用。
+  在导入提交的第二父提交里，需要翻旧提交或旧 issue 时
+  `git log 7bf319d^2` 仍可用。`git blame` 会停在导入提交——库的路径
+  变了，这是整史导入的固有代价，不是历史丢失。
 
 ## Alternatives considered
 
