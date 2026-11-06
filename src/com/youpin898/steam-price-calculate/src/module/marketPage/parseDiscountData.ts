@@ -1,4 +1,5 @@
-import { QuerySaleTemplateItem } from '../mockResponse.ts';
+import { calculateDiscount, type DiscountType } from '../discount.ts';
+import type { QuerySaleTemplateItem } from '../mockResponse.ts';
 
 /**
  * 解析后的折扣数据
@@ -17,17 +18,12 @@ export interface ParsedDiscountData {
     discountType: DiscountType;
     url: string;
 }
-/**
- * 折扣类型, 降价还是涨价
- */
-export enum DiscountType {
-    Drop = 'drop',
-    Middle = 'middle',
-    Increase = 'increase',
-}
 
-// 折扣类型显示
-export const LOWER_DROP_PRICE_PERCENT = 0.8;
+// 详情页解析器暂时仍从这里引用, 待其迁移到共享模块后删除
+export {
+    DiscountType,
+    LOWER_DROP_PRICE_PERCENT,
+} from '../discount.ts';
 
 /**
  * 解析数据
@@ -37,16 +33,8 @@ export const parseDiscountData = (
 ): ParsedDiscountData => {
     const buyPrice = Number(item.price);
     const sellPrice = Number(item.steamPrice);
-    const sellNetPrice = sellPrice * 0.85;
-    const discount = buyPrice / sellNetPrice;
-    const discountText = `${Math.round(discount * 100)}%`;
-
-    let discountType = DiscountType.Middle;
-    if (discount < LOWER_DROP_PRICE_PERCENT) {
-        discountType = DiscountType.Drop;
-    } else if (discount > 1) {
-        discountType = DiscountType.Increase;
-    }
+    const { sellNetPrice, discount, discountText, discountType } =
+        calculateDiscount(buyPrice, sellPrice);
 
     return {
         name: item.commodityName,
