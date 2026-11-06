@@ -26,7 +26,7 @@
 src/com/bilibili/bilibili-video-timeline/  →  com/bilibili/bilibili-video-timeline/v2.0.3
 src/com/qidian/auto-scroll/                →  com/qidian/auto-scroll/v1.0.1
 src/.Global/global-css-import/             →  _Global/global-css-import/v1.1.3
-src/com/bilibili/.bilibili-api-lib/        →  com/bilibili/_bilibili-api-lib/v0.3.2
+src/.Libs/bilibili-api-lib/                →  _Libs/bilibili-api-lib/v0.3.2
 ```
 
 三个具体约定：
@@ -35,7 +35,7 @@ src/com/bilibili/.bilibili-api-lib/        →  com/bilibili/_bilibili-api-lib/v
   音。
 - **段首的点换成下划线**。git 的 ref 名不允许任何一段以 `.` 开头
   （`git check-ref-format` 直接判非法），而工作区用 `.Global`、
-  `.bilibili-api-lib` 这类点目录表示「特殊角色」。替换方向固定为
+  `.Libs` 这类点目录表示「特殊角色」。替换方向固定为
   `.` → `_`，因此标签 → 目录的还原是无歧义的。
 - **版本号用 `v` 前缀**，保留各项目自己的语义化版本，不做统一编
   号。

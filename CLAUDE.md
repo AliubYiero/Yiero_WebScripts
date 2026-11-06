@@ -28,7 +28,9 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm release:retag` — 标签命名迁移：默认只打印计划，`--apply` 建新名、`--push` 推远程、`--delete-old-local`/`--delete-old-remote` 清理旧名（须配 `--confirm`）
 - `pnpm test` — 运行 workspace 工具脚本自测
 - `pnpm typecheck` — 对 `script/` 做 TypeScript 类型检查
-- `pnpm verify` — 依次跑 typecheck、biome 检查、模板体检、标签校验与自测
+- `pnpm typecheck:libs` — 对库域 `src/.Libs/` 的每个库跑 `tsc -p tsconfig.json --noEmit`（缺 `tsconfig.json` 或库内没装 TypeScript 直接失败）
+- `pnpm test:libs` — 对库域里有 `test` 脚本的库跑 `pnpm run test`（vitest run）
+- `pnpm verify` — 依次跑 `typecheck && typecheck:libs && check:biome && check:template && check:tags && test:libs && test`
 
 对单个脚本项目执行（进项目目录，或在根目录用 `pnpm --filter @webscripts/<目录名> ...`）：
 
@@ -72,7 +74,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 版本标签
 
-标签名与工作区目录同构：`<域>/<子域>/<项目名>/v<版本>`（省略 `src/`，段首的点目录写成下划线，如 `_Global/`、`com/bilibili/_bilibili-api-lib/`）。标签是轻量标签。见 `docs/adr/0003-tag-naming.md`。
+标签名与工作区目录同构：`<域>/<子域>/<项目名>/v<版本>`（省略 `src/`，段首的点目录写成下划线，如 `_Global/`）。库在库域，少一层：`_Libs/<库名>/v<版本>`，如 `_Libs/bilibili-api-lib/v0.3.2`。标签是轻量标签。见 `docs/adr/0003-tag-naming.md`。
 
 发版时用 `pnpm release:tag <项目> --push`；`pnpm check:tags --remote` 校验本地与 GitHub 两侧一致。标签名的解析与生成集中在 `script/release/tag-name.ts`，不要在别处自己 `split('/')`。
 
@@ -106,8 +108,8 @@ vite.config.utils.ts  — 入口文件探测（getEntryFileName）
 
 ### 核心依赖
 
-- **`@yiero/gmlib`** — GM 工具库，提供 `createUserConfigStorage`（配置持久化）、`gmMenuCommand`（菜单管理）、`elementWaiter`/`elementGetter`（DOM 等待）、`onRouteChange`（路由变化监听）
-- **`@yiero/bilibili-api-lib`** — B 站 API 封装库，通过 workspace 协议引用：`"@yiero/bilibili-api-lib": "workspace:*"`。该库位于 `src/com/bilibili/.bilibili-api-lib/`
+- **`@yiero/gmlib`** — GM 工具库，提供 `createUserConfigStorage`（配置持久化）、`gmMenuCommand`（菜单管理）、`elementWaiter`/`elementGetter`（DOM 等待）、`onRouteChange`（路由变化监听）。源码在本仓库域 `src/.Libs/gmlib/`，以 workspace 协议引用：`"@yiero/gmlib": "workspace:*"`
+- **`@yiero/bilibili-api-lib`** — B 站 API 封装库，同样通过 workspace 协议引用：`"@yiero/bilibili-api-lib": "workspace:*"`。该库位于库域 `src/.Libs/bilibili-api-lib/`
 - **Vite 插件体系** (`@yiero/vite-plugin-scriptcat-*`) — 处理脚本猫元数据 banner、@grant 自动提取、备份生成、图标自动获取、开发热推送
 
 ### Vite 构建模式
@@ -127,6 +129,22 @@ vite.config.utils.ts  — 入口文件探测（getEntryFileName）
 - 已知问题：仍用 vite 5 的项目在当前插件版本下构建会报 `is not a function`（配置打包时插件默认导出丢失）；vite 7 项目正常，待依赖统一后消失
 - `.gitignore` 忽略所有 `.dev.js` 构建产物
 - 根目录 `src/.ui`、`src/.WIP`、`src/.Test` 被 git 忽略
+
+## 库域
+
+`src/.Libs/<库名>/` 存放本仓自产的库，两层布局，当前两个：
+
+```
+src/.Libs/gmlib/             — @yiero/gmlib 0.4.7（原仓库 AliubYiero/GmLib 整史导入）
+src/.Libs/bilibili-api-lib/  — @yiero/bilibili-api-lib 0.3.2（原 src/com/bilibili/.bilibili-api-lib）
+```
+
+- **目录约定**：`src/.Libs` 与 `.Global`、`.Crontab` 同级，是特殊目录，但**不**进特殊目录清单——`pnpm new:script .Libs/<名>` 按用法错误退出 2，项目建不进库域
+- **身份**：库域内的包一律判为链接库（即使带 banner）：没有脚本版本、不参与备份归档、不进 README 生成、不参与「版本是否已归档」的判断
+- **标签**：`_Libs/<库名>/v<版本>`，如 `_Libs/bilibili-api-lib/v0.3.2`
+- **构建**：库排在引用它的脚本之前，`pnpm build` / `pnpm build:all` 按 `workspace:` 依赖做拓扑排序；新克隆后首次构建也先建库，否则消费者报 `TS2307`
+- **测试**：`pnpm typecheck:libs` + `pnpm test:libs`，两者都在 `pnpm verify` 里；单库可在根用 `pnpm --filter @yiero/gmlib build|test`，或进库目录跑 `pnpm build` / `pnpm test`
+- **发 npm**：手动发布，在库目录里 `pnpm build` 后 `pnpm publish`；包名与 `package.json` 的 `version` 是库的真实版本（不像脚本恒为 `0.0.0`）；`dist/` 不入库
 
 ## Agent skills
 

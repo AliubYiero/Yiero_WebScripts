@@ -30,6 +30,9 @@ pnpm pack         # 打包为 npm 包
 
 运行单个测试文件：`pnpm test -- tests/DOM/scroll.test.ts`。
 
+在仓库根也可以用 `pnpm --filter @yiero/gmlib build` /
+`pnpm --filter @yiero/gmlib test`，等价于进本目录执行。
+
 根目录的库门禁会调用本库的 `tsconfig.json` 与 `test` 脚本：
 `pnpm typecheck:libs`（`tsc -p tsconfig.json --noEmit`）与
 `pnpm test:libs`（对每个库执行 `pnpm run test`）。

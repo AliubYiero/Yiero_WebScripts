@@ -54,13 +54,17 @@ Vite 的四种 `mode`：`development`（开发，名称带 `[Dev]`）、`sync`�
 
 由目录名派生的唯一包名（`@webscripts/<目录名>`），仅用于 monorepo 内的寻址（`pnpm --filter`）。它是「地址」，不是「品牌」——脚本对外的标识始终是 `banner/UserScript.ts` 里的 `@name`。
 
+## 库域
+
+`src/.Libs/<库名>/` 下的两层目录，存放本仓自产的库，当前是 `gmlib` 与 `bilibili-api-lib`。它是与 `.Global`、`.Crontab` 同级的特殊目录，但**不**进特殊目录清单——脚手架不能把项目建进库域（`pnpm new:script .Libs/<名>` 按用法错误退出 2）。库域内的包一律判为链接库（即使带 banner）：没有脚本版本、不参与备份归档、不进 README 生成、不参与「版本是否已归档」的判断。
+
 ## 链接库
 
-`src/com/bilibili/.bilibili-api-lib/`：本仓自产、可独立发布的库（`@yiero/bilibili-api-lib`），被 5 个脚本项目引用。进入 workspace 后以 `workspace:*` 引用，必须先构建它再构建引用方。
+`src/.Libs/<库名>/` 下本仓自产、仍独立发布到 npm 的库，当前两个：`@yiero/gmlib`（`src/.Libs/gmlib/`）与 `@yiero/bilibili-api-lib`（`src/.Libs/bilibili-api-lib/`）。脚本一律用 `workspace:*` 引用，所以必须先构建库、再构建引用它的脚本，否则消费者报 `TS2307`。库自己的门禁是 `pnpm typecheck:libs` 与 `pnpm test:libs`，都已接入 `pnpm verify`。见 `docs/adr/0005-libs-in-monorepo.md`。
 
 ## 版本标签
 
-git 标签，格式 `<域>/<子域>/<项目名>/v<版本>`，与 `src/` 下的目录逐段对应（`src/` 前缀省略）。段首的点目录写作下划线：`.Global` → `_Global`、`.bilibili-api-lib` → `_bilibili-api-lib`。见 `docs/adr/0003-tag-naming.md`。
+git 标签，格式 `<域>/<子域>/<项目名>/v<版本>`，与 `src/` 下的目录逐段对应（`src/` 前缀省略）。段首的点目录写作下划线：`.Global` → `_Global`、`.Libs` → `_Libs`；库域少一层，库的标签是 `_Libs/<库名>/v<版本>`（如 `_Libs/bilibili-api-lib/v0.3.2`）。见 `docs/adr/0003-tag-naming.md`。
 
 ## 例外项目
 
