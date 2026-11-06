@@ -70,4 +70,8 @@ Vite 的四种 `mode`：`development`（开发，名称带 `[Dev]`）、`sync`�
 
 git 标签，格式 `<域>/<子域>/<项目名>/v<版本>`，与 `src/` 下的目录逐段对应（`src/` 前缀省略）。段首的点目录写作下划线：`.Global` → `_Global`、`.Libs` → `_Libs`；库域少一层，库的标签是 `_Libs/<库名>/v<版本>`（如 `_Libs/bilibili-api-lib/v0.3.2`）。见 `docs/adr/0003-tag-naming.md`。
 
+## 例外项目
+
+有脚本版本、但缺少 `backup/` 归档目录的项目。它是一个状态判断，不是项目名单：默认 `pnpm build` 会跳过它（`action: skip`），只有 `--all` / `--force` 才会构建；项目补上 `backup/` 后自动不再是例外。判断逻辑在 `script/workspace/workspace.ts` 的 `isException`。
+
 

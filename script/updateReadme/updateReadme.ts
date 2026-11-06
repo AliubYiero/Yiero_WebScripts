@@ -31,7 +31,7 @@ const SPECIAL_ENTRY_CONFIGS = Object.entries(
 /**
  * 获取文件的最后更新时间
  * @param filePath 文件绝对路径
- * @param getLastUpdateWay 获取更新时间的方式：'git' 优先使用 git log 获取提交时间，失败则回退到文件修改时间；'file' 直接使用文件修改时间
+ * @param getLastUpdateWay 获取更新时间的方式：'git' 依次尝试该文件的提交时间、HEAD 的提交时间，都取不到才回退到文件修改时间；'file' 直接使用文件修改时间
  * @returns 毫秒级时间戳
  */
 function getLastUpdateTime(
@@ -43,29 +43,32 @@ function getLastUpdateTime(
         return fs.statSync(filePath).mtimeMs;
     }
 
-    // git 方式：优先使用 git log 获取提交时间（秒级时间戳），失败则回退到文件修改时间
-    try {
-        const result = spawnSync(
-            'git',
-            ['log', '-1', '--format=%at', filePath],
-            {
+    // git 返回秒级时间戳，统一换算成毫秒
+    const readGitTimestamp = (args: string[]): number | null => {
+        try {
+            const result = spawnSync('git', args, {
                 encoding: 'utf-8',
                 timeout: 5000,
-            },
-        );
+            });
 
-        const output = result.stdout?.trim();
+            const output = result.stdout?.trim();
 
-        if (output && !isNaN(Number(output))) {
-            // git 返回秒级时间戳，转换为毫秒
-            return Number(output) * 1000;
+            if (output && !isNaN(Number(output))) {
+                return Number(output) * 1000;
+            }
+        } catch {
+            // git 命令失败，静默处理
         }
-    } catch {
-        // git 命令失败，静默处理
-    }
+        return null;
+    };
 
-    // 降级：使用文件修改时间
-    return fs.statSync(filePath).mtimeMs;
+    // 文件的提交时间；未提交的产物查不到，退回 HEAD 的提交时间——
+    // 不能用 mtime：它随生成时刻漂移，同一提交反复生成会得到不同结果。
+    return (
+        readGitTimestamp(['log', '-1', '--format=%at', filePath]) ??
+        readGitTimestamp(['log', '-1', '--format=%at']) ??
+        Math.round(fs.statSync(filePath).mtimeMs)
+    );
 }
 
 /**

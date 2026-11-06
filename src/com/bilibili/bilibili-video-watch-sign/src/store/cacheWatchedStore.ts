@@ -1,15 +1,20 @@
+/**
+ * cacheWatchedStore.ts
+ *
+ * @file 观看缓存的 GM 存储读写
+ * */
 import { GmStorage } from '@yiero/gmlib';
 
 /**
  * 缓存已经收藏的视频 bvid
  *
- * 存储方式为 bvId 的前三位字符串作为子存储, 进行存储分流
+ * 键按 bvid 中 `BV1` 之后的三位分片, 避免单个 GM 存储键无限增长
  */
 class CacheWatchedStore {
-    // 储存名
+    // 储存名前缀, 完整键为 `${stoneName}_${分片}`
     private readonly stoneName = 'cacheWatched';
 
-    // 子存储, 按 bvId 的前三位分片
+    // 已创建的子存储, 按分片复用
     private readonly childStoreMapper: Record<
         string,
         GmStorage<string[]>

@@ -14,7 +14,6 @@ const UserScript: ScriptCatUserScript = [
     ['icon', 'https://www.bilibili.com/favicon.ico'],
     ['run-at', ''],
     ['connect', 'api.bilibili.com'],
-    ['tag', ''],
     ['license', 'GPL-3'],
     ['namespace', 'https://github.com/AliubYiero/Yiero_WebScripts'],
     ['noframes'],

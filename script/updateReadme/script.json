@@ -232,7 +232,7 @@
             "version": "1.0.3",
             "private": false,
             "archive": false,
-            "lastUpdate": 1793983704746.433,
+            "lastUpdate": 1793983922000,
             "scriptType": "web",
             "userScriptFilepath": "backup/bilibili-video-watch-sign.user.js",
             "downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-watch-sign/backup/bilibili-video-watch-sign.user.js",

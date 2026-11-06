@@ -13,7 +13,7 @@
         "useIgnoreFile": true
     },
     "files": {
-        "includes": ["**", "!**/types/scriptcat.d.ts"]
+        "includes": ["**", "!**/types/scriptcat.d.ts", "!**/backup/*.js"]
     },
     "formatter": {
         "indentStyle": "space",

@@ -26,6 +26,45 @@ function runTsx(args: string[]): {
     };
 }
 
+/**
+ * 建一个用完即删的探针项目。
+ *
+ * 探针必须落在 workspace 扫描范围（`src/<域>/<子域>/<项目>`）里，
+ * 所以清理不能只靠 finally：进程被中断时也得把目录收掉，
+ * 否则 `src/` 下会留下一个幽灵项目。每个探针独占一个根目录，
+ * 避免两个用例互相删对方。
+ */
+function withProbe(
+    name: string,
+    setup: (probe: string) => void,
+    run: (relDir: string) => void,
+): void {
+    const probeRoot = join(repoRoot, 'src/com', `zz-probe-${name}`);
+    const probe = join(probeRoot, 'probe');
+    const relDir = `src/com/zz-probe-${name}/probe`;
+    const cleanup = () =>
+        rmSync(probeRoot, { recursive: true, force: true });
+
+    process.once('exit', cleanup);
+    const onSignal = () => {
+        cleanup();
+        process.exit(130);
+    };
+    process.once('SIGINT', onSignal);
+    process.once('SIGTERM', onSignal);
+
+    try {
+        cleanup();
+        setup(probe);
+        run(relDir);
+    } finally {
+        cleanup();
+        process.off('exit', cleanup);
+        process.off('SIGINT', onSignal);
+        process.off('SIGTERM', onSignal);
+    }
+}
+
 test('build --dry-run 输出可解析的 JSON 计划', () => {
     const { status, stdout } = runTsx([
         join('script', 'workspace', 'cli', 'build.ts'),
@@ -152,83 +191,90 @@ test('--project 指向已归档项目时退出码为 2', () => {
 });
 
 test('--project 例外项目时说明只有 --all 会构建它', () => {
-    const probeRoot = join(repoRoot, 'src/com/reviewfix');
-    const probe = join(probeRoot, 'exception-probe');
-    try {
-        rmSync(probeRoot, { recursive: true, force: true });
-        mkdirSync(join(probe, 'banner'), { recursive: true });
-        writeFileSync(
-            join(probe, 'package.json'),
-            JSON.stringify({
-                name: '@webscripts/reviewfix-exception-probe',
-                version: '0.0.0',
-                scripts: { build: 'node -e ""' },
-            }),
-            'utf8',
-        );
-        // 有脚本版本、但没有 backup/：属于例外项目。
-        writeFileSync(
-            join(probe, 'banner/UserScript.ts'),
-            "const UserScript = [['version', '1.0.0']];\n\nexport { UserScript };\n",
-            'utf8',
-        );
+    withProbe(
+        'exception',
+        (probe) => {
+            mkdirSync(join(probe, 'banner'), { recursive: true });
+            writeFileSync(
+                join(probe, 'package.json'),
+                JSON.stringify({
+                    name: '@webscripts/probe',
+                    version: '0.0.0',
+                    scripts: { build: 'node -e ""' },
+                }),
+                'utf8',
+            );
+            // 有脚本版本、但没有 backup/：属于例外项目。
+            writeFileSync(
+                join(probe, 'banner/UserScript.ts'),
+                "const UserScript = [['version', '1.0.0']];\n\nexport { UserScript };\n",
+                'utf8',
+            );
+        },
+        (relDir) => {
+            const { status, stderr } = runTsx([
+                join('script', 'workspace', 'cli', 'build.ts'),
+                '--project',
+                relDir,
+            ]);
 
-        const { status, stderr } = runTsx([
-            join('script', 'workspace', 'cli', 'build.ts'),
-            '--project',
-            'src/com/reviewfix/exception-probe',
-        ]);
-
-        equal(status, 2);
-        ok(stderr.includes('例外项目'), stderr);
-        ok(stderr.includes('--all'), stderr);
-    } finally {
-        rmSync(probeRoot, { recursive: true, force: true });
-    }
+            equal(status, 2);
+            ok(stderr.includes('例外项目'), stderr);
+            ok(stderr.includes('--all'), stderr);
+        },
+    );
 });
 
 test('目标脚本被跳过时不因库依赖要构建而假装成功', () => {
-    const probeRoot = join(repoRoot, 'src/com/reviewfix');
-    const probe = join(probeRoot, 'pending-probe');
-    try {
-        rmSync(probeRoot, { recursive: true, force: true });
-        mkdirSync(join(probe, 'banner'), { recursive: true });
-        mkdirSync(join(probe, 'backup'), { recursive: true });
-        writeFileSync(
-            join(probe, 'package.json'),
-            JSON.stringify({
-                name: '@webscripts/reviewfix-probe',
-                version: '0.0.0',
-                scripts: { build: 'node -e ""' },
-                dependencies: { '@yiero/gmlib': 'workspace:*' },
-            }),
-            'utf8',
-        );
-        // 未归档的版本：让 gmlib 在全局计划里被判成 build。
-        writeFileSync(
-            join(probe, 'banner/UserScript.ts'),
-            "const UserScript = [['version', '99.0.0']];\n\nexport { UserScript };\n",
-            'utf8',
-        );
-        writeFileSync(
-            join(probe, 'backup/versions.json'),
-            JSON.stringify({ '0.0.1': 'baseline.js' }),
-            'utf8',
-        );
+    withProbe(
+        'pending',
+        (probe) => {
+            mkdirSync(join(probe, 'banner'), {
+                recursive: true,
+            });
+            mkdirSync(join(probe, 'backup'), {
+                recursive: true,
+            });
+            writeFileSync(
+                join(probe, 'package.json'),
+                JSON.stringify({
+                    name: '@webscripts/probe',
+                    version: '0.0.0',
+                    scripts: { build: 'node -e ""' },
+                    dependencies: {
+                        '@yiero/gmlib': 'workspace:*',
+                    },
+                }),
+                'utf8',
+            );
+            // 未归档的版本：让 gmlib 在全局计划里被判成 build。
+            writeFileSync(
+                join(probe, 'banner/UserScript.ts'),
+                "const UserScript = [['version', '99.0.0']];\n\nexport { UserScript };\n",
+                'utf8',
+            );
+            writeFileSync(
+                join(probe, 'backup/versions.json'),
+                JSON.stringify({ '0.0.1': 'baseline.js' }),
+                'utf8',
+            );
+        },
+        () => {
+            const { status, stdout, stderr } = runTsx([
+                join('script', 'workspace', 'cli', 'build.ts'),
+                '--project',
+                'src/com/bilibili/bilibili-video-timeline',
+            ]);
 
-        const { status, stdout, stderr } = runTsx([
-            join('script', 'workspace', 'cli', 'build.ts'),
-            '--project',
-            'src/com/bilibili/bilibili-video-timeline',
-        ]);
-
-        // 目标是已归档脚本：不能因为 gmlib 要构建就 exit 0。
-        equal(status, 2);
-        ok(stderr.includes('已归档'), stderr);
-        ok(!stdout.includes('=== [链接库] src/.Libs/gmlib'), stdout);
-    } finally {
-        rmSync(probeRoot, { recursive: true, force: true });
-    }
+            // 目标是已归档脚本：不能因为 gmlib 要构建就 exit 0。
+            equal(status, 2);
+            ok(stderr.includes('已归档'), stderr);
+            ok(
+                !stdout.includes('=== [链接库] src/.Libs/gmlib'),
+                stdout,
+            );
+        },
+    );
 });
 
 test('--project 找不到项目时退出码为 2', () => {
