@@ -105,7 +105,8 @@ TypeScript 时 `typecheck:libs` 直接失败（门禁不能静默放行）；没
 - 库内保留一份库专属的 `CLAUDE.md`（命令、目录结构、测试栈），根
   `CLAUDE.md` 只写「库在哪、怎么引用、怎么发版」，避免两处都写全
   部细节。
-- 上游仓库 `AliubYiero/GmLib` 已归档、只读，不再接受提交；历史留
+- 上游仓库 `AliubYiero/GmLib` 不再是真相源，本地也不再向它提交；
+  GitHub 上把它归档为只读是一次性的人工动作。历史留
   在导入提交的第二父提交里，需要翻旧提交或旧 issue 时
   `git log 7bf319d^2` 仍可用。`git blame` 能跟过重命名与合并追到
   上游提交（如 `git blame -- src/.Libs/gmlib/src/index.ts`），不是停
