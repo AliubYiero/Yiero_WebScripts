@@ -1,29 +1,8 @@
-import { calculateDiscount, type DiscountType } from '../discount.ts';
-import type { QuerySaleTemplateItem } from '../mockResponse.ts';
-
-/**
- * 解析后的折扣数据
- */
-export interface ParsedDiscountData {
-    name: string;
-    id: number;
-    listType: number;
-    gameId: number;
-    onSaleCount: number;
-    buyPrice: number;
-    sellPrice: number;
-    sellNetPrice: number;
-    discount: number;
-    discountText: string;
-    discountType: DiscountType;
-    url: string;
-}
-
-// 详情页解析器暂时仍从这里引用, 待其迁移到共享模块后删除
-export {
-    DiscountType,
-    LOWER_DROP_PRICE_PERCENT,
+import {
+    calculateDiscount,
+    type ParsedDiscountData,
 } from '../discount.ts';
+import type { QuerySaleTemplateItem } from '../mockResponse.ts';
 
 /**
  * 解析数据

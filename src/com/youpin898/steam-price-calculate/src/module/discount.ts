@@ -26,6 +26,24 @@ export interface DiscountCalculation {
     discountType: DiscountType;
 }
 
+/**
+ * 解析后的折扣数据
+ */
+export interface ParsedDiscountData {
+    name: string;
+    id: number;
+    listType: number;
+    gameId: number;
+    onSaleCount: number;
+    buyPrice: number;
+    sellPrice: number;
+    sellNetPrice: number;
+    discount: number;
+    discountText: string;
+    discountType: DiscountType;
+    url: string;
+}
+
 const STEAM_NET_PRICE_PERCENT = 0.85;
 
 /**
