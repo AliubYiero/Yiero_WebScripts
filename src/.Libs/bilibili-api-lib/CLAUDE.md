@@ -6,10 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 `@yiero/bilibili-api-lib` 是一个基于 TypeScript 的 Bilibili API 封装库，提供完整的类型定义和模块化设计，支持 ESM 和 UMD 格式输出，基于 XHR 实现（适用于浏览器环境）。
 
+本库位于本仓库的库域 `src/.Libs/bilibili-api-lib`。依赖与锁文件只有仓库根一份：在根目录跑一次 `pnpm install` 就会装好本库的开发依赖，库目录里不需要再单独安装。
+
 ## 开发命令
 
 ```bash
-pnpm install          # 安装依赖
 pnpm dev              # 开发模式（监听构建）
 pnpm build            # 构建项目（生成 ESM + UMD）
 pnpm test             # 运行测试
@@ -17,6 +18,17 @@ pnpm test:coverage    # 运行测试并生成覆盖率报告
 pnpm check            # 代码检查与自动修复（Biome）
 pnpm format           # 代码格式化
 ```
+
+## 发布
+
+手动发布，在本目录执行：
+
+```bash
+pnpm build      # 构建产物进 dist/
+pnpm publish    # 发布到 npm
+```
+
+包名是 `@yiero/bilibili-api-lib`，版本取本目录 `package.json` 的 `version`。
 
 ## 架构设计
 

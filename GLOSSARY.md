@@ -50,17 +50,21 @@ README 脚本表格中位于「脚本描述」之后的一列，每个单元格�
 
 Vite 的四种 `mode`：`development`（开发，名称带 `[Dev]`）、`sync`（开发并推送到脚本猫客户端）、`production`（生产，去 `console.log`/`debugger`）、`test`（测试，元数据匹配所有 URL）。产物文件名由模式决定。
 
+## 构建计划（build plan）
+
+`pnpm build` 打印并执行的条目清单。按 `workspace:` 依赖递归求闭包后排序：库排在它的消费者之前，库之间再按依赖做稳定拓扑排序；每个条目带 `build`（要做归档构建）或 `skip`。库是否构建取决于有没有依赖方要构建（没有消费者要构建时库也 `skip`）；`--project <项目>` 只把计划裁到该目标加它传递依赖的库。见 `script/workspace/build-plan.ts`。
+
 ## workspace 包名
 
 由目录名派生的唯一包名（`@webscripts/<目录名>`），仅用于 monorepo 内的寻址（`pnpm --filter`）。它是「地址」，不是「品牌」——脚本对外的标识始终是 `banner/UserScript.ts` 里的 `@name`。
 
 ## 库域
 
-`src/.Libs/<库名>/` 下的两层目录，存放本仓自产的库，当前是 `gmlib` 与 `bilibili-api-lib`。它是与 `.Global`、`.Crontab` 同级的特殊目录，但**不**进特殊目录清单——脚手架不能把项目建进库域（`pnpm new:script .Libs/<名>` 按用法错误退出 2）。库域内的包一律判为链接库（即使带 banner）：没有脚本版本、不参与备份归档、不进 README 生成、不参与「版本是否已归档」的判断。
+`src/.Libs/<库名>/` 下的两层目录，存放本仓自产的库，当前是 `gmlib` 与 `bilibili-api-lib`。它是与 `.Global`、`.Crontab` 同级的特殊目录，但**不**进特殊目录清单——脚手架不能把项目建进库域（`pnpm new:script .Libs/<名>` 以「库域不能放脚本项目」专属提示退出 2）。库域内的包一律判为链接库（即使带 banner）：没有脚本版本、不参与备份归档、不进 README 生成、不参与「版本是否已归档」的判断。
 
 ## 链接库
 
-`src/.Libs/<库名>/` 下本仓自产、仍独立发布到 npm 的库，当前两个：`@yiero/gmlib`（`src/.Libs/gmlib/`）与 `@yiero/bilibili-api-lib`（`src/.Libs/bilibili-api-lib/`）。脚本一律用 `workspace:*` 引用，所以必须先构建库、再构建引用它的脚本，否则消费者报 `TS2307`。库自己的门禁是 `pnpm typecheck:libs` 与 `pnpm test:libs`，都已接入 `pnpm verify`。见 `docs/adr/0005-libs-in-monorepo.md`。
+`src/.Libs/<库名>/` 下本仓自产、仍独立发布到 npm 的库，当前两个：`@yiero/gmlib`（`src/.Libs/gmlib/`）与 `@yiero/bilibili-api-lib`（`src/.Libs/bilibili-api-lib/`）。脚本一律用 `workspace:*` 引用，所以必须先构建库、再构建引用它的脚本，否则消费者报 `TS2307`。库不参与脚本生命周期（无 banner、无备份归档、不进 README 表格）。库自己的门禁是 `pnpm typecheck:libs` 与 `pnpm test:libs`，都已接入 `pnpm verify`。见 `docs/adr/0005-libs-in-monorepo.md`。
 
 ## 版本标签
 

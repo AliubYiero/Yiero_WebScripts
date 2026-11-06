@@ -35,8 +35,10 @@ changelog 与 issue 引用都指向旧仓库的提交）。
 **两个库的源码与历史并入本仓，本仓成为唯一真相源。** gmlib 从旧仓
 库整史导入，导入提交有两个父：第一父是本仓主线，第二父是旧仓库的
 历史（85 个提交，`git log 7bf319d^2` 可翻到）。路径在导入时改了，
-所以按路径的 `git log -- src/.Libs/gmlib` 追不过去，翻旧改动要走第
-二父；主线本身只多一个提交。bilibili-api-lib 从原来的脚本目录迁
+所以按目录的 `git log -- src/.Libs/gmlib` 只列导入之后的主线提交；
+要看旧改动可对具体文件加 `--follow`（必要时配 `-m`）跟过导入合并，
+或直接翻第二父。`git blame` 则会跟过重命名与合并，能追到上游提交。
+主线本身只多一个提交。bilibili-api-lib 从原来的脚本目录迁
 入，历史随路径重命名一起保留。
 
 **库放在库域 `src/.Libs/<库名>/`，两层。** `src/.Libs` 与
@@ -97,14 +99,18 @@ TypeScript 时 `typecheck:libs` 直接失败（门禁不能静默放行）；没
   本身来自根。
 - 库不参与脚本那套生命周期：没有 `banner/`、没有备份归档、不进
   README 表格、不参与「版本是否已归档」的判断，`pnpm commit` /
-  `pnpm release:tag` 在库目录里不会触发归档构建。
+  `pnpm release:tag` 在库目录里不会触发归档构建。反过来，脚本的
+  归档构建（`pnpm commit` / `pnpm release:tag`）开始前会按其
+  `workspace:` 依赖重建前置库。
 - 库内保留一份库专属的 `CLAUDE.md`（命令、目录结构、测试栈），根
   `CLAUDE.md` 只写「库在哪、怎么引用、怎么发版」，避免两处都写全
   部细节。
 - 上游仓库 `AliubYiero/GmLib` 已归档、只读，不再接受提交；历史留
   在导入提交的第二父提交里，需要翻旧提交或旧 issue 时
-  `git log 7bf319d^2` 仍可用。`git blame` 会停在导入提交——库的路径
-  变了，这是整史导入的固有代价，不是历史丢失。
+  `git log 7bf319d^2` 仍可用。`git blame` 能跟过重命名与合并追到
+  上游提交（如 `git blame -- src/.Libs/gmlib/src/index.ts`），不是停
+  在导入提交；按目录的 `git log` 才需要 `--follow` / `-m` 或翻第二
+  父。
 
 ## Alternatives considered
 

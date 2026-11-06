@@ -6,9 +6,9 @@
 ## 项目概述
 
 GmLib 是一个为 Tampermonkey/ScriptCat 脚本提供辅助函数的 TypeScript 库，
-封装了常用的油猴 API。它位于本仓库域 `src/.Libs/gmlib`，既是 pnpm workspace
-包（各脚本项目通过 `workspace:*` 引用），也仍可独立发布到 npm；包名与版本号
-以本目录 `package.json` 为唯一来源。
+封装了常用的油猴 API。它位于本仓库的库域 `src/.Libs/gmlib`，既是 pnpm
+workspace 包（各脚本项目通过 `workspace:*` 引用），也仍可独立发布到 npm；
+包名与版本号以本目录 `package.json` 为唯一来源。
 
 ## 文档
 
@@ -36,6 +36,17 @@ pnpm pack         # 打包为 npm 包
 根目录的库门禁会调用本库的 `tsconfig.json` 与 `test` 脚本：
 `pnpm typecheck:libs`（`tsc -p tsconfig.json --noEmit`）与
 `pnpm test:libs`（对每个库执行 `pnpm run test`）。
+
+## 发布
+
+手动发布，在本目录执行：
+
+```bash
+pnpm build      # 生产构建，产物进 dist/
+pnpm publish    # 发布到 npm
+```
+
+包名是 `@yiero/gmlib`，版本取本目录 `package.json` 的 `version`。
 
 ## 技术栈
 

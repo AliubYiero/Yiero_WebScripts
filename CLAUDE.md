@@ -139,10 +139,10 @@ src/.Libs/gmlib/             — @yiero/gmlib 0.4.7（原仓库 AliubYiero/GmLib
 src/.Libs/bilibili-api-lib/  — @yiero/bilibili-api-lib 0.3.2（原 src/com/bilibili/.bilibili-api-lib）
 ```
 
-- **目录约定**：`src/.Libs` 与 `.Global`、`.Crontab` 同级，是特殊目录，但**不**进特殊目录清单——`pnpm new:script .Libs/<名>` 按用法错误退出 2，项目建不进库域
+- **目录约定**：`src/.Libs` 与 `.Global`、`.Crontab` 同级，是特殊目录，但**不**进特殊目录清单——`pnpm new:script .Libs/<名>` 以「库域不能放脚本项目」专属提示退出 2，项目建不进库域
 - **身份**：库域内的包一律判为链接库（即使带 banner）：没有脚本版本、不参与备份归档、不进 README 生成、不参与「版本是否已归档」的判断
 - **标签**：`_Libs/<库名>/v<版本>`，如 `_Libs/bilibili-api-lib/v0.3.2`
-- **构建**：库排在引用它的脚本之前，`pnpm build` / `pnpm build:all` 按 `workspace:` 依赖做拓扑排序；新克隆后首次构建也先建库，否则消费者报 `TS2307`
+- **构建**：库排在引用它的脚本之前，`pnpm build` / `pnpm build:all` 按 `workspace:` 依赖做拓扑排序；新克隆后首次构建也先建库，否则消费者报 `TS2307`；`pnpm commit` / `pnpm release:tag` 的归档构建同样会先建库
 - **测试**：`pnpm typecheck:libs` + `pnpm test:libs`，两者都在 `pnpm verify` 里；单库可在根用 `pnpm --filter @yiero/gmlib build|test`，或进库目录跑 `pnpm build` / `pnpm test`
 - **发 npm**：手动发布，在库目录里 `pnpm build` 后 `pnpm publish`；包名与 `package.json` 的 `version` 是库的真实版本（不像脚本恒为 `0.0.0`）；`dist/` 不入库
 
