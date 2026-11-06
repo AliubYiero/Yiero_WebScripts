@@ -50,7 +50,7 @@ function main(): number {
     console.log(`=== 提交范围：${label}`);
 
     if (pkg !== null && !dryRun) {
-        const build = ensureArchiveBuild(pkg);
+        const build = ensureArchiveBuild(pkg, packages);
         if (!build.ok) {
             return abort(`构建失败，已中止提交：${pkg.relDir}`);
         }

@@ -141,7 +141,7 @@ function main(): number {
                 '= 根目录调用，跳过构建（进项目目录可用委托命令）',
             );
         } else {
-            const build = ensureArchiveBuild(pkg);
+            const build = ensureArchiveBuild(pkg, packages);
             if (!build.ok) {
                 return abort(`构建失败，已中止打标签：${pkg.relDir}`);
             }

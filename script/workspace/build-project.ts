@@ -69,16 +69,62 @@ export function buildPackage(pkg: PackageInfo): BuildOutcome {
 }
 
 export interface ArchiveBuildOutcome extends BuildOutcome {
-    /** 是否真的跑了构建（库与已归档项目都是 false）。 */
+    /** 是否真的跑了脚本的归档构建（库与已归档项目都是 false）。 */
     built: boolean;
 }
 
 /**
- * 提交 / 打标签前的归档前置：库与已归档项目直接跳过并打印原因，
- * 只有需要重建时才动 `backup/`。
+ * 脚本在归档构建前需要先重建的链接库，按依赖先后排序：
+ * 被依赖的库排在依赖方之前。只收 `workspace:` 声明且确实
+ * 在 workspace 里的库；成环时退让，不死循环。
+ */
+export function libraryBuildOrder(
+    pkg: PackageInfo,
+    packages: readonly PackageInfo[],
+): PackageInfo[] {
+    const libraryByName = new Map<string, PackageInfo>();
+    for (const candidate of packages) {
+        if (candidate.isLibrary) {
+            libraryByName.set(candidate.name, candidate);
+        }
+    }
+
+    const ordered: PackageInfo[] = [];
+    const visited = new Set<string>();
+    const visiting = new Set<string>();
+
+    const visit = (name: string): void => {
+        const library = libraryByName.get(name);
+        if (
+            library === undefined ||
+            visited.has(name) ||
+            visiting.has(name)
+        ) {
+            return;
+        }
+        visiting.add(name);
+        for (const dependency of library.workspaceDependencies) {
+            visit(dependency);
+        }
+        visiting.delete(name);
+        visited.add(name);
+        ordered.push(library);
+    };
+
+    for (const name of pkg.workspaceDependencies) {
+        visit(name);
+    }
+    return ordered;
+}
+
+/**
+ * 提交 / 打标签前的归档前置：脚本先按依赖顺序重建它依赖的
+ * 链接库，再走归档构建；库本身没有归档，直接跳过。
+ * 任一链接库构建失败即中止，不把过期产物归档进去。
  */
 export function ensureArchiveBuild(
     pkg: PackageInfo,
+    packages: readonly PackageInfo[],
 ): ArchiveBuildOutcome {
     if (pkg.isLibrary) {
         console.log('= 链接库没有归档构建，跳过构建');
@@ -87,6 +133,14 @@ export function ensureArchiveBuild(
     if (!needsArchiveBuild(pkg)) {
         console.log(`= v${pkg.scriptVersion} 已归档，跳过构建`);
         return { ok: true, built: false };
+    }
+
+    for (const library of libraryBuildOrder(pkg, packages)) {
+        console.log(`=== 构建链接库 ${library.relDir}`);
+        if (!buildPackage(library).ok) {
+            console.error(`链接库构建失败：${library.relDir}`);
+            return { ok: false, built: false };
+        }
     }
 
     console.log(`=== 构建 ${pkg.relDir}（v${pkg.scriptVersion}）`);
