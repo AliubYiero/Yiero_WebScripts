@@ -4,9 +4,10 @@
  * created by 2026/11/6
  * @file FILE_DESCRIPTION
  * */
-import { QueryTemplateDetailData } from '../mockResponse.ts';
-import { parseDiscountDataWithDetail } from './parseDiscountDataWithDetail.ts';
+
 import { elementWaiter } from '@yiero/gmlib';
+import type { QueryTemplateDetailData } from '../mockResponse.ts';
+import { parseDiscountDataWithDetail } from './parseDiscountDataWithDetail.ts';
 
 export const renderDiscountOnGoodListPage = async (
     data: QueryTemplateDetailData,
@@ -14,7 +15,7 @@ export const renderDiscountOnGoodListPage = async (
     const discountData = await parseDiscountDataWithDetail(data);
     if (!discountData) {
         console.warn(
-            '[steam-price-calculate] 未查询到商品信息, 请重试...',
+            '[steam-price-calculate] 未查询到商品信息或暂时无法读取在售价格, 请重试...',
         );
         return;
     }

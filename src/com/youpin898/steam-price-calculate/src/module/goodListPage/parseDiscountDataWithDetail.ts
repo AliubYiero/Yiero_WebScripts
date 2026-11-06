@@ -1,10 +1,49 @@
-import { QueryTemplateDetailData } from '../mockResponse.ts';
-import {
-    DiscountType,
-    LOWER_DROP_PRICE_PERCENT,
-    ParsedDiscountData,
-} from '../marketPage/parseDiscountData.ts';
 import { elementWaiter } from '@yiero/gmlib';
+import {
+    calculateDiscount,
+    type ParsedDiscountData,
+} from '../discount.ts';
+import type { QueryTemplateDetailData } from '../mockResponse.ts';
+
+/**
+ * 在售面板内的价格框, 不依赖当前激活的 tab
+ */
+const SALE_PRICE_SELECTOR =
+    '[id$="-panel-sale"] [class*="price-box"]';
+
+/**
+ * 从价格文本中解析价格
+ *
+ * 去掉 `¥`、`￥`、千分位逗号与空白后再解析。
+ */
+const parsePriceText = (text: string): number =>
+    Number.parseFloat(text.replace(/[¥￥,\s]/g, ''));
+
+/**
+ * 读取在售面板里的第一个价格
+ *
+ * 先立即查询一次, 没有再在 5 秒内等待; 超时或异常时
+ * 视为取不到价格。
+ */
+const getFirstSalePrice = async (): Promise<number | null> => {
+    try {
+        const priceNode =
+            document.querySelector<HTMLElement>(
+                SALE_PRICE_SELECTOR,
+            ) ??
+            (await elementWaiter<HTMLElement>(SALE_PRICE_SELECTOR, {
+                timeoutPerSecond: 5,
+                delayPerSecond: 0,
+            }));
+
+        const price = parsePriceText(priceNode.textContent ?? '');
+        if (!Number.isFinite(price) || price <= 0) return null;
+
+        return price;
+    } catch {
+        return null;
+    }
+};
 
 export const parseDiscountDataWithDetail = async (
     data: QueryTemplateDetailData,
@@ -18,40 +57,29 @@ export const parseDiscountDataWithDetail = async (
         exteriorName,
     } = data.templateInfo;
 
+    // 先校验 Steam 价, 避免无意义的在售面板等待
+    const sellPrice = Number(steamPrice);
+    if (!Number.isFinite(sellPrice) || sellPrice <= 0) return null;
+
     const menuFilter = data.filters.find(
         (filter) => filter.Name === '外观',
     );
-    if (!menuFilter || !menuFilter.Items) {
-        return null;
-    }
-    const currentMenu = menuFilter.Items.find(
+    const currentMenu = menuFilter?.Items?.find(
         (item) => item.Name === exteriorName,
     );
-    if (!currentMenu) return null;
-    let buyPrice = Number(currentMenu.SellPrice);
-    if (buyPrice === 0) {
-        const firstPriceNode = await elementWaiter(
-            '.ant-tabs:has(.ant-tabs-tab-active[data-node-key="sale"]) [class*="price-box"]',
-        );
-        buyPrice = Number(
-            firstPriceNode.textContent.replace('¥', ''),
-        );
+
+    let buyPrice = Number(currentMenu?.SellPrice);
+    if (!Number.isFinite(buyPrice) || buyPrice <= 0) {
+        const salePrice = await getFirstSalePrice();
+        if (salePrice === null) return null;
+        buyPrice = salePrice;
     }
+
     const listType =
         new URLSearchParams(location.search).get('listType') || '';
 
-    const sellPrice = Number(steamPrice);
-    const sellNetPrice = sellPrice * 0.85;
-
-    const discount = buyPrice / sellNetPrice;
-    const discountText = `${Math.round(discount * 100)}%`;
-
-    let discountType = DiscountType.Middle;
-    if (discount < LOWER_DROP_PRICE_PERCENT) {
-        discountType = DiscountType.Drop;
-    } else if (discount > 1) {
-        discountType = DiscountType.Increase;
-    }
+    const { sellNetPrice, discount, discountText, discountType } =
+        calculateDiscount(buyPrice, sellPrice);
 
     return {
         name: commodityName,

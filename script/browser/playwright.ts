@@ -101,6 +101,25 @@ export async function attach(
     return { browser, context };
 }
 
+/**
+ * 接管时的目标页面。
+ *
+ * 带 `url` 时新开一页；不带时取最近打开的页面。Playwright 没有
+ * 公开「最近打开」的 API，`context.pages()` 也不保证顺序，这里
+ * 只能取数组最后一项作最佳近似。
+ * 没有页面时返回 null。
+ */
+export async function resolveAttachPage(
+    context: PlaywrightContext,
+    url: string | undefined,
+): Promise<PlaywrightPage | null> {
+    if (url !== undefined) {
+        return context.newPage();
+    }
+
+    return context.pages().at(-1) ?? null;
+}
+
 /** 汇总当前上下文里的页面，供 CLI 打印。 */
 export function describeContext(context: PlaywrightContext): {
     pages: number;

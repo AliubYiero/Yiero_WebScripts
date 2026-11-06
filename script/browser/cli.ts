@@ -27,6 +27,7 @@ import {
     PlaywrightMissingError,
     attach,
     describeContext,
+    resolveAttachPage,
 } from './playwright';
 import {
     cdpEndpoint,
@@ -232,7 +233,7 @@ async function commandLaunch(
     paths: BrowserPaths,
     argv: string[],
 ): Promise<number> {
-    const args = parseArgs(argv, ['debug-port'], []);
+    const args = parseArgs(argv, ['url', 'debug-port'], []);
     const debugPortRaw = args.values.get('debug-port');
     const debugPort =
         debugPortRaw === undefined
@@ -529,8 +530,7 @@ async function commandAttach(
         const { browser, context } = await attach(endpoint.url);
         try {
             const url = args.values.get('url');
-            const target =
-                url === undefined ? null : await context.newPage();
+            const target = await resolveAttachPage(context, url);
 
             if (url !== undefined && target !== null) {
                 await target.goto(url, {
@@ -550,12 +550,22 @@ async function commandAttach(
                 console.log(`标题：${await target.title()}`);
             }
 
-            if (args.flags.has('screenshot') && target !== null) {
-                const file =
-                    args.values.get('out') ??
-                    join(paths.artifacts, `attach-${Date.now()}.png`);
-                await target.screenshot({ path: file });
-                console.log(`截图：${file}`);
+            if (args.flags.has('screenshot')) {
+                if (target === null) {
+                    console.error(
+                        '没有可截图的页面：浏览器里没有打开的标签页。',
+                    );
+                    exitCode = 1;
+                } else {
+                    const file =
+                        args.values.get('out') ??
+                        join(
+                            paths.artifacts,
+                            `attach-${Date.now()}.png`,
+                        );
+                    await target.screenshot({ path: file });
+                    console.log(`截图：${file}`);
+                }
             }
         } finally {
             // 只断开连接，不关浏览器、不关标签页。
