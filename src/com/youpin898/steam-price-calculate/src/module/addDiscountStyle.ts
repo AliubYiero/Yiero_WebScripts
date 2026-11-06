@@ -1,4 +1,4 @@
-import { DiscountType } from './marketPage/parseDiscountData.ts';
+import { DiscountType } from './discount.ts';
 
 const APPEND_STYLE = `
 /* Market Page */
