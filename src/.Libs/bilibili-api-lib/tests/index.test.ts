@@ -28,6 +28,25 @@ describe('Module exports', () => {
         const user = await import('../src/user');
         expect(user.api_getUserCard).toBeDefined();
     });
+
+    test('fav module exports', async () => {
+        const fav = await import('../src/fav');
+        expect(fav.api_getFavFolderList).toBeDefined();
+        expect(fav.api_getFavResourceIds).toBeDefined();
+        expect(fav.api_getFavVideoStatus).toBeDefined();
+    });
+
+    test('pgc module exports', async () => {
+        const pgc = await import('../src/pgc');
+        expect(pgc.api_getPgcSeasonByEp).toBeDefined();
+
+        // 主入口需同时重新导出 fav / pgc 的四个函数
+        const index = await import('../src/index');
+        expect(index.api_getFavFolderList).toBeDefined();
+        expect(index.api_getFavResourceIds).toBeDefined();
+        expect(index.api_getFavVideoStatus).toBeDefined();
+        expect(index.api_getPgcSeasonByEp).toBeDefined();
+    });
 });
 
 // 测试 xhrRequest 导出
