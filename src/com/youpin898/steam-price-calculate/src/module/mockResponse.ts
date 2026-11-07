@@ -208,6 +208,7 @@ export const mockResponse = () => {
                     response as unknown as QueryTemplateDetailResponse,
                 );
             }
+            return undefined;
         },
     );
 };

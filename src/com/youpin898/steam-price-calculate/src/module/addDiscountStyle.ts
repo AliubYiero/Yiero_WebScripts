@@ -58,6 +58,31 @@ const APPEND_STYLE = `
 .discount-percent.${DiscountType.Increase} {
     color: #C62828;
 }
+
+.discount-info .trade-count {
+    display: inline-flex;
+    flex-direction: column;
+    margin-left: 6px;
+    font-size: 11px;
+    line-height: 14px;
+    color: #8A8A8A;
+    vertical-align: text-bottom;
+    white-space: nowrap;
+}
+
+/* 数字等宽 + 固定列宽: 两行的「日」「次交易」才能上下对齐 */
+.discount-info .trade-count strong {
+    font-family: Barlow;
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+.discount-info .trade-count .trade-day {
+    min-width: 2ch;
+}
+.discount-info .trade-count .trade-num {
+    min-width: 3ch;
+}
 `;
 
 export const addDiscountStyle = () => {

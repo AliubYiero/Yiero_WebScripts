@@ -1,18 +1,48 @@
 // ==UserScript==
 // @name           悠悠有品饰品折扣率计算
 // @description    在首页访问时, 直接显示当前饰品可以倒余额的折扣率.
-// @version        1.0.1
+// @version        1.1.0
 // @author         Yiero
 // @match          https://www.youpin898.com/*
 // @run-at         document-body
+// @connect        pc-api.youpin898.com
 // @license        GPL-3
 // @namespace      https://github.com/AliubYiero/Yiero_WebScripts
 // @noframes
 // @icon           https://www.youpin898.com/favicon.ico
+// @grant          GM_info
+// @grant          GM_cookie
+// @grant          GM_xmlhttpRequest
 // @grant          GM_addStyle
 // ==/UserScript==
 (function() {
   "use strict";
+  const environmentTest = () => GM_info.scriptHandler;
+  function getCookie(content, key) {
+    const isTextCookie = [
+      /^\w+=[^=;]+$/,
+      /^\w+=[^=;]+;/
+    ].some((reg) => reg.test(content));
+    if (isTextCookie) {
+      const cookieList = content.split(/;\s?/).map((cookie) => cookie.split("="));
+      const cookieMap = new Map(cookieList);
+      const cookieValue = cookieMap.get(key);
+      if (!cookieValue) return Promise.reject(new Error("\u83B7\u53D6 Cookie \u5931\u8D25, key \u4E0D\u5B58\u5728."));
+      return Promise.resolve(cookieValue);
+    }
+    return new Promise((resolve, reject) => {
+      const env = environmentTest();
+      if ("ScriptCat" !== env) return reject(new Error(`\u5F53\u524D\u811A\u672C\u4E0D\u652F\u6301 ${env} \u73AF\u5883, \u4EC5\u652F\u6301 ScriptCat .`));
+      GM_cookie("list", {
+        domain: content
+      }, (cookieList) => {
+        if (!cookieList) return void reject(new Error("\u83B7\u53D6 Cookie \u5931\u8D25, \u8BE5\u57DF\u540D\u4E0B\u6CA1\u6709 cookie. "));
+        const userIdCookie = cookieList.find((cookie) => cookie.name === key);
+        if (!userIdCookie) return void reject(new Error("\u83B7\u53D6 Cookie \u5931\u8D25, key \u4E0D\u5B58\u5728. "));
+        resolve(userIdCookie.value);
+      });
+    });
+  }
   const parseResponseText = (responseText) => {
     try {
       return JSON.parse(responseText);
@@ -25,6 +55,41 @@
       }
     }
   };
+  function gmRequest(param1, method, body, GMXmlHttpRequestConfig) {
+    const unifiedParameters = () => {
+      return {
+        url: param1,
+        method,
+        param: body,
+        GMXmlHttpRequestConfig: GMXmlHttpRequestConfig || {}
+      };
+    };
+    const params = unifiedParameters();
+    if ("GET" === params.method && params.param && "object" == typeof params.param) params.url = `${params.url}?${new URLSearchParams(params.param).toString()}`;
+    if ("POST" === params.method && params.param) params.GMXmlHttpRequestConfig.data = JSON.stringify(params.param);
+    return new Promise((resolve, reject) => {
+      const newGMXmlHttpRequestConfig = {
+        timeout: 2e4,
+        url: params.url,
+        method: params.method,
+        onload(response) {
+          if (!response.responseText) return resolve(void 0);
+          resolve(parseResponseText(response.responseText));
+        },
+        onerror(error) {
+          reject(error);
+        },
+        ontimeout() {
+          reject(new Error("Request timed out"));
+        },
+        headers: {
+          "Content-Type": "application/json"
+        },
+        ...params.GMXmlHttpRequestConfig
+      };
+      GM_xmlhttpRequest(newGMXmlHttpRequestConfig);
+    });
+  }
   const originalXhrOpen = XMLHttpRequest.prototype.open;
   let isHooked = false;
   const hookRegistry = [];
@@ -206,6 +271,101 @@
   const sleep = (milliseconds) => {
     return new Promise((res) => setTimeout(res, milliseconds));
   };
+  const TREND_API_URL = "https://pc-api.youpin898.com/api/youpin/price/trend/data";
+  const TREND_ORDER_TYPE = "13";
+  const tradeCountCache = /* @__PURE__ */ new Map();
+  const readLoginToken = async () => {
+    const cookie = document.cookie;
+    if (!cookie) {
+      return null;
+    }
+    try {
+      return await getCookie(cookie, "uu_token");
+    } catch {
+      return null;
+    }
+  };
+  const requestTradeCount = async (templateId, day, token) => {
+    try {
+      const response = await gmRequest(
+        TREND_API_URL,
+        "POST",
+        {
+          filterTemplateTypeNames: [],
+          templateId: String(templateId),
+          orderType: TREND_ORDER_TYPE,
+          day,
+          templateTypeName: "",
+          customizeDay: false
+        },
+        {
+          // gmRequest 对配置是浅展开, 传了 headers 会整体
+          // 替换默认头, 因此这里必须显式写出 Content-Type
+          headers: {
+            "Content-Type": "application/json",
+            authorization: token
+          }
+        }
+      );
+      if (!response || response.code !== 0) {
+        return null;
+      }
+      const tradeDataList = response.data?.tradeDataList;
+      return Array.isArray(tradeDataList) ? tradeDataList.length : null;
+    } catch {
+      return null;
+    }
+  };
+  const getTradeCount = (templateId) => {
+    const cached = tradeCountCache.get(templateId);
+    if (cached) {
+      return cached;
+    }
+    const pendingFn = async () => {
+      const token = await readLoginToken();
+      if (!token) {
+        return null;
+      }
+      const [sevenDay, thirtyDay] = await Promise.all([
+        requestTradeCount(templateId, 7, token),
+        requestTradeCount(templateId, 30, token)
+      ]);
+      if (sevenDay === null) {
+        return null;
+      }
+      return { sevenDay, thirtyDay };
+    };
+    const pending = pendingFn();
+    const result = pending.then(
+      (count) => {
+        if (count === null || count.thirtyDay === null) {
+          tradeCountCache.delete(templateId);
+        }
+        return count;
+      },
+      () => {
+        tradeCountCache.delete(templateId);
+        return null;
+      }
+    );
+    tradeCountCache.set(templateId, result);
+    return result;
+  };
+  const formatTradeCount = (count) => {
+    const lines = [
+      {
+        day: 7,
+        count: count.sevenDay
+      }
+    ];
+    if (count.thirtyDay !== null) {
+      lines.push({
+        day: 30,
+        count: count.thirtyDay
+      });
+    }
+    return lines;
+  };
   const SALE_PRICE_SELECTOR = '[id$="-panel-sale"] [class*="price-box"]';
   const parsePriceText = (text) => Number.parseFloat(text.replace(/[¥￥,\s]/g, ""));
   const getFirstSalePrice = async () => {
@@ -263,6 +423,40 @@
       url: `https://www.youpin898.com/market/goods-list?listType=${listType}&templateId=${id}&gameId=${gameId}`
     };
   };
+  let hasWarnedTradeCount = false;
+  const createTradeLine = (line) => {
+    const lineNode = document.createElement("span");
+    lineNode.classList.add("trade-line");
+    const dayNode = document.createElement("strong");
+    dayNode.classList.add("trade-day");
+    dayNode.textContent = String(line.day);
+    const countNode = document.createElement("strong");
+    countNode.classList.add("trade-num");
+    countNode.textContent = String(line.count);
+    lineNode.append("\u8FD1 ", dayNode, " \u65E5 ", countNode, " \u6B21\u4EA4\u6613");
+    return lineNode;
+  };
+  const appendTradeCount = async (discountNode, templateId) => {
+    const count = await getTradeCount(templateId);
+    if (count === null) {
+      if (!hasWarnedTradeCount) {
+        hasWarnedTradeCount = true;
+        console.warn(
+          "[steam-price-calculate] \u4EA4\u6613\u6570\u91CF\u83B7\u53D6\u5931\u8D25, \u53EF\u80FD\u672A\u767B\u5F55\u6216\u63A5\u53E3\u5F02\u5E38, \u5DF2\u8DF3\u8FC7\u663E\u793A..."
+        );
+      }
+      return;
+    }
+    if (!discountNode.isConnected) return;
+    const lines = formatTradeCount(count);
+    discountNode.querySelector(".trade-count")?.remove();
+    const tradeCountNode = document.createElement("span");
+    tradeCountNode.classList.add("trade-count");
+    for (const line of lines) {
+      tradeCountNode.append(createTradeLine(line));
+    }
+    discountNode.append(tradeCountNode);
+  };
   const renderDiscountOnGoodListPage = async (data) => {
     const discountData = await parseDiscountDataWithDetail(data);
     if (!discountData) {
@@ -287,6 +481,7 @@
 <span class="discount-percent ${discountData.discountType}">${discountData.discountText}</span>
     `;
     priceInfoContainer.insertBefore(discountNode, viewMarketNode);
+    void appendTradeCount(discountNode, discountData.id);
   };
   const handleResponseRoute = {
     querySaleTemplate: (response) => {
@@ -341,6 +536,7 @@
             response
           );
         }
+        return void 0;
       }
     );
   };
@@ -401,6 +597,31 @@
 }
 .discount-percent.${DiscountType.Increase} {
     color: #C62828;
+}
+
+.discount-info .trade-count {
+    display: inline-flex;
+    flex-direction: column;
+    margin-left: 6px;
+    font-size: 11px;
+    line-height: 14px;
+    color: #8A8A8A;
+    vertical-align: text-bottom;
+    white-space: nowrap;
+}
+
+/* \u6570\u5B57\u7B49\u5BBD + \u56FA\u5B9A\u5217\u5BBD: \u4E24\u884C\u7684\u300C\u65E5\u300D\u300C\u6B21\u4EA4\u6613\u300D\u624D\u80FD\u4E0A\u4E0B\u5BF9\u9F50 */
+.discount-info .trade-count strong {
+    font-family: Barlow;
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+.discount-info .trade-count .trade-day {
+    min-width: 2ch;
+}
+.discount-info .trade-count .trade-num {
+    min-width: 3ch;
 }
 `;
   const addDiscountStyle = () => {

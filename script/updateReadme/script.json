@@ -327,10 +327,10 @@
         "steam-price-calculate": {
             "name": "悠悠有品饰品折扣率计算",
             "description": "在首页访问时, 直接显示当前饰品可以倒余额的折扣率.",
-            "version": "1.0.0",
+            "version": "1.1.0",
             "private": false,
             "archive": false,
-            "lastUpdate": 1793986342685.9363,
+            "lastUpdate": 1794038777118.3872,
             "scriptType": "web",
             "userScriptFilepath": "backup/steam-price-calculate.user.js",
             "downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/youpin898/steam-price-calculate/backup/steam-price-calculate.user.js",
