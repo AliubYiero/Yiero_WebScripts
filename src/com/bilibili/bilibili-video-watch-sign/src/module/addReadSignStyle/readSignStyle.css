@@ -69,19 +69,39 @@
     opacity: 1;
 }
 
-/* 合集列表已看样式 */
-.video-pod__item.simple.watch-mark {
+/* 合集列表已看样式（标记挂在标题行上） */
+.video-pod__item.simple .simple-base-item.watch-mark {
     display: flex;
     align-items: center;
-
-    & > .single-p {
-        flex: 1;
-    }
+    flex-wrap: nowrap;
+    gap: 4px;
 }
-.video-pod__item.simple.watch-mark::after {
+
+.video-pod__item.simple .simple-base-item.watch-mark > .title {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.video-pod__item.simple .simple-base-item.watch-mark > .title .title-txt {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.video-pod__item.simple .simple-base-item.watch-mark > .stats {
+    order: 2;
+    flex: 0 0 auto;
+}
+
+.video-pod__item.simple .simple-base-item.watch-mark::after {
     position: static;
+    order: 1;
+    flex: 0 0 28px;
     width: 28px;
+    min-width: 28px;
     height: 16px;
     line-height: 16px;
+    padding: 0;
+    justify-content: center;
     opacity: 0.9;
 }
