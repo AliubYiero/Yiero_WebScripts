@@ -9,7 +9,8 @@
         "dev:base": "tsc && vite build --mode development --watch",
         "dev:sync": "tsc && vite build --mode sync --watch",
         "dev:test": "tsc && vite build --mode test --watch",
-        "test": "vitest",
+        "test": "vitest run",
+        "test:browser": "node test/browser-verify.mjs",
         "coverage": "vitest run --coverage",
         "commit": "pnpm -w run commit",
         "release:tag": "pnpm -w run release:tag",
@@ -35,6 +36,7 @@
         "yamljs": "^0.3.0"
     },
     "dependencies": {
+        "@yiero/bilibili-api-lib": "workspace:*",
         "@yiero/gmlib": "workspace:*",
         "radash": "^12.1.1"
     }

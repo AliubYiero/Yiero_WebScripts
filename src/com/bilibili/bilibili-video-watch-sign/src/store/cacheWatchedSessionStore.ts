@@ -3,15 +3,15 @@
  *
  * created by 2025/12/2
  * @file 临时会话存储当前视频的所有状态
- * */
-import { WatchStatus } from '../module/videoSignProcessingQueue/handleAddSign';
+ */
+import type { WatchStatus } from '../module/videoSignProcessingQueue/handleAddSign';
 
 type CacheWatchedMapper = Record<string, WatchStatus>;
 
 class CacheWatchedSessionStore {
     private readonly stoneName = 'cacheWatched';
 
-    private readonly mapper: CacheWatchedMapper = {};
+    private mapper: CacheWatchedMapper | null = null;
 
     getState(bvId: string): WatchStatus | undefined {
         return this.get()[bvId];
@@ -30,10 +30,15 @@ class CacheWatchedSessionStore {
         if (this.mapper) {
             return this.mapper;
         }
-        const mapper = JSON.parse(
-            sessionStorage.getItem(this.stoneName) || '{}',
-        ) as CacheWatchedMapper;
-        Object.assign(this.mapper, mapper);
+
+        try {
+            this.mapper = JSON.parse(
+                sessionStorage.getItem(this.stoneName) || '{}',
+            ) as CacheWatchedMapper;
+        } catch {
+            this.mapper = {};
+        }
+
         return this.mapper;
     }
 }

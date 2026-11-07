@@ -1,10 +1,9 @@
-import { IVideoItem } from '../types/IVideoItem';
-import { getVideoId } from '../../../util/getVideoId';
-import { videoSignProcessingQueue } from '../../videoSignProcessingQueue/videoSignProcessingQueue';
 import { elementWaiter } from '@yiero/gmlib';
 import { createMutationObserver } from '../../../util/createMutationObserver';
-import { cacheWatchedStore } from '../../../store/cacheWatchedStore';
-import { handleAddSign } from '../../videoSignProcessingQueue/handleAddSign';
+import { getPageVersion } from '../../../util/pageVersion';
+import { getVideoId } from '../../../util/getVideoId';
+import { markVideoItems } from '../../favIndex/markVideoItems';
+import type { IVideoItem } from '../types/IVideoItem';
 
 /**
  * 通用视频信息解析
@@ -86,12 +85,19 @@ export const baseVideoSignLoader = async (
         ...options,
     };
 
+    // 进入时的页面版本，等待期间路由可能已切换
+    const pageVersion = getPageVersion();
+
     // 等待元素载入
     try {
         await elementWaiter(selectorList.container, {
             delayPerSecond: 0,
         });
     } catch (e) {
+        return null;
+    }
+
+    if (getPageVersion() !== pageVersion) {
         return null;
     }
 
@@ -103,7 +109,7 @@ export const baseVideoSignLoader = async (
 
     // console.log('loadedContainerList', loadedContainerList);
 
-    for (let loadedContainer of loadedContainerList) {
+    for (const loadedContainer of loadedContainerList) {
         // 元素获取
         if (
             options.elementGetter ||
@@ -117,25 +123,12 @@ export const baseVideoSignLoader = async (
                 loadedContainer.querySelectorAll<HTMLElement>(
                     selectorList.item,
                 ),
-            ).map(parser);
+            )
+                .map(parser)
+                .filter((item) => item !== null);
 
-            // console.log('loadedItemList', loadedItemList, loadedContainer.querySelectorAll<HTMLElement>( selectorList.item ));
-
-            for (let loadedItem of loadedItemList) {
-                if (!loadedItem) {
-                    continue;
-                }
-                // 提前将已缓存的视频标记
-                if (cacheWatchedStore.has(loadedItem.videoId)) {
-                    handleAddSign(
-                        loadedItem,
-                        'watched',
-                        loadedItem.position,
-                    );
-                    continue;
-                }
-                // console.log('loadedItem', loadedItem);
-                videoSignProcessingQueue.push(loadedItem);
+            if (loadedItemList.length > 0) {
+                void markVideoItems(loadedItemList);
             }
         }
 
@@ -145,8 +138,6 @@ export const baseVideoSignLoader = async (
             const observer = createMutationObserver(
                 loadedContainer,
                 (item) => {
-                    // console.log('item', item);
-
                     if (!item.closest(selectorList.item)) {
                         return;
                     }
@@ -155,19 +146,8 @@ export const baseVideoSignLoader = async (
                     if (!loadedItem) {
                         return;
                     }
-                    // 提前将已缓存的视频标记
-                    if (cacheWatchedStore.has(loadedItem.videoId)) {
-                        handleAddSign(
-                            loadedItem,
-                            'watched',
-                            loadedItem.position,
-                        );
-                        return;
-                    }
 
-                    // console.log('loadedItem', loadedItem);
-
-                    videoSignProcessingQueue.push(loadedItem);
+                    void markVideoItems([loadedItem]);
                 },
             );
             if (observer) {
@@ -189,27 +169,26 @@ export class ObserverList {
         new Set<MutationObserver>();
 
     static get list() {
-        return this.observerSet;
+        return ObserverList.observerSet;
     }
 
     static get size() {
-        return this.observerSet.size;
+        return ObserverList.observerSet.size;
     }
 
     static reset() {
-        this.remove(...Array.from(this.observerSet));
-        console.log('this.observerSet', this.observerSet);
+        ObserverList.remove(...Array.from(ObserverList.observerSet));
     }
 
     static add(observer: MutationObserver) {
-        this.observerSet.add(observer);
+        ObserverList.observerSet.add(observer);
         return observer;
     }
 
     static remove(...observers: MutationObserver[]) {
         for (const observer of observers) {
             observer.disconnect();
-            this.observerSet.delete(observer);
+            ObserverList.observerSet.delete(observer);
         }
     }
 }

@@ -1,15 +1,27 @@
+import { onRouteChange } from '@yiero/gmlib';
+import { sleep } from 'radash';
 import { addReadSignStyle } from './module/addReadSignStyle/addReadSignStyle';
+import { resetFavIndexSession } from './module/favIndex/favIndex';
 import { getVideoSignHandler } from './module/videoSignHandler/getVideoSignHandler';
-import { freshListenerPushState } from './util/freshListenerPushState';
 import { videoSignProcessingQueue } from './module/videoSignProcessingQueue/videoSignProcessingQueue';
 import { ObserverList } from './module/videoSignHandler/handles/base';
 import { cacheWatchedSessionStore } from './store/cacheWatchedSessionStore';
-import { sleep } from 'radash';
+import { bumpPageVersion } from './util/pageVersion';
+
+/** 路由监听是否已注册（onRouteChange 是单例） */
+let routeBound = false;
+
+/** 去掉 hash，只比较真正的页面地址 */
+const stripHash = (url: string) => url.split('#')[0];
 
 /**
  * 刷新页面
  */
 const updatePage = async () => {
+    bumpPageVersion();
+    // 新页面算新 session：收藏夹索引重新查一次
+    resetFavIndexSession();
+
     // 重置标记
     document
         .querySelectorAll<HTMLElement>('.watch-mark')
@@ -37,11 +49,30 @@ const updatePage = async () => {
         .querySelectorAll<HTMLElement>('[data-bind-observer]')
         .forEach((item) => (item.dataset.bindObserver = ''));
 
-    await sleep(200);
     // 执行视频标记处理
     const videoSignHandler = getVideoSignHandler();
-    console.log('videoSignHandler', videoSignHandler);
-    videoSignHandler && videoSignHandler();
+    void videoSignHandler?.();
+};
+
+/**
+ * 注册路由变化监听（只注册一次）
+ */
+const bindRouteChange = () => {
+    if (routeBound) return;
+    routeBound = true;
+
+    onRouteChange(async (event) => {
+        // hash 变化不换页面；同一 URL（含仅 hash 不同）不重复跑
+        if (
+            event.type === 'hash' ||
+            stripHash(event.to) === stripHash(event.from)
+        ) {
+            return;
+        }
+
+        await sleep(100);
+        await updatePage();
+    });
 };
 
 /**
@@ -53,11 +84,10 @@ const main = async () => {
 
     // 执行视频标记处理
     const videoSignHandler = getVideoSignHandler();
-    console.log('videoSignHandler', videoSignHandler);
-    videoSignHandler && videoSignHandler();
+    void videoSignHandler?.();
 
     // 页面刷新时, 清空处理队列, 重置观察
-    freshListenerPushState(updatePage, 0);
+    bindRouteChange();
 
     window.addEventListener('updateStatus', () => {
         videoSignProcessingQueue.reset();

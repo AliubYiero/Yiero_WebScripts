@@ -1,10 +1,15 @@
-import { api_isFavorVideo } from '../../api/api_isFavorVideo';
-import { DelayedQueue } from '../../util/DelayedQueue';
-import { IVideoItem } from '../videoSignHandler/types/IVideoItem';
-import { handleAddSign } from './handleAddSign';
-import { cacheWatchedStore } from '../../store/cacheWatchedStore';
+import { api_getFavVideoStatus } from '@yiero/bilibili-api-lib';
 import { cacheWatchedSessionStore } from '../../store/cacheWatchedSessionStore';
+import { DelayedQueue } from '../../util/DelayedQueue';
+import { getVideoAvId } from '../getVideoAvId/getVideoAvId';
+import type { IVideoItem } from '../videoSignHandler/types/IVideoItem';
+import { handleAddSign } from './handleAddSign';
 
+/**
+ * 逐条兜底：索引未知（降级 / 未登录）时查单条收藏状态。
+ *
+ * 只写会话缓存，不再写持久逐视频缓存。
+ */
 export const handleVideoSign = async (item: IVideoItem) => {
     item.position ||= 'left';
 
@@ -19,40 +24,27 @@ export const handleVideoSign = async (item: IVideoItem) => {
         return Promise.resolve(0);
     }
 
-    // 从本地会话缓存中获取收藏状态，优先级最高
+    // 从本地会话缓存中获取收藏状态, 优先级最高
     const watchStatus = cacheWatchedSessionStore.getState(
         item.videoId,
     );
     if (watchStatus) {
         handleAddSign(item, watchStatus, item.position);
-        console.log(
-            '从本地会话缓存中获取收藏状态',
-            item.videoId,
-            watchStatus,
-        );
-        return Promise.resolve(0);
-    }
-
-    // 从缓存中获取收藏状态
-    if (cacheWatchedStore.has(item.videoId)) {
-        handleAddSign(item, 'watched', item.position);
-        console.log('从缓存中获取收藏状态', item.videoId);
         return Promise.resolve(0);
     }
 
     // 获取收藏状态
-    const isFavor = await api_isFavorVideo(item.videoId);
+    const aid = await getVideoAvId(item.videoId);
+    const response = await api_getFavVideoStatus(aid);
+    if (response.code !== 0) {
+        throw new Error(response.message);
+    }
 
-    const videoTag = isFavor ? 'watched' : 'unwatched';
+    const videoTag = response.data.favoured ? 'watched' : 'unwatched';
     handleAddSign(item, videoTag, item.position);
-    // console.log( '标记视频', item.videoId, videoTag, item.container );
 
     // 更新本地会话缓存
     cacheWatchedSessionStore.setState(item.videoId, videoTag);
-    // 缓存收藏状态
-    if (isFavor) {
-        cacheWatchedStore.add(item.videoId);
-    }
 
     return Promise.resolve();
 };

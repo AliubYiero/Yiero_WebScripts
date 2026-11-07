@@ -6,7 +6,7 @@ const UserScript: ScriptCatUserScript = [
         'description',
         '基于收藏夹内容, 自动标记Bilibili视频的观看状态(已看/未看)',
     ],
-    ['version', '1.0.3'],
+    ['version', '1.1.1'],
     ['author', 'Yiero'],
     ['match', 'https://*.bilibili.com/*'],
     ['require', ''],

@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Bilibili视频观看状态标记
 // @description    基于收藏夹内容, 自动标记Bilibili视频的观看状态(已看/未看)
-// @version        1.0.3
+// @version        1.1.1
 // @author         Yiero
 // @match          https://*.bilibili.com/*
 // @icon           https://www.bilibili.com/favicon.ico
@@ -9,187 +9,41 @@
 // @license        GPL-3
 // @namespace      https://github.com/AliubYiero/Yiero_WebScripts
 // @noframes
-// @grant          GM_addStyle
-// @grant          GM_xmlhttpRequest
+// @grant          GM_info
+// @grant          GM_cookie
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @grant          GM_deleteValue
 // @grant          GM_addValueChangeListener
 // @grant          GM_removeValueChangeListener
+// @grant          GM_addStyle
 // ==/UserScript==
 (function() {
   "use strict";
-  const styleContent = `/* \u901A\u7528\u5DF2\u770B\u6837\u5F0F */
-.watch-mark {
-    position: relative;
-}
-
-.watch-mark.watched,
-.watch-mark.same-watch {
-    opacity: 0.6;
-}
-
-.watch-mark::after {
-    position: absolute;
-    text-align: center;
-    font-size: 12px;
-    align-items: center;
-    border-radius: 2px;
-    display: flex;
-    height: 18px;
-    padding: 0 5px;
-    pointer-events: none;
-    top: 8px;
-    z-index: 10;
-}
-
-.watch-mark.watched::after {
-    content: "\u5DF2\u770B";
-    background-color: #9e9e9ede;
-    color: #f5f5f5de;
-}
-
-.watch-mark.same-watch::after {
-    content: "\u770B\u8FC7\u7C7B\u4F3C";
-    background-color: #ff9800de;
-    color: #f5f5f5de;
-}
-
-.watch-mark.unwatched::after {
-    content: "\u672A\u770B";
-    background-color: #00bcd4;
-    color: #f5f5f5;
-}
-
-.watch-mark.watching::after {
-    content: "\u6B63\u5728\u770B";
-    background-color: #ff9800de;
-    color: #f5f5f5de;
-}
-
-.watch-mark.ep::after {
-    content: "\u756A\u5267";
-    background-color: rgba(109, 221, 132);
-    color: #f5f5f5de;
-}
-
-.watch-mark.left::after {
-    left: 8px;
-}
-
-.watch-mark.right::after {
-    right: 8px;
-}
-
-/* \u6D6E\u52A8\u65F6\u9690\u85CF */
-.watch-mark:hover::after {
-    opacity: 0;
-}
-.watch-mark.watched:hover,
-.watch-mark.same-watch:hover {
-    opacity: 1;
-}
-
-/* \u5408\u96C6\u5217\u8868\u5DF2\u770B\u6837\u5F0F */
-.video-pod__item.simple.watch-mark {
-    display: flex;
-    align-items: center;
-
-    & > .single-p {
-        flex: 1;
+  const environmentTest = () => GM_info.scriptHandler;
+  function getCookie(content, key) {
+    const isTextCookie = [
+      /^\w+=[^=;]+$/,
+      /^\w+=[^=;]+;/
+    ].some((reg) => reg.test(content));
+    if (isTextCookie) {
+      const cookieList = content.split(/;\s?/).map((cookie) => cookie.split("="));
+      const cookieMap = new Map(cookieList);
+      const cookieValue = cookieMap.get(key);
+      if (!cookieValue) return Promise.reject(new Error("\u83B7\u53D6 Cookie \u5931\u8D25, key \u4E0D\u5B58\u5728."));
+      return Promise.resolve(cookieValue);
     }
-}
-.video-pod__item.simple.watch-mark::after {
-    position: static;
-    width: 28px;
-    height: 16px;
-    line-height: 16px;
-    opacity: 0.9;
-}
-`;
-  const addReadSignStyle = () => {
-    return GM_addStyle(styleContent);
-  };
-  const getVideoId = (url) => {
-    try {
-      const videoId = new URL(url).pathname.split("/").findLast(
-        (item) => item.startsWith("BV1") || item.startsWith("ep") || item.startsWith("av")
-      );
-      if (!videoId) return null;
-      return videoId;
-    } catch (e) {
-      return null;
-    }
-  };
-  const codeConfig = {
-    XOR_CODE: 23442827791579n,
-    MASK_CODE: 2251799813685247n,
-    BASE: 58n,
-    data: "FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf"
-  };
-  function bvToAv(bvid) {
-    const { MASK_CODE, XOR_CODE, data, BASE } = codeConfig;
-    const bvidArr = Array.from(bvid);
-    [bvidArr[3], bvidArr[9]] = [bvidArr[9], bvidArr[3]];
-    [bvidArr[4], bvidArr[7]] = [bvidArr[7], bvidArr[4]];
-    bvidArr.splice(0, 3);
-    const tmp = bvidArr.reduce(
-      (pre, bvidChar) => pre * BASE + BigInt(data.indexOf(bvidChar)),
-      0n
-    );
-    return Number(tmp & MASK_CODE ^ XOR_CODE);
-  }
-  const parseResponseText = (responseText) => {
-    try {
-      return JSON.parse(responseText);
-    } catch {
-      try {
-        const domParser = new DOMParser();
-        return domParser.parseFromString(responseText, "text/html");
-      } catch {
-        return responseText;
-      }
-    }
-  };
-  function gmRequest(param1, method, body, GMXmlHttpRequestConfig) {
-    const unifiedParameters = () => {
-      if ("string" != typeof param1) return {
-        url: param1.url,
-        method: param1.method || "GET",
-        param: "POST" === param1.method ? param1.data : void 0,
-        GMXmlHttpRequestConfig: param1
-      };
-      return {
-        url: param1,
-        method,
-        param: body,
-        GMXmlHttpRequestConfig: {}
-      };
-    };
-    const params = unifiedParameters();
-    if ("GET" === params.method && params.param && "object" == typeof params.param) params.url = `${params.url}?${new URLSearchParams(params.param).toString()}`;
-    if ("POST" === params.method && params.param) params.GMXmlHttpRequestConfig.data = JSON.stringify(params.param);
     return new Promise((resolve, reject) => {
-      const newGMXmlHttpRequestConfig = {
-        timeout: 2e4,
-        url: params.url,
-        method: params.method,
-        onload(response) {
-          if (!response.responseText) return resolve(void 0);
-          resolve(parseResponseText(response.responseText));
-        },
-        onerror(error) {
-          reject(error);
-        },
-        ontimeout() {
-          reject(new Error("Request timed out"));
-        },
-        headers: {
-          "Content-Type": "application/json"
-        },
-        ...params.GMXmlHttpRequestConfig
-      };
-      GM_xmlhttpRequest(newGMXmlHttpRequestConfig);
+      const env = environmentTest();
+      if ("ScriptCat" !== env) return reject(new Error(`\u5F53\u524D\u811A\u672C\u4E0D\u652F\u6301 ${env} \u73AF\u5883, \u4EC5\u652F\u6301 ScriptCat .`));
+      GM_cookie("list", {
+        domain: content
+      }, (cookieList) => {
+        if (!cookieList) return void reject(new Error("\u83B7\u53D6 Cookie \u5931\u8D25, \u8BE5\u57DF\u540D\u4E0B\u6CA1\u6709 cookie. "));
+        const userIdCookie = cookieList.find((cookie) => cookie.name === key);
+        if (!userIdCookie) return void reject(new Error("\u83B7\u53D6 Cookie \u5931\u8D25, key \u4E0D\u5B58\u5728. "));
+        resolve(userIdCookie.value);
+      });
     });
   }
   const returnElement = (selector, options, resolve, reject) => {
@@ -293,52 +147,606 @@
       }
     }
   }
-  const api_getEpInfo = async (epId) => {
-    const response = await gmRequest(
-      "https://api.bilibili.com/pgc/view/web/season",
-      "GET",
-      {
-        ep_id: epId
-      }
-    );
-    const episode = response.result.episodes.find(
-      (item) => item.id === Number(epId)
-    );
-    if (!episode) return Promise.reject("\u83B7\u53D6\u756A\u5267\u4FE1\u606F\u5931\u8D25");
-    return episode;
-  };
-  const getVideoAvId = async (videoId) => {
-    if (videoId.startsWith("BV1")) {
-      videoId = String(bvToAv(videoId));
+  let currentCallback = null;
+  let originalPushState = null;
+  let originalReplaceState = null;
+  let isFallbackInitialized = false;
+  let popstateHandler = null;
+  let hashchangeHandler = null;
+  function isNavigationSupported() {
+    return "navigation" in window && window.navigation instanceof window.Navigation;
+  }
+  function triggerCallback(to, type, info, intercept, from) {
+    if (!currentCallback) return;
+    const event = {
+      to,
+      from: from ?? window.location.href,
+      type,
+      info,
+      intercept
+    };
+    currentCallback(event);
+  }
+  function setupNavigationApi(callback) {
+    currentCallback = callback;
+    const handleNavigate = (event) => {
+      triggerCallback(event.destination.url, event.navigationType, event.info, event.canIntercept ? (handler) => {
+        event.intercept({
+          handler
+        });
+      } : void 0);
+    };
+    window.navigation.addEventListener("navigate", handleNavigate);
+    return () => {
+      window.navigation.removeEventListener("navigate", handleNavigate);
+      currentCallback = null;
+    };
+  }
+  function initFallback() {
+    originalPushState = history.pushState;
+    originalReplaceState = history.replaceState;
+    history.pushState = function(data, unused, url) {
+      const fromUrl = window.location.href;
+      originalPushState?.call(this, data, unused, url);
+      const fullUrl = url ? new URL(url, fromUrl).href : window.location.href;
+      triggerCallback(fullUrl, "push", void 0, void 0, fromUrl);
+    };
+    history.replaceState = function(data, unused, url) {
+      const fromUrl = window.location.href;
+      originalReplaceState?.call(this, data, unused, url);
+      const fullUrl = url ? new URL(url, fromUrl).href : window.location.href;
+      triggerCallback(fullUrl, "replace", void 0, void 0, fromUrl);
+    };
+    popstateHandler = () => {
+      triggerCallback(window.location.href, "traverse");
+    };
+    window.addEventListener("popstate", popstateHandler);
+    hashchangeHandler = () => {
+      triggerCallback(window.location.href, "hash");
+    };
+    window.addEventListener("hashchange", hashchangeHandler);
+    isFallbackInitialized = true;
+  }
+  function cleanupFallback() {
+    if (originalPushState) {
+      history.pushState = originalPushState;
+      originalPushState = null;
     }
-    if (videoId.startsWith("av")) {
-      videoId = videoId.slice(2);
+    if (originalReplaceState) {
+      history.replaceState = originalReplaceState;
+      originalReplaceState = null;
     }
-    if (videoId.startsWith("ep")) {
-      const epId = videoId.slice(2);
-      const epInfo = await api_getEpInfo(epId);
-      /* @__PURE__ */ (() => {
-      })(`\u89E3\u6790\u756A\u5267ID: ep${epId} => av${epInfo.aid}`);
-      videoId = String(epInfo.aid);
+    if (popstateHandler) {
+      window.removeEventListener("popstate", popstateHandler);
+      popstateHandler = null;
     }
-    return Number(videoId);
-  };
-  const api_isFavorVideo = async (videoId) => {
-    const aid = await getVideoAvId(videoId);
-    const res = await gmRequest(
-      "https://api.bilibili.com/x/v2/fav/video/favoured",
-      "GET",
-      {
-        aid: String(aid)
-      }
-    );
-    if (res.code !== 0) {
-      throw new Error(res.message);
+    if (hashchangeHandler) {
+      window.removeEventListener("hashchange", hashchangeHandler);
+      hashchangeHandler = null;
     }
-    return res.data.favoured;
-  };
+    isFallbackInitialized = false;
+  }
+  function setupFallback(callback) {
+    currentCallback = callback;
+    if (!isFallbackInitialized) initFallback();
+    return () => {
+      currentCallback = null;
+      cleanupFallback();
+    };
+  }
+  function onRouteChange(callback) {
+    if (isNavigationSupported()) return setupNavigationApi(callback);
+    return setupFallback(callback);
+  }
   const sleep = (milliseconds) => {
     return new Promise((res) => setTimeout(res, milliseconds));
+  };
+  const styleContent = `/* \u901A\u7528\u5DF2\u770B\u6837\u5F0F */
+.watch-mark {
+    position: relative;
+}
+
+.watch-mark.watched,
+.watch-mark.same-watch {
+    opacity: 0.6;
+}
+
+.watch-mark::after {
+    position: absolute;
+    text-align: center;
+    font-size: 12px;
+    align-items: center;
+    border-radius: 2px;
+    display: flex;
+    height: 18px;
+    padding: 0 5px;
+    pointer-events: none;
+    top: 8px;
+    z-index: 10;
+}
+
+.watch-mark.watched::after {
+    content: "\u5DF2\u770B";
+    background-color: #9e9e9ede;
+    color: #f5f5f5de;
+}
+
+.watch-mark.same-watch::after {
+    content: "\u770B\u8FC7\u7C7B\u4F3C";
+    background-color: #ff9800de;
+    color: #f5f5f5de;
+}
+
+.watch-mark.unwatched::after {
+    content: "\u672A\u770B";
+    background-color: #00bcd4;
+    color: #f5f5f5;
+}
+
+.watch-mark.watching::after {
+    content: "\u6B63\u5728\u770B";
+    background-color: #ff9800de;
+    color: #f5f5f5de;
+}
+
+.watch-mark.ep::after {
+    content: "\u756A\u5267";
+    background-color: rgba(109, 221, 132);
+    color: #f5f5f5de;
+}
+
+.watch-mark.left::after {
+    left: 8px;
+}
+
+.watch-mark.right::after {
+    right: 8px;
+}
+
+/* \u6D6E\u52A8\u65F6\u9690\u85CF */
+.watch-mark:hover::after {
+    opacity: 0;
+}
+.watch-mark.watched:hover,
+.watch-mark.same-watch:hover {
+    opacity: 1;
+}
+
+/* \u5408\u96C6\u5217\u8868\u5DF2\u770B\u6837\u5F0F\uFF08\u6807\u8BB0\u6302\u5728\u6807\u9898\u884C\u4E0A\uFF09 */
+.video-pod__item.simple .simple-base-item.watch-mark {
+    display: flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    gap: 4px;
+}
+
+.video-pod__item.simple .simple-base-item.watch-mark > .title {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.video-pod__item.simple .simple-base-item.watch-mark > .title .title-txt {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.video-pod__item.simple .simple-base-item.watch-mark > .stats {
+    order: 2;
+    flex: 0 0 auto;
+}
+
+.video-pod__item.simple .simple-base-item.watch-mark::after {
+    position: static;
+    order: 1;
+    flex: 0 0 28px;
+    width: 28px;
+    min-width: 28px;
+    height: 16px;
+    line-height: 16px;
+    padding: 0;
+    justify-content: center;
+    opacity: 0.9;
+}
+.video-pod__item.simple .simple-base-item.watch-mark.watching::after {
+    width: 42px;
+    flex: 0 0 42px;
+}
+`;
+  const addReadSignStyle = () => {
+    return GM_addStyle(styleContent);
+  };
+  const normalizeHeaders = (headers) => {
+    const normalized = {};
+    for (const key in headers) normalized[key.toLowerCase()] = headers[key];
+    return normalized;
+  };
+  const processBody = (body, headers) => {
+    if (null == body) return null;
+    if (body instanceof FormData || body instanceof URLSearchParams || body instanceof Blob || body instanceof ArrayBuffer || body instanceof ReadableStream || "string" == typeof body) return body;
+    if ("object" == typeof body) {
+      if (!headers["content-type"]) headers["content-type"] = "application/json;charset=UTF-8";
+      return JSON.stringify(body);
+    }
+    return String(body);
+  };
+  async function xhrRequest(url, options = {}) {
+    const { method = "GET", withCredentials = false, timeout = 2e4, onProgress } = options;
+    const headers = normalizeHeaders(options.headers || {});
+    const requestBody = processBody(options.body, headers);
+    if (options.params) {
+      const searchParams = new URLSearchParams(options.params);
+      url += `?${searchParams.toString()}`;
+    }
+    let responseType = options.responseType;
+    if (!responseType) {
+      const accept = headers.accept;
+      responseType = accept?.includes("text/html") ? "document" : accept?.includes("text/") ? "text" : "json";
+    }
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open(method.toUpperCase(), url, true);
+      xhr.timeout = timeout;
+      xhr.withCredentials = withCredentials;
+      xhr.responseType = responseType;
+      Object.entries(headers).forEach(([key, value]) => {
+        xhr.setRequestHeader(key, value);
+      });
+      if (onProgress) xhr.addEventListener("progress", onProgress);
+      xhr.addEventListener("load", () => {
+        if (xhr.status >= 200 && xhr.status < 300) resolve(xhr.response);
+        else reject(new Error(`HTTP Error ${xhr.status}: ${xhr.statusText} @ ${url}`));
+      });
+      xhr.addEventListener("error", () => {
+        reject(new Error(`Network Error: Failed to connect to ${url}`));
+      });
+      xhr.addEventListener("timeout", () => {
+        xhr.abort();
+        reject(new Error(`Request Timeout: Exceeded ${timeout}ms`));
+      });
+      xhr.send(requestBody);
+    });
+  }
+  xhrRequest.get = (url, options) => xhrRequest(url, {
+    ...options,
+    method: "GET"
+  });
+  xhrRequest.getWithCredentials = (url, options) => xhrRequest(url, {
+    ...options,
+    method: "GET",
+    withCredentials: true
+  });
+  xhrRequest.post = (url, options) => xhrRequest(url, {
+    ...options,
+    method: "POST"
+  });
+  xhrRequest.postWithCredentials = (url, options) => xhrRequest(url, {
+    ...options,
+    method: "POST",
+    withCredentials: true
+  });
+  function api_getFavFolderList(upMid, rid) {
+    const params = {
+      up_mid: String(upMid)
+    };
+    return xhrRequest.getWithCredentials("https://api.bilibili.com/x/v3/fav/folder/created/list-all", {
+      params
+    });
+  }
+  function api_getFavResourceIds(mediaId) {
+    return xhrRequest.getWithCredentials("https://api.bilibili.com/x/v3/fav/resource/ids", {
+      params: {
+        media_id: String(mediaId),
+        platform: "web"
+      }
+    });
+  }
+  function api_getFavVideoStatus(aid) {
+    return xhrRequest.getWithCredentials("https://api.bilibili.com/x/v2/fav/video/favoured", {
+      params: {
+        aid: String(aid)
+      }
+    });
+  }
+  async function api_getPgcSeasonByEp(epId) {
+    const url = "https://api.bilibili.com/pgc/view/web/season";
+    return await xhrRequest.getWithCredentials(url, {
+      params: {
+        ep_id: String(epId)
+      }
+    });
+  }
+  const XOR_CODE = 23442827791579n;
+  const MASK_CODE = 2251799813685247n;
+  const BASE = 58n;
+  const DATA = "FcwAPNKTMug3GV5Lj7EJnHpWsx4tb8haYeviqBz6rkCy12mUSDQX9RdoZf";
+  function bv2av(bvid) {
+    const bvidArr = Array.from(bvid);
+    [bvidArr[3], bvidArr[9]] = [
+      bvidArr[9],
+      bvidArr[3]
+    ];
+    [bvidArr[4], bvidArr[7]] = [
+      bvidArr[7],
+      bvidArr[4]
+    ];
+    bvidArr.splice(0, 3);
+    const tmp = bvidArr.reduce((pre, bvidChar) => pre * BASE + BigInt(DATA.indexOf(bvidChar)), 0n);
+    return Number(tmp & MASK_CODE ^ XOR_CODE);
+  }
+  const favIndexCacheStore = new GmStorage(
+    "favIndexCache",
+    { version: 1, mid: 0, folders: [] }
+  );
+  function favFolderDiff(cached, remote) {
+    const cachedMap = new Map(
+      cached.map((entry) => [entry.id, entry])
+    );
+    const remoteIds = new Set(remote.map((meta) => meta.id));
+    const refresh = remote.filter((meta) => {
+      const entry = cachedMap.get(meta.id);
+      if (!entry) {
+        return true;
+      }
+      if (!entry.synced) {
+        return true;
+      }
+      return entry.mediaCount !== meta.mediaCount;
+    });
+    const remove = cached.filter((entry) => !remoteIds.has(entry.id)).map((entry) => entry.id);
+    return { refresh, remove, meta: remote };
+  }
+  function buildFavLookup(folders, complete) {
+    const aids = /* @__PURE__ */ new Set();
+    const bvids = /* @__PURE__ */ new Set();
+    for (const folder of folders) {
+      for (const item of folder.items) {
+        if (item.type !== 2) {
+          continue;
+        }
+        aids.add(item.id);
+        const bvid = (item.bvid || item.bv_id).toUpperCase();
+        if (bvid) {
+          bvids.add(bvid);
+        }
+      }
+    }
+    return { aids, bvids, complete };
+  }
+  function favLookupHas(lookup, videoId) {
+    const miss = () => lookup.complete ? false : null;
+    const normalizedId = videoId.toUpperCase();
+    if (normalizedId.startsWith("BV1")) {
+      return lookup.bvids.has(normalizedId) ? true : miss();
+    }
+    const avMatch = /^av(\d+)$/i.exec(videoId);
+    if (avMatch) {
+      const aid = Number(avMatch[1]);
+      return lookup.aids.has(aid) ? true : miss();
+    }
+    if (/^\d+$/.test(videoId)) {
+      const aid = Number(videoId);
+      return lookup.aids.has(aid) ? true : miss();
+    }
+    return null;
+  }
+  async function getCurrentMid() {
+    try {
+      const value = await getCookie(document.cookie, "DedeUserID");
+      const mid = Number(value);
+      return Number.isSafeInteger(mid) && mid > 0 ? mid : null;
+    } catch {
+      return null;
+    }
+  }
+  const LIST_ALL_RETRY_DELAYS = [300, 800];
+  const RESOURCE_IDS_RETRY_DELAYS = [0];
+  let sessionPromise = null;
+  function toFolderMeta(folder) {
+    return {
+      id: folder.id,
+      fid: folder.fid,
+      mid: folder.mid,
+      title: folder.title,
+      mediaCount: folder.media_count
+    };
+  }
+  async function withRetry(request, retryDelays) {
+    for (let attempt = 0; attempt <= retryDelays.length; attempt++) {
+      if (attempt > 0) {
+        await sleep(retryDelays[attempt - 1]);
+      }
+      try {
+        const response = await request();
+        if (response.code === 0) {
+          return response.data;
+        }
+      } catch {
+      }
+    }
+    return null;
+  }
+  async function requestFolderList(mid) {
+    const data = await withRetry(
+      () => api_getFavFolderList(mid),
+      LIST_ALL_RETRY_DELAYS
+    );
+    return data === null ? null : data.list.map(toFolderMeta);
+  }
+  function requestFolderItems(mediaId) {
+    return withRetry(
+      () => api_getFavResourceIds(mediaId),
+      RESOURCE_IDS_RETRY_DELAYS
+    );
+  }
+  function collectFolders(meta, cacheMap) {
+    return meta.map((folder) => cacheMap.get(folder.id)).filter(
+      (entry) => entry !== void 0
+    );
+  }
+  async function loadFavIndex() {
+    const mid = await getCurrentMid();
+    if (mid === null) {
+      return null;
+    }
+    const cached = favIndexCacheStore.get();
+    const cacheValid = cached.version === 1 && cached.mid === mid;
+    const cachedFolders = cacheValid ? cached.folders : [];
+    const remoteMeta = await requestFolderList(mid);
+    if (remoteMeta === null) {
+      if (!cacheValid || cachedFolders.length === 0) {
+        return null;
+      }
+      return {
+        folders: cachedFolders,
+        lookup: buildFavLookup(cachedFolders, false),
+        fromCache: true,
+        degraded: true
+      };
+    }
+    const { refresh, remove, meta } = favFolderDiff(
+      cachedFolders,
+      remoteMeta
+    );
+    const cacheMap = new Map(
+      cachedFolders.map((entry) => [entry.id, entry])
+    );
+    let degraded = false;
+    for (const id of remove) {
+      cacheMap.delete(id);
+    }
+    const refreshIds = new Set(refresh.map((folder) => folder.id));
+    for (const folder of meta) {
+      if (refreshIds.has(folder.id)) {
+        continue;
+      }
+      const existing = cacheMap.get(folder.id);
+      if (existing) {
+        cacheMap.set(folder.id, { ...existing, ...folder });
+      }
+    }
+    const persist = () => {
+      const cache = {
+        version: 1,
+        mid,
+        folders: collectFolders(meta, cacheMap)
+      };
+      favIndexCacheStore.set(cache);
+    };
+    for (const folder of refresh) {
+      const items = await requestFolderItems(folder.id);
+      if (items === null) {
+        degraded = true;
+        continue;
+      }
+      cacheMap.set(folder.id, {
+        ...folder,
+        items,
+        synced: true
+      });
+      persist();
+    }
+    const folders = collectFolders(meta, cacheMap);
+    const remoteCount = new Map(
+      meta.map((folder) => [folder.id, folder.mediaCount])
+    );
+    const complete = folders.length === meta.length && folders.every(
+      (folder) => folder.synced && folder.mediaCount === remoteCount.get(folder.id)
+    );
+    const index = {
+      folders,
+      lookup: buildFavLookup(folders, complete),
+      fromCache: false,
+      degraded: degraded || !complete
+    };
+    persist();
+    return index;
+  }
+  function ensureFavIndex() {
+    if (!sessionPromise) {
+      sessionPromise = loadFavIndex().catch(() => null);
+    }
+    return sessionPromise;
+  }
+  function resetFavIndexSession() {
+    sessionPromise = null;
+  }
+  const createMutationObserver = (target, callback, options = {
+    childList: true,
+    attributes: true
+  }) => {
+    if (target.dataset.bindObserver) {
+      return null;
+    }
+    const observer = new MutationObserver((records) => {
+      for (let record of records) {
+        for (let addedNode of record.addedNodes) {
+          if (addedNode.nodeType !== Node.ELEMENT_NODE)
+            continue;
+          callback(addedNode);
+        }
+      }
+    });
+    observer.observe(target, options);
+    target.dataset.bindObserver = "true";
+    return observer;
+  };
+  let version = 0;
+  const getPageVersion = () => version;
+  const bumpPageVersion = () => {
+    version += 1;
+    return version;
+  };
+  const getVideoId = (url) => {
+    try {
+      const videoId = new URL(url).pathname.split("/").findLast(
+        (item) => item.startsWith("BV1") || item.startsWith("ep") || item.startsWith("av")
+      );
+      if (!videoId) return null;
+      return videoId;
+    } catch (e) {
+      return null;
+    }
+  };
+  class CacheWatchedSessionStore {
+    constructor() {
+      this.stoneName = "cacheWatched";
+      this.mapper = null;
+    }
+    getState(bvId) {
+      return this.get()[bvId];
+    }
+    setState(bvId, value) {
+      this.get()[bvId] = value;
+      this.set(this.get());
+    }
+    set(value) {
+      sessionStorage.setItem(this.stoneName, JSON.stringify(value));
+    }
+    get() {
+      if (this.mapper) {
+        return this.mapper;
+      }
+      try {
+        this.mapper = JSON.parse(
+          sessionStorage.getItem(this.stoneName) || "{}"
+        );
+      } catch {
+        this.mapper = {};
+      }
+      return this.mapper;
+    }
+  }
+  const cacheWatchedSessionStore = new CacheWatchedSessionStore();
+  const handleAddSign = (videoItem, watchStatus = "unwatched", position = "left") => {
+    if (videoItem.tagContainer.classList.contains("watch-mark"))
+      return;
+    videoItem.tagContainer.classList.add(
+      "watch-mark",
+      position,
+      watchStatus
+    );
+    videoItem.tagContainer.dataset.key = videoItem.videoId;
   };
   class DelayedQueue {
     constructor(processor, delay = 500) {
@@ -379,101 +787,29 @@
       this.isProcessing = false;
     }
   }
-  const handleAddSign = (videoItem, watchStatus = "unwatched", position = "left") => {
-    if (videoItem.tagContainer.classList.contains("watch-mark"))
-      return;
-    videoItem.tagContainer.classList.add(
-      "watch-mark",
-      position,
-      watchStatus
-    );
-    videoItem.tagContainer.dataset.key = videoItem.videoId;
-  };
-  class CacheWatchedStore {
-    constructor() {
-      this.stoneName = "cacheWatched";
-      this.childStoreMapper = {};
+  const getVideoAvId = async (videoId) => {
+    if (videoId.startsWith("BV1")) {
+      return bv2av(videoId);
     }
-    /**
-     * 判断当前 bvId 是否在缓存中
-     */
-    has(bvId) {
-      if (!bvId.startsWith("BV1")) {
-        return false;
+    if (videoId.startsWith("av")) {
+      return Number(videoId.slice(2));
+    }
+    if (videoId.startsWith("ep")) {
+      const epId = videoId.slice(2);
+      const response = await api_getPgcSeasonByEp(epId);
+      if (response.code !== 0) {
+        throw new Error(response.message);
       }
-      const childStore = this.getChildStore(bvId);
-      return childStore.get().includes(this.getBvIdValue(bvId));
-    }
-    /**
-     * 添加当前 bvId 到缓存中
-     */
-    add(bvId) {
-      if (!bvId.startsWith("BV1")) {
-        return;
-      }
-      const childStore = this.getChildStore(bvId);
-      const watchedList = childStore.get();
-      const saveValue = this.getBvIdValue(bvId);
-      if (watchedList.includes(saveValue)) {
-        return;
-      }
-      watchedList.push(saveValue);
-      childStore.set(watchedList);
-    }
-    /**
-     * 获取子存储
-     */
-    getChildStore(bvId) {
-      const prevKey = this.getPrevKey(bvId);
-      if (!this.childStoreMapper[prevKey]) {
-        this.childStoreMapper[prevKey] = new GmStorage(
-          `${this.stoneName}_${prevKey}`,
-          []
-        );
-      }
-      return this.childStoreMapper[prevKey];
-    }
-    /**
-     * 获取子存储的 key 值
-     */
-    getPrevKey(bvId) {
-      return bvId.slice(3, 6);
-    }
-    /**
-     * 获取 bvId 的值 (去除前缀 BV1 )
-     */
-    getBvIdValue(bvId) {
-      return bvId.slice(3);
-    }
-  }
-  const cacheWatchedStore = new CacheWatchedStore();
-  class CacheWatchedSessionStore {
-    constructor() {
-      this.stoneName = "cacheWatched";
-      this.mapper = {};
-    }
-    getState(bvId) {
-      return this.get()[bvId];
-    }
-    setState(bvId, value) {
-      this.get()[bvId] = value;
-      this.set(this.get());
-    }
-    set(value) {
-      sessionStorage.setItem(this.stoneName, JSON.stringify(value));
-    }
-    get() {
-      if (this.mapper) {
-        return this.mapper;
-      }
-      const mapper = JSON.parse(
-        sessionStorage.getItem(this.stoneName) || "{}"
+      const episode = response.result.episodes.find(
+        (item) => item.id === Number(epId)
       );
-      Object.assign(this.mapper, mapper);
-      return this.mapper;
+      if (!episode) {
+        throw new Error("\u83B7\u53D6\u756A\u5267\u4FE1\u606F\u5931\u8D25");
+      }
+      return Number(episode.aid);
     }
-  }
-  const cacheWatchedSessionStore = new CacheWatchedSessionStore();
+    return Number(videoId);
+  };
   const handleVideoSign = async (item) => {
     item.position ||= "left";
     if (item.videoId.startsWith("ep")) {
@@ -488,51 +824,65 @@
     );
     if (watchStatus) {
       handleAddSign(item, watchStatus, item.position);
-      /* @__PURE__ */ (() => {
-      })(
-        "\u4ECE\u672C\u5730\u4F1A\u8BDD\u7F13\u5B58\u4E2D\u83B7\u53D6\u6536\u85CF\u72B6\u6001",
-        item.videoId
-      );
       return Promise.resolve(0);
     }
-    if (cacheWatchedStore.has(item.videoId)) {
-      handleAddSign(item, "watched", item.position);
-      /* @__PURE__ */ (() => {
-      })("\u4ECE\u7F13\u5B58\u4E2D\u83B7\u53D6\u6536\u85CF\u72B6\u6001", item.videoId);
-      return Promise.resolve(0);
+    const aid = await getVideoAvId(item.videoId);
+    const response = await api_getFavVideoStatus(aid);
+    if (response.code !== 0) {
+      throw new Error(response.message);
     }
-    const isFavor = await api_isFavorVideo(item.videoId);
-    const videoTag = isFavor ? "watched" : "unwatched";
+    const videoTag = response.data.favoured ? "watched" : "unwatched";
     handleAddSign(item, videoTag, item.position);
     cacheWatchedSessionStore.setState(item.videoId, videoTag);
-    if (isFavor) {
-      cacheWatchedStore.add(item.videoId);
-    }
     return Promise.resolve();
   };
   const videoSignProcessingQueue = new DelayedQueue(
     handleVideoSign,
     500
   );
-  const createMutationObserver = (target, callback, options = {
-    childList: true,
-    attributes: true
-  }) => {
-    if (target.dataset.bindObserver) {
-      return null;
-    }
-    const observer = new MutationObserver((records) => {
-      for (let record of records) {
-        for (let addedNode of record.addedNodes) {
-          if (addedNode.nodeType !== Node.ELEMENT_NODE)
-            continue;
-          callback(addedNode);
-        }
+  const markVideoItems = async (items, options = {}) => {
+    const pendingItems = [];
+    for (const item of items) {
+      if (item.tagContainer.classList.contains("watch-mark")) {
+        continue;
       }
-    });
-    observer.observe(target, options);
-    target.dataset.bindObserver = "true";
-    return observer;
+      const sessionStatus = cacheWatchedSessionStore.getState(
+        item.videoId
+      );
+      if (sessionStatus) {
+        handleAddSign(item, sessionStatus, item.position);
+        continue;
+      }
+      if (item.videoId.startsWith("ep")) {
+        handleAddSign(item, "ep", item.position);
+        continue;
+      }
+      if (options.forceWatched) {
+        handleAddSign(item, "watched", item.position);
+        continue;
+      }
+      pendingItems.push(item);
+    }
+    if (pendingItems.length === 0) {
+      return;
+    }
+    const version2 = getPageVersion();
+    const index = await ensureFavIndex();
+    if (getPageVersion() !== version2) {
+      return;
+    }
+    for (const item of pendingItems) {
+      const status = index ? favLookupHas(index.lookup, item.videoId) : null;
+      if (status === null) {
+        videoSignProcessingQueue.push(item);
+        continue;
+      }
+      handleAddSign(
+        item,
+        status ? "watched" : "unwatched",
+        item.position
+      );
+    }
   };
   const baseParser = (container, selectorList, config = {}) => {
     const {
@@ -570,6 +920,7 @@
       throttle: false,
       ...options
     };
+    const pageVersion = getPageVersion();
     try {
       await elementWaiter(selectorList.container, {
         delayPerSecond: 0
@@ -577,30 +928,22 @@
     } catch (e) {
       return null;
     }
+    if (getPageVersion() !== pageVersion) {
+      return null;
+    }
     const observerList = [];
     const loadedContainerList = document.querySelectorAll(
       selectorList.container
     );
-    for (let loadedContainer of loadedContainerList) {
+    for (const loadedContainer of loadedContainerList) {
       if (options.elementGetter || !(options.throttle && loadedContainer.dataset.bindObserver)) {
         const loadedItemList = Array.from(
           loadedContainer.querySelectorAll(
             selectorList.item
           )
-        ).map(parser);
-        for (let loadedItem of loadedItemList) {
-          if (!loadedItem) {
-            continue;
-          }
-          if (cacheWatchedStore.has(loadedItem.videoId)) {
-            handleAddSign(
-              loadedItem,
-              "watched",
-              loadedItem.position
-            );
-            continue;
-          }
-          videoSignProcessingQueue.push(loadedItem);
+        ).map(parser).filter((item) => item !== null);
+        if (loadedItemList.length > 0) {
+          void markVideoItems(loadedItemList);
         }
       }
       if (options.observe) {
@@ -614,15 +957,7 @@
             if (!loadedItem) {
               return;
             }
-            if (cacheWatchedStore.has(loadedItem.videoId)) {
-              handleAddSign(
-                loadedItem,
-                "watched",
-                loadedItem.position
-              );
-              return;
-            }
-            videoSignProcessingQueue.push(loadedItem);
+            void markVideoItems([loadedItem]);
           }
         );
         if (observer) {
@@ -638,24 +973,22 @@
       this.observerSet = /* @__PURE__ */ new Set();
     }
     static get list() {
-      return this.observerSet;
+      return ObserverList.observerSet;
     }
     static get size() {
-      return this.observerSet.size;
+      return ObserverList.observerSet.size;
     }
     static reset() {
-      this.remove(...Array.from(this.observerSet));
-      /* @__PURE__ */ (() => {
-      })("this.observerSet", this.observerSet);
+      ObserverList.remove(...Array.from(ObserverList.observerSet));
     }
     static add(observer) {
-      this.observerSet.add(observer);
+      ObserverList.observerSet.add(observer);
       return observer;
     }
     static remove(...observers) {
       for (const observer of observers) {
         observer.disconnect();
-        this.observerSet.delete(observer);
+        ObserverList.observerSet.delete(observer);
       }
     }
   }
@@ -752,19 +1085,6 @@
     );
     BindUpdatePageButton.upDynamic();
   };
-  const elementGetter = (selector, container = document) => {
-    return new Promise((resolve, reject) => {
-      const timeout = setTimeout(() => reject("timeout"), 2e4);
-      const timer = setInterval(() => {
-        const target = container.querySelector(selector);
-        if (target) {
-          clearInterval(timer);
-          clearTimeout(timeout);
-          resolve(target);
-        }
-      }, 100);
-    });
-  };
   const adVideoItemParser = (container) => {
     return baseParser(
       container,
@@ -793,57 +1113,115 @@
       videoLink: ".video-awesome-img"
     });
   };
+  const resolveAlbumTagContainer = (container) => {
+    const multiTitle = container.querySelector(
+      ".multi-p > .simple-base-item.head"
+    );
+    if (multiTitle) return multiTitle;
+    const singleTitle = container.querySelector(
+      ".single-p > .simple-base-item.normal"
+    );
+    if (singleTitle) return singleTitle;
+    return container;
+  };
   const albumItemParser = (container) => {
+    if (container.querySelector(".simple-base-item.active")) {
+      return null;
+    }
     const { key: bvId } = container.dataset;
     if (!bvId) return null;
     return {
       videoId: bvId,
       container,
-      tagContainer: container
+      tagContainer: resolveAlbumTagContainer(container)
     };
   };
-  const handleVideoPage = async () => {
-    await elementGetter(
-      ".bpx-player-loading-panel:not(.bpx-state-loading)"
-    );
-    baseVideoSignLoader(
-      {
-        container: ".video-card-ad-small",
-        item: ".video-card-ad-small-inner"
-      },
-      adVideoItemParser,
-      { observe: false }
-    );
-    baseVideoSignLoader(
-      {
-        container: ".next-play",
-        item: ".video-page-card-small"
-      },
-      nextPlayVideoItemParser,
-      { observe: false }
-    );
-    const albumSelectorList = {
+  const SCAN_GROUP_LIST = [
+    {
+      container: ".video-card-ad-small",
+      item: ".video-card-ad-small-inner",
+      parser: adVideoItemParser
+    },
+    {
+      container: ".next-play",
+      item: ".video-page-card-small",
+      parser: nextPlayVideoItemParser
+    },
+    {
       container: ".video-pod__list.section",
-      item: ".video-pod__item.simple"
-    };
-    baseVideoSignLoader(albumSelectorList, albumItemParser, {
-      observe: false
+      item: ".video-pod__item.simple",
+      parser: albumItemParser
+    },
+    {
+      container: ".rec-list",
+      item: ".video-page-operator-card-small",
+      parser: operatorCardVideoItemParser
+    },
+    {
+      container: ".rec-list",
+      item: ".video-page-card-small",
+      parser: recommendVideoItemParser
+    }
+  ];
+  const collectVideoItems = () => {
+    const itemList = [];
+    for (const group of SCAN_GROUP_LIST) {
+      const containerList = document.querySelectorAll(
+        group.container
+      );
+      for (const container of containerList) {
+        const elementList = container.querySelectorAll(group.item);
+        for (const element of elementList) {
+          const item = group.parser(element);
+          if (item) {
+            itemList.push(item);
+          }
+        }
+      }
+    }
+    return itemList;
+  };
+  let scanning = false;
+  let pending = false;
+  const scanVideoPage = async () => {
+    if (scanning) {
+      pending = true;
+      return;
+    }
+    scanning = true;
+    try {
+      const version2 = getPageVersion();
+      const itemList = collectVideoItems();
+      if (itemList.length === 0) return;
+      if (getPageVersion() !== version2) return;
+      await markVideoItems(itemList);
+    } finally {
+      scanning = false;
+      if (pending) {
+        pending = false;
+        void scanVideoPage();
+      }
+    }
+  };
+  let debounceTimer = null;
+  const handleVideoPage = async () => {
+    await scanVideoPage();
+    const observer = new MutationObserver(() => {
+      const version2 = getPageVersion();
+      if (debounceTimer !== null) {
+        clearTimeout(debounceTimer);
+      }
+      debounceTimer = setTimeout(() => {
+        debounceTimer = null;
+        if (getPageVersion() !== version2) return;
+        void scanVideoPage();
+      }, 100);
     });
-    baseVideoSignLoader(
-      {
-        container: ".rec-list",
-        item: ".video-page-operator-card-small"
-      },
-      operatorCardVideoItemParser,
-      { observe: false }
-    );
-    baseVideoSignLoader(
-      {
-        container: ".rec-list",
-        item: ".video-page-card-small"
-      },
-      recommendVideoItemParser
-    );
+    observer.observe(document.body, {
+      childList: true,
+      subtree: true
+    });
+    ObserverList.add(observer);
   };
   const handleSpaceDynamicPage = async () => {
     baseVideoSignLoader(
@@ -931,40 +1309,58 @@
     );
     BindUpdatePageButton.pagination();
   };
+  const isOwnFavFolder = async (fid) => {
+    if (!Number.isFinite(fid)) return false;
+    const favIndex = await ensureFavIndex();
+    if (!favIndex) return false;
+    return favIndex.folders.some(
+      (folder) => folder.fid === fid || folder.id === fid
+    );
+  };
   const handleSpaceFavListPage = async () => {
     const selectorList = {
       container: ".fav-list-main > .items",
       item: ".items__item"
     };
-    const loadedContainer = await elementWaiter(
-      selectorList.container,
-      {
-        delayPerSecond: 0
-      }
+    let loadedContainer;
+    try {
+      loadedContainer = await elementWaiter(
+        selectorList.container,
+        {
+          delayPerSecond: 0
+        }
+      );
+    } catch {
+      return;
+    }
+    const fid = Number(
+      new URL(location.href).searchParams.get("fid")
     );
+    const own = await isOwnFavFolder(fid);
     const loadedItemList = Array.from(
       loadedContainer.querySelectorAll(
         selectorList.item
       )
-    ).map(baseVideoCardParser);
-    for (let loadedItem of loadedItemList) {
-      if (!loadedItem) {
-        continue;
+    ).map(baseVideoCardParser).filter((item) => item !== null);
+    await markVideoItems(loadedItemList, { forceWatched: own });
+    const observer = createMutationObserver(
+      loadedContainer,
+      (item) => {
+        if (!item.closest(selectorList.item)) {
+          return;
+        }
+        const loadedItem = baseVideoCardParser(item);
+        if (!loadedItem) {
+          return;
+        }
+        void markVideoItems([loadedItem], {
+          forceWatched: own
+        });
       }
-      handleAddSign(loadedItem, "watched", loadedItem.position);
-      cacheWatchedStore.add(loadedItem.videoId);
+    );
+    if (observer) {
+      ObserverList.add(observer);
     }
-    createMutationObserver(loadedContainer, (item) => {
-      if (!item.closest(selectorList.item)) {
-        return;
-      }
-      const loadedItem = baseVideoCardParser(item);
-      if (!loadedItem) {
-        return;
-      }
-      handleAddSign(loadedItem, "watched", loadedItem.position);
-      cacheWatchedStore.add(loadedItem.videoId);
-    });
   };
   const handleSpaceFollowCollectPage = async () => {
     const selectorList = {
@@ -1009,6 +1405,19 @@
       indexVideoCardParser
     );
     BindUpdatePageButton.indexRefresh();
+  };
+  const elementGetter = (selector, container = document) => {
+    return new Promise((resolve, reject) => {
+      const timeout = setTimeout(() => reject("timeout"), 2e4);
+      const timer = setInterval(() => {
+        const target = container.querySelector(selector);
+        if (target) {
+          clearInterval(timer);
+          clearTimeout(timeout);
+          resolve(target);
+        }
+      }, 100);
+    });
   };
   const indexChildTypeBannerCardParser = (container) => baseParser(container, {
     tagContainer: ".banner-carousel__item",
@@ -1132,97 +1541,69 @@
       searchVideoCardParser
     );
   };
-  const handleMapper = /* @__PURE__ */ new Map();
-  handleMapper.set(
-    /^https:\/\/t\.bilibili\.com\/.*/,
-    handleDynamicPage
-  );
-  handleMapper.set(
-    /^https:\/\/www\.bilibili\.com\/video.*/,
-    handleVideoPage
-  );
-  handleMapper.set(
-    /^https:\/\/space\.bilibili\.com\/\d+\/upload\/video.*/,
-    handleSpaceVideoPage
-  );
-  handleMapper.set(
-    /^https:\/\/space\.bilibili\.com\/\d+\/dynamic.*/,
-    handleSpaceDynamicPage
-  );
-  handleMapper.set(
-    /^https:\/\/space\.bilibili\.com\/\d+\/lists\/\d+.*/,
-    handleSpaceAlbumContentPage
-  );
-  handleMapper.set(
-    /^https:\/\/space\.bilibili\.com\/\d+\/lists.*/,
-    handleSpaceAlbumListPage
-  );
-  handleMapper.set(
-    /^https:\/\/space\.bilibili\.com\/\d+\/favlist\?fid=\d+&ftype=create.*/,
-    handleSpaceFavListPage
-  );
-  handleMapper.set(
-    /^https:\/\/space\.bilibili\.com\/\d+\/favlist\?fid=\d+&ftype=collect.*/,
-    handleSpaceFollowCollectPage
-  );
-  handleMapper.set(
-    /^https:\/\/space\.bilibili\.com\/\d+.*/,
-    handleSpaceIndexPage
-  );
-  handleMapper.set(
-    /^https:\/\/www\.bilibili\.com\/watchlater.*/,
-    handleWatchLaterPage
-  );
-  handleMapper.set(
-    /^https:\/\/www\.bilibili\.com\/v\/popular\/weekly.*/,
-    handlePopularWeeklyPage
-  );
-  handleMapper.set(
-    /^https:\/\/www\.bilibili\.com\/v\/popular\/rank.*/,
-    handlePopularRankPage
-  );
-  handleMapper.set(
-    /^https:\/\/www\.bilibili\.com\/v\/popular\/(history|all).*/,
-    handlePopularPage
-  );
-  handleMapper.set(
-    /^https:\/\/www\.bilibili\.com\/c.*/,
-    handleIndexChildPage
-  );
-  handleMapper.set(/^https:\/\/www\.bilibili\.com.*/, handleIndexPage);
-  handleMapper.set(
-    /^https:\/\/search\.bilibili\.com.*/,
-    handleSearchPage
-  );
-  const getVideoSignHandler = () => {
-    const url = window.location.href;
-    const entry = Array.from(handleMapper.entries()).find(
-      ([reg, handle]) => {
-        if (!reg.test(url)) {
-          return false;
-        }
-        return handle;
-      }
-    );
-    if (!entry) return null;
-    return entry[1];
+  const parseUrl = (href) => {
+    try {
+      return new URL(href);
+    } catch {
+      return null;
+    }
   };
-  async function freshListenerPushState(callback, delayPerSecond = 1) {
-    let _pushState = window.history.pushState.bind(window.history);
-    window.history.pushState = function() {
-      setTimeout(callback, delayPerSecond * 1e3);
-      return _pushState.apply(this, arguments);
-    };
-    window.addEventListener("updatePage", () => {
-      setTimeout(callback, delayPerSecond * 1e3);
-    });
-    const originalReplaceState = history.replaceState;
-    window.history.replaceState = function() {
-      setTimeout(callback, delayPerSecond * 1e3);
-      return originalReplaceState.apply(this, arguments);
-    };
-  }
+  const getSpacePathParts = (pathname) => pathname.split("/").filter(Boolean);
+  const getVideoSignHandler = (href = window.location.href) => {
+    const url = parseUrl(href);
+    if (!url) return null;
+    const { hostname, pathname, searchParams } = url;
+    if (hostname === "t.bilibili.com") {
+      return handleDynamicPage;
+    }
+    if (hostname === "search.bilibili.com") {
+      return handleSearchPage;
+    }
+    if (hostname === "space.bilibili.com") {
+      const [mid, ...rest] = getSpacePathParts(pathname);
+      if (!mid || !/^\d+$/.test(mid)) return null;
+      if (rest[0] === "upload" && rest[1] === "video") {
+        return handleSpaceVideoPage;
+      }
+      if (rest[0] === "dynamic") {
+        return handleSpaceDynamicPage;
+      }
+      if (rest[0] === "lists") {
+        return rest.length >= 2 ? handleSpaceAlbumContentPage : handleSpaceAlbumListPage;
+      }
+      if (rest[0] === "favlist") {
+        return searchParams.get("ftype") === "collect" ? handleSpaceFollowCollectPage : handleSpaceFavListPage;
+      }
+      return handleSpaceIndexPage;
+    }
+    if (hostname === "www.bilibili.com") {
+      if (pathname.startsWith("/video")) {
+        return handleVideoPage;
+      }
+      if (pathname.startsWith("/watchlater")) {
+        return handleWatchLaterPage;
+      }
+      if (pathname.startsWith("/v/popular/weekly")) {
+        return handlePopularWeeklyPage;
+      }
+      if (pathname.startsWith("/v/popular/rank")) {
+        return handlePopularRankPage;
+      }
+      if (/^\/v\/popular\/(history|all)/.test(pathname)) {
+        return handlePopularPage;
+      }
+      if (pathname.startsWith("/c")) {
+        return handleIndexChildPage;
+      }
+      return handleIndexPage;
+    }
+    return null;
+  };
+  let routeBound = false;
+  const stripHash = (url) => url.split("#")[0];
   const updatePage = async () => {
+    bumpPageVersion();
+    resetFavIndexSession();
     document.querySelectorAll(".watch-mark").forEach((item) => {
       item.classList.remove(
         "watch-mark",
@@ -1239,15 +1620,25 @@
     videoSignProcessingQueue.reset();
     ObserverList.reset();
     document.querySelectorAll("[data-bind-observer]").forEach((item) => item.dataset.bindObserver = "");
-    await sleep(200);
     const videoSignHandler = getVideoSignHandler();
-    videoSignHandler && videoSignHandler();
+    void videoSignHandler?.();
+  };
+  const bindRouteChange = () => {
+    if (routeBound) return;
+    routeBound = true;
+    onRouteChange(async (event) => {
+      if (event.type === "hash" || stripHash(event.to) === stripHash(event.from)) {
+        return;
+      }
+      await sleep(100);
+      await updatePage();
+    });
   };
   const main = async () => {
     addReadSignStyle();
     const videoSignHandler = getVideoSignHandler();
-    videoSignHandler && videoSignHandler();
-    freshListenerPushState(updatePage, 0);
+    void videoSignHandler?.();
+    bindRouteChange();
     window.addEventListener("updateStatus", () => {
       videoSignProcessingQueue.reset();
     });
