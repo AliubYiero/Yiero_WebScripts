@@ -58,6 +58,17 @@ const APPEND_STYLE = `
 .discount-percent.${DiscountType.Increase} {
     color: #C62828;
 }
+
+.discount-info .trade-count {
+    display: inline-flex;
+    flex-direction: column;
+    margin-left: 6px;
+    font-size: 11px;
+    line-height: 14px;
+    color: #8A8A8A;
+    vertical-align: middle;
+    white-space: nowrap;
+}
 `;
 
 export const addDiscountStyle = () => {
