@@ -959,6 +959,9 @@ importers:
 
   src/com/bilibili/bilibili-video-watch-sign:
     dependencies:
+      '@yiero/bilibili-api-lib':
+        specifier: workspace:*
+        version: link:../../../.Libs/bilibili-api-lib
       '@yiero/gmlib':
         specifier: workspace:*
         version: link:../../../.Libs/gmlib

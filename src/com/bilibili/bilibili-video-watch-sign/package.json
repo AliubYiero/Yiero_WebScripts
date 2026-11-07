@@ -35,6 +35,7 @@
         "yamljs": "^0.3.0"
     },
     "dependencies": {
+        "@yiero/bilibili-api-lib": "workspace:*",
         "@yiero/gmlib": "workspace:*",
         "radash": "^12.1.1"
     }
