@@ -2,6 +2,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import ts from 'typescript';
 import { parseScriptEntries } from './banner-meta';
+import { projectDocFile } from './project-docs';
 import {
     exclusiveScriptKeys,
     forbiddenEntries,
@@ -12,6 +13,7 @@ import {
     standardDevDependencies,
     standardScripts,
 } from './template';
+import { token } from './tokens';
 
 export interface CheckResult {
     errors: string[];
@@ -161,6 +163,19 @@ export function checkTemplate(
     for (const entry of forbiddenEntries) {
         if (existsSync(join(dir, entry))) {
             errors.push(`模板内不应包含：${entry}`);
+        }
+    }
+
+    // 项目级文档里的仓库根指针：模板自身允许保留，生成物必须已替换。
+    const projectDocPath = join(dir, projectDocFile);
+    if (!options.allowPlaceholders && existsSync(projectDocPath)) {
+        const projectDocText = readFileSync(projectDocPath, 'utf8');
+        if (projectDocText.includes(token('repoRootPath'))) {
+            errors.push(
+                `CLAUDE.md 的仓库根指针未替换：${token(
+                    'repoRootPath',
+                )}`,
+            );
         }
     }
 

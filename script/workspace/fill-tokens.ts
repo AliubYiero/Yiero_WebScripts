@@ -1,8 +1,13 @@
-import { readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { checkTemplate } from './check-template';
+import {
+    projectDocFile,
+    substituteRepoRootPath,
+} from './project-docs';
 import type { TargetScriptMeta } from './scaffold-options';
 import { token } from './tokens';
+import { repoRoot } from './workspace';
 
 export interface FillOptions {
     projectName: string;
@@ -60,6 +65,20 @@ export function fillPlaceholders(
         bannerText = bannerText.split(token(key)).join(value);
     }
     writeFileSync(bannerPath, bannerText, 'utf8');
+
+    // 项目级文档的仓库根指针：按生成目录到仓库根的深度就地替换。
+    const projectDocPath = join(directory, projectDocFile);
+    if (existsSync(projectDocPath)) {
+        writeFileSync(
+            projectDocPath,
+            substituteRepoRootPath(
+                readFileSync(projectDocPath, 'utf8'),
+                directory,
+                repoRoot,
+            ),
+            'utf8',
+        );
+    }
 
     const result = checkTemplate(directory, {
         allowPlaceholders: false,
