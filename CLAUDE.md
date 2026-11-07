@@ -162,7 +162,7 @@ src/.Libs/bilibili-api-lib/  — @yiero/bilibili-api-lib 0.3.2（原 src/com/bil
 
 ### Issue tracker
 
-Issue 与 spec 以 markdown 文件存放在仓库内 `.scratch/<feature-slug>/`，不依赖任何 CLI。详见 `docs/agents/issue-tracker.md`。
+Issue 与 spec 以 markdown 文件存放在仓库内 `.scratch/<项目相对路径>/<feature-slug>/`（相对路径由工作区目录去掉 `src/` 得出，段首点改为下划线；跨项目计划放 `.scratch/_workspace/`），不依赖任何 CLI。详见 `docs/agents/issue-tracker.md`。
 
 ### Triage labels
 
