@@ -12,8 +12,14 @@
  * ```
  */
 
+/** 收藏夹模块 - 收藏夹列表、内容 ID 与视频收藏状态相关 API */
+export * from './fav';
+
 /** 直播模块 - 直播间相关 API */
 export * from './live';
+
+/** PGC 番剧模块 - 番剧 season 相关 API */
+export * from './pgc';
 
 /** 合集模块 - 视频合集相关 API */
 export * from './season';
