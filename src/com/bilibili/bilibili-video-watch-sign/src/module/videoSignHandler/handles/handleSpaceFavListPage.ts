@@ -1,8 +1,7 @@
 import { elementWaiter } from '@yiero/gmlib';
-import { baseVideoCardParser } from './handleSpaceIndexPage';
-import { handleAddSign } from '../../videoSignProcessingQueue/handleAddSign';
 import { createMutationObserver } from '../../../util/createMutationObserver';
-import { cacheWatchedStore } from '../../../store/cacheWatchedStore';
+import { handleAddSign } from '../../videoSignProcessingQueue/handleAddSign';
+import { baseVideoCardParser } from './handleSpaceIndexPage';
 
 export const handleSpaceFavListPage = async () => {
     const selectorList = {
@@ -23,12 +22,11 @@ export const handleSpaceFavListPage = async () => {
             selectorList.item,
         ),
     ).map(baseVideoCardParser);
-    for (let loadedItem of loadedItemList) {
+    for (const loadedItem of loadedItemList) {
         if (!loadedItem) {
             continue;
         }
         handleAddSign(loadedItem, 'watched', loadedItem.position);
-        cacheWatchedStore.add(loadedItem.videoId);
     }
 
     // 监听新增元素
@@ -42,6 +40,5 @@ export const handleSpaceFavListPage = async () => {
             return;
         }
         handleAddSign(loadedItem, 'watched', loadedItem.position);
-        cacheWatchedStore.add(loadedItem.videoId);
     });
 };
