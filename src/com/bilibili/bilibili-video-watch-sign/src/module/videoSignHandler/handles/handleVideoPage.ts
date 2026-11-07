@@ -79,8 +79,10 @@ export const resolveAlbumTagContainer = (
 
 /**
  * 合集解析
+ *
+ * 当前正在播放的分P（含 `.active`）不标记，其余取标题行。
  */
-const albumItemParser = (
+export const albumItemParser = (
     container: HTMLElement,
 ): IVideoItem | null => {
     // 当前正在播放的分P不标记
@@ -190,6 +192,11 @@ let debounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 /**
  * 视频页面的已看视频处理
+ *
+ * 这里不用 `createMutationObserver`：它只观察直接子节点且不带
+ * `subtree`，而视频页的懒加载卡片会出现在深层容器里；同时本页
+ * 需要 100ms 防抖把连续插入合并成一次扫描。因此这里自己建
+ * observer，并同样登记进 `ObserverList`，由 `updatePage` 统一断开。
  */
 export const handleVideoPage = async () => {
     await scanVideoPage();

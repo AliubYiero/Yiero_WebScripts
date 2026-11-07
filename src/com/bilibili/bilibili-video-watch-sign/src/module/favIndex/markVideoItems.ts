@@ -62,12 +62,11 @@ export const markVideoItems = async (
     }
 
     for (const item of pendingItems) {
-        if (!index) {
-            videoSignProcessingQueue.push(item);
-            continue;
-        }
+        const status = index
+            ? favLookupHas(index.lookup, item.videoId)
+            : null;
 
-        const status = favLookupHas(index.lookup, item.videoId);
+        // 索引不可用 / 不完整：交给逐条请求兜底
         if (status === null) {
             videoSignProcessingQueue.push(item);
             continue;

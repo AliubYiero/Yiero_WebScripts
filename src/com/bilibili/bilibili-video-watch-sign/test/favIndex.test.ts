@@ -110,7 +110,7 @@ async function load() {
 describe('ensureFavIndex', () => {
     beforeEach(async () => {
         vi.clearAllMocks();
-        vi.mocked(getCurrentMid).mockReturnValue(MID);
+        vi.mocked(getCurrentMid).mockResolvedValue(MID);
         vi.mocked(favIndexCacheStore.get).mockReturnValue(
             EMPTY_CACHE,
         );
@@ -224,7 +224,7 @@ describe('ensureFavIndex', () => {
     });
 
     it('未登录：不发请求直接返回 null', async () => {
-        vi.mocked(getCurrentMid).mockReturnValue(null);
+        vi.mocked(getCurrentMid).mockResolvedValue(null);
 
         const index = await load();
 
@@ -257,6 +257,47 @@ describe('ensureFavIndex', () => {
         expect(index?.degraded).toBe(true);
         expect(index?.folders).toHaveLength(1);
         expect(index?.folders[0].id).toBe(100);
+    });
+
+    it('刷新失败时保留旧 mediaCount，下次 session 仍会重试', async () => {
+        presetCache([cacheEntry(100, 2, [resource(1)])]);
+        vi.mocked(api_getFavFolderList).mockResolvedValue(
+            listResponse([folder(100, 3)]),
+        );
+        vi.mocked(api_getFavResourceIds).mockResolvedValue({
+            code: -503,
+            message: '服务不可用',
+            ttl: 1,
+            data: [],
+        });
+
+        const first = await load();
+
+        expect(first?.lookup.complete).toBe(false);
+        expect(first?.degraded).toBe(true);
+        expect(first?.folders[0].mediaCount).toBe(2);
+        expect(first?.folders[0].items).toHaveLength(1);
+
+        const cached = vi
+            .mocked(favIndexCacheStore.set)
+            .mock.calls.at(-1)?.[0];
+        expect(cached?.folders[0].mediaCount).toBe(2);
+        expect(cached?.folders[0].items).toHaveLength(1);
+
+        const { resetFavIndexSession } = await import(
+            '../src/module/favIndex/favIndex'
+        );
+        resetFavIndexSession();
+        vi.mocked(api_getFavResourceIds).mockClear();
+        vi.mocked(api_getFavResourceIds).mockResolvedValue(
+            idsResponse([resource(1), resource(2), resource(3)]),
+        );
+
+        const second = await load();
+
+        expect(api_getFavResourceIds).toHaveBeenCalledTimes(1);
+        expect(second?.lookup.complete).toBe(true);
+        expect(second?.folders[0].mediaCount).toBe(3);
     });
 
     it('并发调用共享同一个 Promise，只拉一次列表', async () => {

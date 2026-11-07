@@ -178,7 +178,6 @@ export class ObserverList {
 
     static reset() {
         ObserverList.remove(...Array.from(ObserverList.observerSet));
-        console.log('this.observerSet', ObserverList.observerSet);
     }
 
     static add(observer: MutationObserver) {

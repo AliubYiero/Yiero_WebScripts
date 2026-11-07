@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { resolveAlbumTagContainer } from '../src/module/videoSignHandler/handles/handleVideoPage';
+import {
+    albumItemParser,
+    resolveAlbumTagContainer,
+} from '../src/module/videoSignHandler/handles/handleVideoPage';
 
 function createAlbumItem(html: string): HTMLElement {
     const container = document.createElement('div');
@@ -59,5 +62,33 @@ describe('resolveAlbumTagContainer', () => {
         );
 
         expect(resolveAlbumTagContainer(container)).toBe(container);
+    });
+});
+
+describe('albumItemParser', () => {
+    it('非当前播放的分P取标题行并带上 bvId', () => {
+        const container = createAlbumItem(
+            MULTI_P_HTML.replace(' active', ''),
+        );
+
+        const item = albumItemParser(container);
+
+        expect(item?.videoId).toBe('BV1p5qrByEtH');
+        expect(item?.tagContainer.classList.contains('head')).toBe(
+            true,
+        );
+    });
+
+    it('当前播放的分P不标记', () => {
+        const container = createAlbumItem(MULTI_P_HTML);
+
+        expect(albumItemParser(container)).toBeNull();
+    });
+
+    it('没有 data-key 时不标记', () => {
+        const container = createAlbumItem(SINGLE_P_HTML);
+        delete container.dataset.key;
+
+        expect(albumItemParser(container)).toBeNull();
     });
 });

@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { getVideoSignHandler } from '../src/module/videoSignHandler/getVideoSignHandler';
+import type { VideoSignHandler } from '../src/module/videoSignHandler/getVideoSignHandler';
 import { handleVideoPage } from '../src/module/videoSignHandler/handles/handleVideoPage';
 import { handleSpaceIndexPage } from '../src/module/videoSignHandler/handles/handleSpaceIndexPage';
 import { handleSpaceVideoPage } from '../src/module/videoSignHandler/handles/handleSpaceVideoPage';
@@ -19,7 +20,7 @@ import { handleDynamicPage } from '../src/module/videoSignHandler/handles/handle
 
 const SPACE = 'https://space.bilibili.com/3546677394803160';
 
-const CASE_LIST: Array<[string, unknown]> = [
+const CASE_LIST: Array<[string, VideoSignHandler]> = [
     ['https://www.bilibili.com/video/BV1p5qrByEtH/', handleVideoPage],
     [`${SPACE}`, handleSpaceIndexPage],
     [`${SPACE}/`, handleSpaceIndexPage],

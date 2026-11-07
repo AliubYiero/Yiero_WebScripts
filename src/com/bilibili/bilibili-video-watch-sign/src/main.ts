@@ -1,6 +1,7 @@
 import { onRouteChange } from '@yiero/gmlib';
 import { sleep } from 'radash';
 import { addReadSignStyle } from './module/addReadSignStyle/addReadSignStyle';
+import { resetFavIndexSession } from './module/favIndex/favIndex';
 import { getVideoSignHandler } from './module/videoSignHandler/getVideoSignHandler';
 import { videoSignProcessingQueue } from './module/videoSignProcessingQueue/videoSignProcessingQueue';
 import { ObserverList } from './module/videoSignHandler/handles/base';
@@ -18,6 +19,8 @@ const stripHash = (url: string) => url.split('#')[0];
  */
 const updatePage = async () => {
     bumpPageVersion();
+    // 新页面算新 session：收藏夹索引重新查一次
+    resetFavIndexSession();
 
     // 重置标记
     document
@@ -48,7 +51,7 @@ const updatePage = async () => {
 
     // 执行视频标记处理
     const videoSignHandler = getVideoSignHandler();
-    videoSignHandler && videoSignHandler();
+    void videoSignHandler?.();
 };
 
 /**
@@ -81,7 +84,7 @@ const main = async () => {
 
     // 执行视频标记处理
     const videoSignHandler = getVideoSignHandler();
-    videoSignHandler && videoSignHandler();
+    void videoSignHandler?.();
 
     // 页面刷新时, 清空处理队列, 重置观察
     bindRouteChange();

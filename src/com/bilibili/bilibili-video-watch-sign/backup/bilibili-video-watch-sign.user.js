@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Bilibili视频观看状态标记
 // @description    基于收藏夹内容, 自动标记Bilibili视频的观看状态(已看/未看)
-// @version        1.1.0
+// @version        1.1.1
 // @author         Yiero
 // @match          https://*.bilibili.com/*
 // @icon           https://www.bilibili.com/favicon.ico
@@ -9,6 +9,8 @@
 // @license        GPL-3
 // @namespace      https://github.com/AliubYiero/Yiero_WebScripts
 // @noframes
+// @grant          GM_info
+// @grant          GM_cookie
 // @grant          GM_getValue
 // @grant          GM_setValue
 // @grant          GM_deleteValue
@@ -18,6 +20,32 @@
 // ==/UserScript==
 (function() {
   "use strict";
+  const environmentTest = () => GM_info.scriptHandler;
+  function getCookie(content, key) {
+    const isTextCookie = [
+      /^\w+=[^=;]+$/,
+      /^\w+=[^=;]+;/
+    ].some((reg) => reg.test(content));
+    if (isTextCookie) {
+      const cookieList = content.split(/;\s?/).map((cookie) => cookie.split("="));
+      const cookieMap = new Map(cookieList);
+      const cookieValue = cookieMap.get(key);
+      if (!cookieValue) return Promise.reject(new Error("\u83B7\u53D6 Cookie \u5931\u8D25, key \u4E0D\u5B58\u5728."));
+      return Promise.resolve(cookieValue);
+    }
+    return new Promise((resolve, reject) => {
+      const env = environmentTest();
+      if ("ScriptCat" !== env) return reject(new Error(`\u5F53\u524D\u811A\u672C\u4E0D\u652F\u6301 ${env} \u73AF\u5883, \u4EC5\u652F\u6301 ScriptCat .`));
+      GM_cookie("list", {
+        domain: content
+      }, (cookieList) => {
+        if (!cookieList) return void reject(new Error("\u83B7\u53D6 Cookie \u5931\u8D25, \u8BE5\u57DF\u540D\u4E0B\u6CA1\u6709 cookie. "));
+        const userIdCookie = cookieList.find((cookie) => cookie.name === key);
+        if (!userIdCookie) return void reject(new Error("\u83B7\u53D6 Cookie \u5931\u8D25, key \u4E0D\u5B58\u5728. "));
+        resolve(userIdCookie.value);
+      });
+    });
+  }
   const returnElement = (selector, options, resolve, reject) => {
     setTimeout(() => {
       const element = options.parent.querySelector(selector);
@@ -320,86 +348,13 @@
     justify-content: center;
     opacity: 0.9;
 }
+.video-pod__item.simple .simple-base-item.watch-mark.watching::after {
+    width: 42px;
+    flex: 0 0 42px;
+}
 `;
   const addReadSignStyle = () => {
     return GM_addStyle(styleContent);
-  };
-  const createMutationObserver = (target, callback, options = {
-    childList: true,
-    attributes: true
-  }) => {
-    if (target.dataset.bindObserver) {
-      return null;
-    }
-    const observer = new MutationObserver((records) => {
-      for (let record of records) {
-        for (let addedNode of record.addedNodes) {
-          if (addedNode.nodeType !== Node.ELEMENT_NODE)
-            continue;
-          callback(addedNode);
-        }
-      }
-    });
-    observer.observe(target, options);
-    target.dataset.bindObserver = "true";
-    return observer;
-  };
-  let version = 0;
-  const getPageVersion = () => version;
-  const bumpPageVersion = () => {
-    version += 1;
-    return version;
-  };
-  const getVideoId = (url) => {
-    try {
-      const videoId = new URL(url).pathname.split("/").findLast(
-        (item) => item.startsWith("BV1") || item.startsWith("ep") || item.startsWith("av")
-      );
-      if (!videoId) return null;
-      return videoId;
-    } catch (e) {
-      return null;
-    }
-  };
-  class CacheWatchedSessionStore {
-    constructor() {
-      this.stoneName = "cacheWatched";
-      this.mapper = null;
-    }
-    getState(bvId) {
-      return this.get()[bvId];
-    }
-    setState(bvId, value) {
-      this.get()[bvId] = value;
-      this.set(this.get());
-    }
-    set(value) {
-      sessionStorage.setItem(this.stoneName, JSON.stringify(value));
-    }
-    get() {
-      if (this.mapper) {
-        return this.mapper;
-      }
-      try {
-        this.mapper = JSON.parse(
-          sessionStorage.getItem(this.stoneName) || "{}"
-        );
-      } catch {
-        this.mapper = {};
-      }
-      return this.mapper;
-    }
-  }
-  const cacheWatchedSessionStore = new CacheWatchedSessionStore();
-  const handleAddSign = (videoItem, watchStatus = "unwatched", position = "left") => {
-    if (videoItem.tagContainer.classList.contains("watch-mark"))
-      return;
-    videoItem.tagContainer.classList.add(
-      "watch-mark",
-      position,
-      watchStatus
-    );
-    videoItem.tagContainer.dataset.key = videoItem.videoId;
   };
   const normalizeHeaders = (headers) => {
     const normalized = {};
@@ -519,6 +474,280 @@
     const tmp = bvidArr.reduce((pre, bvidChar) => pre * BASE + BigInt(DATA.indexOf(bvidChar)), 0n);
     return Number(tmp & MASK_CODE ^ XOR_CODE);
   }
+  const favIndexCacheStore = new GmStorage(
+    "favIndexCache",
+    { version: 1, mid: 0, folders: [] }
+  );
+  function favFolderDiff(cached, remote) {
+    const cachedMap = new Map(
+      cached.map((entry) => [entry.id, entry])
+    );
+    const remoteIds = new Set(remote.map((meta) => meta.id));
+    const refresh = remote.filter((meta) => {
+      const entry = cachedMap.get(meta.id);
+      if (!entry) {
+        return true;
+      }
+      if (!entry.synced) {
+        return true;
+      }
+      return entry.mediaCount !== meta.mediaCount;
+    });
+    const remove = cached.filter((entry) => !remoteIds.has(entry.id)).map((entry) => entry.id);
+    return { refresh, remove, meta: remote };
+  }
+  function buildFavLookup(folders, complete) {
+    const aids = /* @__PURE__ */ new Set();
+    const bvids = /* @__PURE__ */ new Set();
+    for (const folder of folders) {
+      for (const item of folder.items) {
+        if (item.type !== 2) {
+          continue;
+        }
+        aids.add(item.id);
+        const bvid = (item.bvid || item.bv_id).toUpperCase();
+        if (bvid) {
+          bvids.add(bvid);
+        }
+      }
+    }
+    return { aids, bvids, complete };
+  }
+  function favLookupHas(lookup, videoId) {
+    const miss = () => lookup.complete ? false : null;
+    const normalizedId = videoId.toUpperCase();
+    if (normalizedId.startsWith("BV1")) {
+      return lookup.bvids.has(normalizedId) ? true : miss();
+    }
+    const avMatch = /^av(\d+)$/i.exec(videoId);
+    if (avMatch) {
+      const aid = Number(avMatch[1]);
+      return lookup.aids.has(aid) ? true : miss();
+    }
+    if (/^\d+$/.test(videoId)) {
+      const aid = Number(videoId);
+      return lookup.aids.has(aid) ? true : miss();
+    }
+    return null;
+  }
+  async function getCurrentMid() {
+    try {
+      const value = await getCookie(document.cookie, "DedeUserID");
+      const mid = Number(value);
+      return Number.isSafeInteger(mid) && mid > 0 ? mid : null;
+    } catch {
+      return null;
+    }
+  }
+  const LIST_ALL_RETRY_DELAYS = [300, 800];
+  const RESOURCE_IDS_RETRY_DELAYS = [0];
+  let sessionPromise = null;
+  function toFolderMeta(folder) {
+    return {
+      id: folder.id,
+      fid: folder.fid,
+      mid: folder.mid,
+      title: folder.title,
+      mediaCount: folder.media_count
+    };
+  }
+  async function withRetry(request, retryDelays) {
+    for (let attempt = 0; attempt <= retryDelays.length; attempt++) {
+      if (attempt > 0) {
+        await sleep(retryDelays[attempt - 1]);
+      }
+      try {
+        const response = await request();
+        if (response.code === 0) {
+          return response.data;
+        }
+      } catch {
+      }
+    }
+    return null;
+  }
+  async function requestFolderList(mid) {
+    const data = await withRetry(
+      () => api_getFavFolderList(mid),
+      LIST_ALL_RETRY_DELAYS
+    );
+    return data === null ? null : data.list.map(toFolderMeta);
+  }
+  function requestFolderItems(mediaId) {
+    return withRetry(
+      () => api_getFavResourceIds(mediaId),
+      RESOURCE_IDS_RETRY_DELAYS
+    );
+  }
+  function collectFolders(meta, cacheMap) {
+    return meta.map((folder) => cacheMap.get(folder.id)).filter(
+      (entry) => entry !== void 0
+    );
+  }
+  async function loadFavIndex() {
+    const mid = await getCurrentMid();
+    if (mid === null) {
+      return null;
+    }
+    const cached = favIndexCacheStore.get();
+    const cacheValid = cached.version === 1 && cached.mid === mid;
+    const cachedFolders = cacheValid ? cached.folders : [];
+    const remoteMeta = await requestFolderList(mid);
+    if (remoteMeta === null) {
+      if (!cacheValid || cachedFolders.length === 0) {
+        return null;
+      }
+      return {
+        folders: cachedFolders,
+        lookup: buildFavLookup(cachedFolders, false),
+        fromCache: true,
+        degraded: true
+      };
+    }
+    const { refresh, remove, meta } = favFolderDiff(
+      cachedFolders,
+      remoteMeta
+    );
+    const cacheMap = new Map(
+      cachedFolders.map((entry) => [entry.id, entry])
+    );
+    let degraded = false;
+    for (const id of remove) {
+      cacheMap.delete(id);
+    }
+    const refreshIds = new Set(refresh.map((folder) => folder.id));
+    for (const folder of meta) {
+      if (refreshIds.has(folder.id)) {
+        continue;
+      }
+      const existing = cacheMap.get(folder.id);
+      if (existing) {
+        cacheMap.set(folder.id, { ...existing, ...folder });
+      }
+    }
+    const persist = () => {
+      const cache = {
+        version: 1,
+        mid,
+        folders: collectFolders(meta, cacheMap)
+      };
+      favIndexCacheStore.set(cache);
+    };
+    for (const folder of refresh) {
+      const items = await requestFolderItems(folder.id);
+      if (items === null) {
+        degraded = true;
+        continue;
+      }
+      cacheMap.set(folder.id, {
+        ...folder,
+        items,
+        synced: true
+      });
+      persist();
+    }
+    const folders = collectFolders(meta, cacheMap);
+    const remoteCount = new Map(
+      meta.map((folder) => [folder.id, folder.mediaCount])
+    );
+    const complete = folders.length === meta.length && folders.every(
+      (folder) => folder.synced && folder.mediaCount === remoteCount.get(folder.id)
+    );
+    const index = {
+      folders,
+      lookup: buildFavLookup(folders, complete),
+      fromCache: false,
+      degraded: degraded || !complete
+    };
+    persist();
+    return index;
+  }
+  function ensureFavIndex() {
+    if (!sessionPromise) {
+      sessionPromise = loadFavIndex().catch(() => null);
+    }
+    return sessionPromise;
+  }
+  function resetFavIndexSession() {
+    sessionPromise = null;
+  }
+  const createMutationObserver = (target, callback, options = {
+    childList: true,
+    attributes: true
+  }) => {
+    if (target.dataset.bindObserver) {
+      return null;
+    }
+    const observer = new MutationObserver((records) => {
+      for (let record of records) {
+        for (let addedNode of record.addedNodes) {
+          if (addedNode.nodeType !== Node.ELEMENT_NODE)
+            continue;
+          callback(addedNode);
+        }
+      }
+    });
+    observer.observe(target, options);
+    target.dataset.bindObserver = "true";
+    return observer;
+  };
+  let version = 0;
+  const getPageVersion = () => version;
+  const bumpPageVersion = () => {
+    version += 1;
+    return version;
+  };
+  const getVideoId = (url) => {
+    try {
+      const videoId = new URL(url).pathname.split("/").findLast(
+        (item) => item.startsWith("BV1") || item.startsWith("ep") || item.startsWith("av")
+      );
+      if (!videoId) return null;
+      return videoId;
+    } catch (e) {
+      return null;
+    }
+  };
+  class CacheWatchedSessionStore {
+    constructor() {
+      this.stoneName = "cacheWatched";
+      this.mapper = null;
+    }
+    getState(bvId) {
+      return this.get()[bvId];
+    }
+    setState(bvId, value) {
+      this.get()[bvId] = value;
+      this.set(this.get());
+    }
+    set(value) {
+      sessionStorage.setItem(this.stoneName, JSON.stringify(value));
+    }
+    get() {
+      if (this.mapper) {
+        return this.mapper;
+      }
+      try {
+        this.mapper = JSON.parse(
+          sessionStorage.getItem(this.stoneName) || "{}"
+        );
+      } catch {
+        this.mapper = {};
+      }
+      return this.mapper;
+    }
+  }
+  const cacheWatchedSessionStore = new CacheWatchedSessionStore();
+  const handleAddSign = (videoItem, watchStatus = "unwatched", position = "left") => {
+    if (videoItem.tagContainer.classList.contains("watch-mark"))
+      return;
+    videoItem.tagContainer.classList.add(
+      "watch-mark",
+      position,
+      watchStatus
+    );
+    videoItem.tagContainer.dataset.key = videoItem.videoId;
+  };
   class DelayedQueue {
     constructor(processor, delay = 500) {
       this.processor = processor;
@@ -611,197 +840,6 @@
     handleVideoSign,
     500
   );
-  const favIndexCacheStore = new GmStorage(
-    "favIndexCache",
-    { version: 1, mid: 0, folders: [] }
-  );
-  function favFolderDiff(cached, remote) {
-    const cachedMap = new Map(
-      cached.map((entry) => [entry.id, entry])
-    );
-    const remoteIds = new Set(remote.map((meta) => meta.id));
-    const refresh = remote.filter((meta) => {
-      const entry = cachedMap.get(meta.id);
-      if (!entry) {
-        return true;
-      }
-      if (!entry.synced) {
-        return true;
-      }
-      return entry.mediaCount !== meta.mediaCount;
-    });
-    const remove = cached.filter((entry) => !remoteIds.has(entry.id)).map((entry) => entry.id);
-    return { refresh, remove, meta: remote };
-  }
-  function buildFavLookup(folders, complete) {
-    const aids = /* @__PURE__ */ new Set();
-    const bvids = /* @__PURE__ */ new Set();
-    for (const folder of folders) {
-      for (const item of folder.items) {
-        if (item.type !== 2) {
-          continue;
-        }
-        aids.add(item.id);
-        const bvid = (item.bvid || item.bv_id).toUpperCase();
-        if (bvid) {
-          bvids.add(bvid);
-        }
-      }
-    }
-    return { aids, bvids, complete };
-  }
-  function favLookupHas(lookup, videoId) {
-    const miss = () => lookup.complete ? false : null;
-    const normalizedId = videoId.toUpperCase();
-    if (normalizedId.startsWith("BV1")) {
-      return lookup.bvids.has(normalizedId) ? true : miss();
-    }
-    const avMatch = /^av(\d+)$/i.exec(videoId);
-    if (avMatch) {
-      const aid = Number(avMatch[1]);
-      return lookup.aids.has(aid) ? true : miss();
-    }
-    if (/^\d+$/.test(videoId)) {
-      const aid = Number(videoId);
-      return lookup.aids.has(aid) ? true : miss();
-    }
-    return null;
-  }
-  function getCurrentMid() {
-    const match = /(?:^|;\s*)DedeUserID=(\d+)/.exec(document.cookie);
-    if (!match) {
-      return null;
-    }
-    const mid = Number(match[1]);
-    return Number.isSafeInteger(mid) && mid > 0 ? mid : null;
-  }
-  const LIST_ALL_ATTEMPTS = 3;
-  const LIST_ALL_RETRY_DELAYS = [300, 800];
-  const RESOURCE_IDS_ATTEMPTS = 2;
-  let sessionPromise = null;
-  function toFolderMeta(folder) {
-    return {
-      id: folder.id,
-      fid: folder.fid,
-      mid: folder.mid,
-      title: folder.title,
-      mediaCount: folder.media_count
-    };
-  }
-  async function requestFolderList(mid) {
-    for (let attempt = 0; attempt < LIST_ALL_ATTEMPTS; attempt++) {
-      if (attempt > 0) {
-        await sleep(LIST_ALL_RETRY_DELAYS[attempt - 1]);
-      }
-      try {
-        const response = await api_getFavFolderList(mid);
-        if (response.code === 0) {
-          return response.data.list.map(toFolderMeta);
-        }
-      } catch {
-      }
-    }
-    return null;
-  }
-  async function requestFolderItems(mediaId) {
-    for (let attempt = 0; attempt < RESOURCE_IDS_ATTEMPTS; attempt++) {
-      try {
-        const response = await api_getFavResourceIds(mediaId);
-        if (response.code === 0) {
-          return response.data;
-        }
-      } catch {
-      }
-    }
-    return null;
-  }
-  function collectFolders(meta, cacheMap) {
-    return meta.map((folder) => cacheMap.get(folder.id)).filter(
-      (entry) => entry !== void 0
-    );
-  }
-  async function loadFavIndex() {
-    const mid = getCurrentMid();
-    if (mid === null) {
-      return null;
-    }
-    const cached = favIndexCacheStore.get();
-    const cacheValid = cached.version === 1 && cached.mid === mid;
-    const cachedFolders = cacheValid ? cached.folders : [];
-    const remoteMeta = await requestFolderList(mid);
-    if (remoteMeta === null) {
-      if (!cacheValid || cachedFolders.length === 0) {
-        return null;
-      }
-      return {
-        folders: cachedFolders,
-        lookup: buildFavLookup(cachedFolders, false),
-        fromCache: true,
-        degraded: true
-      };
-    }
-    const { refresh, remove, meta } = favFolderDiff(
-      cachedFolders,
-      remoteMeta
-    );
-    const cacheMap = new Map(
-      cachedFolders.map((entry) => [entry.id, entry])
-    );
-    let degraded = false;
-    for (const id of remove) {
-      cacheMap.delete(id);
-    }
-    for (const folder of meta) {
-      const existing = cacheMap.get(folder.id);
-      if (existing) {
-        cacheMap.set(folder.id, { ...existing, ...folder });
-      }
-    }
-    const persist = () => {
-      const cache = {
-        version: 1,
-        mid,
-        folders: collectFolders(meta, cacheMap)
-      };
-      favIndexCacheStore.set(cache);
-    };
-    for (const folder of refresh) {
-      const items = await requestFolderItems(folder.id);
-      if (items === null) {
-        const existing = cacheMap.get(folder.id);
-        if (existing) {
-          cacheMap.set(folder.id, {
-            ...existing,
-            ...folder
-          });
-        }
-        degraded = true;
-        continue;
-      }
-      cacheMap.set(folder.id, {
-        ...folder,
-        items,
-        synced: true
-      });
-      persist();
-    }
-    const folders = collectFolders(meta, cacheMap);
-    const complete = folders.length === meta.length && folders.every((folder) => folder.synced);
-    const index = {
-      folders,
-      lookup: buildFavLookup(folders, complete),
-      fromCache: false,
-      degraded
-    };
-    persist();
-    return index;
-  }
-  function ensureFavIndex() {
-    if (!sessionPromise) {
-      sessionPromise = loadFavIndex().catch(() => null);
-    }
-    return sessionPromise;
-  }
   const markVideoItems = async (items, options = {}) => {
     const pendingItems = [];
     for (const item of items) {
@@ -834,11 +872,7 @@
       return;
     }
     for (const item of pendingItems) {
-      if (!index) {
-        videoSignProcessingQueue.push(item);
-        continue;
-      }
-      const status = favLookupHas(index.lookup, item.videoId);
+      const status = index ? favLookupHas(index.lookup, item.videoId) : null;
       if (status === null) {
         videoSignProcessingQueue.push(item);
         continue;
@@ -1569,6 +1603,7 @@
   const stripHash = (url) => url.split("#")[0];
   const updatePage = async () => {
     bumpPageVersion();
+    resetFavIndexSession();
     document.querySelectorAll(".watch-mark").forEach((item) => {
       item.classList.remove(
         "watch-mark",
@@ -1586,7 +1621,7 @@
     ObserverList.reset();
     document.querySelectorAll("[data-bind-observer]").forEach((item) => item.dataset.bindObserver = "");
     const videoSignHandler = getVideoSignHandler();
-    videoSignHandler && videoSignHandler();
+    void videoSignHandler?.();
   };
   const bindRouteChange = () => {
     if (routeBound) return;
@@ -1602,7 +1637,7 @@
   const main = async () => {
     addReadSignStyle();
     const videoSignHandler = getVideoSignHandler();
-    videoSignHandler && videoSignHandler();
+    void videoSignHandler?.();
     bindRouteChange();
     window.addEventListener("updateStatus", () => {
       videoSignProcessingQueue.reset();

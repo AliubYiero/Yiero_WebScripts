@@ -105,3 +105,7 @@
     justify-content: center;
     opacity: 0.9;
 }
+.video-pod__item.simple .simple-base-item.watch-mark.watching::after {
+    width: 42px;
+    flex: 0 0 42px;
+}

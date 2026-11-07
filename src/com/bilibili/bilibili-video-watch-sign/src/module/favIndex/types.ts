@@ -4,9 +4,9 @@ import type { IFavResourceId } from '@yiero/bilibili-api-lib';
  * 收藏夹元信息
  */
 export interface IFavFolderMeta {
-    /** 收藏夹 media_id，用于 resource/ids */
+    /** 收藏夹 media_id；收藏夹页 URL 的 fid 参数用的就是它 */
     id: number;
-    /** 收藏夹短 id，收藏夹页 URL 的 fid 与之对应 */
+    /** 收藏夹短 id（接口内部编号，收藏夹页 URL 不用它） */
     fid: number;
     /** 收藏夹所有者的 mid */
     mid: number;

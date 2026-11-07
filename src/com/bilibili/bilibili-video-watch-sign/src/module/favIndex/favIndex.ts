@@ -16,14 +16,11 @@ import type {
     IFavIndexCache,
 } from './types';
 
-/** list-all 最多尝试次数 */
-const LIST_ALL_ATTEMPTS = 3;
-
-/** list-all 重试前的等待时间 */
+/** list-all 重试前的等待时间（长度 + 1 = 总尝试次数） */
 const LIST_ALL_RETRY_DELAYS = [300, 800];
 
-/** resource/ids 最多尝试次数 */
-const RESOURCE_IDS_ATTEMPTS = 2;
+/** resource/ids 重试前的等待时间（无间隔，共 2 次） */
+const RESOURCE_IDS_RETRY_DELAYS = [0];
 
 /** 本 session 共享的索引 Promise */
 let sessionPromise: Promise<IFavIndex | null> | null = null;
@@ -42,20 +39,23 @@ function toFolderMeta(folder: IFavFolder): IFavFolderMeta {
 }
 
 /**
- * 请求收藏夹列表，失败重试，全部失败返回 `null`。
+ * 请求并重试：`code === 0` 返回 `data`，全部失败返回 `null`。
+ *
+ * `retryDelays` 的长度是重试次数，每次重试前等待对应时长。
  */
-async function requestFolderList(
-    mid: number,
-): Promise<IFavFolderMeta[] | null> {
-    for (let attempt = 0; attempt < LIST_ALL_ATTEMPTS; attempt++) {
+async function withRetry<T>(
+    request: () => Promise<{ code: number; data: T }>,
+    retryDelays: number[],
+): Promise<T | null> {
+    for (let attempt = 0; attempt <= retryDelays.length; attempt++) {
         if (attempt > 0) {
-            await sleep(LIST_ALL_RETRY_DELAYS[attempt - 1]);
+            await sleep(retryDelays[attempt - 1]);
         }
 
         try {
-            const response = await api_getFavFolderList(mid);
+            const response = await request();
             if (response.code === 0) {
-                return response.data.list.map(toFolderMeta);
+                return response.data;
             }
         } catch {
             // 网络错误按失败处理，继续重试
@@ -66,27 +66,29 @@ async function requestFolderList(
 }
 
 /**
+ * 请求收藏夹列表，失败重试，全部失败返回 `null`。
+ */
+async function requestFolderList(
+    mid: number,
+): Promise<IFavFolderMeta[] | null> {
+    const data = await withRetry(
+        () => api_getFavFolderList(mid),
+        LIST_ALL_RETRY_DELAYS,
+    );
+
+    return data === null ? null : data.list.map(toFolderMeta);
+}
+
+/**
  * 请求收藏夹内容 ID 列表，失败重试，全部失败返回 `null`。
  */
-async function requestFolderItems(
+function requestFolderItems(
     mediaId: number,
 ): Promise<IFavResourceId[] | null> {
-    for (
-        let attempt = 0;
-        attempt < RESOURCE_IDS_ATTEMPTS;
-        attempt++
-    ) {
-        try {
-            const response = await api_getFavResourceIds(mediaId);
-            if (response.code === 0) {
-                return response.data;
-            }
-        } catch {
-            // 网络错误按失败处理，继续重试
-        }
-    }
-
-    return null;
+    return withRetry(
+        () => api_getFavResourceIds(mediaId),
+        RESOURCE_IDS_RETRY_DELAYS,
+    );
 }
 
 /**
@@ -108,7 +110,7 @@ function collectFolders(
  * 真正加载索引：list-all → diff → 增量拉 ids → 建 lookup。
  */
 async function loadFavIndex(): Promise<IFavIndex | null> {
-    const mid = getCurrentMid();
+    const mid = await getCurrentMid();
     if (mid === null) {
         return null;
     }
@@ -147,7 +149,15 @@ async function loadFavIndex(): Promise<IFavIndex | null> {
         cacheMap.delete(id);
     }
 
+    const refreshIds = new Set(refresh.map((folder) => folder.id));
+
+    // 只就地更新不需要刷新的收藏夹元信息；待刷新的等 ids 成功后再合并，
+    // 失败时保留旧 entry（含旧 mediaCount），下次 diff 仍会重试。
     for (const folder of meta) {
+        if (refreshIds.has(folder.id)) {
+            continue;
+        }
+
         const existing = cacheMap.get(folder.id);
         if (existing) {
             cacheMap.set(folder.id, { ...existing, ...folder });
@@ -167,13 +177,7 @@ async function loadFavIndex(): Promise<IFavIndex | null> {
         const items = await requestFolderItems(folder.id);
 
         if (items === null) {
-            const existing = cacheMap.get(folder.id);
-            if (existing) {
-                cacheMap.set(folder.id, {
-                    ...existing,
-                    ...folder,
-                });
-            }
+            // 保留旧 entry，不更新 mediaCount，避免下次误判为已同步
             degraded = true;
             continue;
         }
@@ -187,15 +191,22 @@ async function loadFavIndex(): Promise<IFavIndex | null> {
     }
 
     const folders = collectFolders(meta, cacheMap);
+    const remoteCount = new Map(
+        meta.map((folder) => [folder.id, folder.mediaCount]),
+    );
     const complete =
         folders.length === meta.length &&
-        folders.every((folder) => folder.synced);
+        folders.every(
+            (folder) =>
+                folder.synced &&
+                folder.mediaCount === remoteCount.get(folder.id),
+        );
 
     const index: IFavIndex = {
         folders,
         lookup: buildFavLookup(folders, complete),
         fromCache: false,
-        degraded,
+        degraded: degraded || !complete,
     };
 
     persist();

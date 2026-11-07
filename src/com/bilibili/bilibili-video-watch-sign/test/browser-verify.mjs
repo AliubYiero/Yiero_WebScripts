@@ -18,7 +18,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 /** 脚本项目目录（本文件在 `<项目>/test/` 下）。 */
@@ -64,6 +64,9 @@ const SCTL_PATH = resolveSctlPath();
 const SCTL_DATA_DIR = join(HARNESS_HOME, 'sctl-data');
 
 const ARTIFACTS_DIR = join(HARNESS_HOME, 'artifacts');
+
+/** 截图文件名前缀，playbook 约定 `<项目>-<用例>.png` */
+const PROJECT_NAME = basename(PROJECT_DIR);
 
 /** 参数错误，退出码 2。 */
 class UsageError extends Error {
@@ -369,7 +372,7 @@ function consoleLinesForReport(log, limit = 20) {
 async function captureFailure(page, artifactsDir, caseId) {
     const file = join(
         artifactsDir,
-        `case-${String(caseId).toLowerCase()}.png`,
+        `${PROJECT_NAME}-${String(caseId).toLowerCase()}.png`,
     );
     try {
         mkdirSync(artifactsDir, { recursive: true });
@@ -702,6 +705,7 @@ const CASES = [
                 `播放器区域出现了 ${stats.inPlayer} 个标记`,
             );
             assert(stats.inAlbum > 0, '合集列表没有标记');
+            assert(stats.inRec > 0, '推荐列表没有标记');
 
             return `共 ${stats.marks} 个标记（合集 ${stats.inAlbum}，推荐 ${stats.inRec}）`;
         },
@@ -748,9 +752,10 @@ const CASES = [
                     );
                 });
 
+            // spec 用例 2：URL 变化后 3s 内合集标记就该回来
             await page.waitForSelector(
                 '.video-pod__list.section .watch-mark',
-                { timeout: MARK_TIMEOUT },
+                { timeout: 3_000 },
             );
 
             const albumMarks = await page
@@ -910,7 +915,18 @@ const CASES = [
 
             for (let i = 0; i < 8; i++) {
                 await page.mouse.wheel(0, 2400);
-                await page.waitForTimeout(800);
+                // 首页懒加载没有可观察的事件；每轮最多等 800ms 看卡片
+                // 是否变多（滚动后新卡片渲染的稳定窗），没变就再滚一次。
+                await page
+                    .waitForFunction(
+                        (before) =>
+                            document.querySelectorAll(
+                                '.bili-feed-card',
+                            ).length > before,
+                        cardsBefore,
+                        { timeout: 800 },
+                    )
+                    .catch(() => {});
                 const now = await page
                     .locator('.bili-feed-card')
                     .count();
@@ -1032,16 +1048,27 @@ const CASES = [
             );
             await page.mouse.down();
 
-            const state = await page.evaluate(() => {
-                const watching = document.querySelector(
-                    '.watch-mark.watching',
-                );
-                if (!watching) return null;
-                return {
-                    key: watching.dataset.key,
-                    cache: sessionStorage.getItem('cacheWatched'),
-                };
-            });
+            // 等 mousedown 监听把状态写进 DOM 与会话缓存，不靠固定 sleep
+            const state = await page
+                .waitForFunction(
+                    () => {
+                        const watching = document.querySelector(
+                            '.watch-mark.watching',
+                        );
+                        if (!watching) return null;
+
+                        return {
+                            key: watching.dataset.key,
+                            cache: sessionStorage.getItem(
+                                'cacheWatched',
+                            ),
+                        };
+                    },
+                    null,
+                    { timeout: 5_000 },
+                )
+                .then((handle) => handle.jsonValue())
+                .catch(() => null);
 
             await page.mouse.up().catch(() => {});
 
