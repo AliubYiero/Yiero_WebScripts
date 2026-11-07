@@ -15,96 +15,92 @@ import { handlePopularRankPage } from './handles/handlePopularRankPage';
 import { handleWatchLaterPage } from './handles/handleWatchLaterPage';
 import { handleSearchPage } from './handles/handleSearchPage';
 
-/**
- * 对应网页的回调函数映射
- */
-const handleMapper = new Map<RegExp, Function>();
-// 动态页面
-handleMapper.set(
-    /^https:\/\/t\.bilibili\.com\/.*/,
-    handleDynamicPage,
-);
-// 视频页面
-handleMapper.set(
-    /^https:\/\/www\.bilibili\.com\/video.*/,
-    handleVideoPage,
-);
-// UP主空间
-handleMapper.set(
-    /^https:\/\/space\.bilibili\.com\/\d+\/upload\/video.*/,
-    handleSpaceVideoPage,
-);
-handleMapper.set(
-    /^https:\/\/space\.bilibili\.com\/\d+\/dynamic.*/,
-    handleSpaceDynamicPage,
-);
-handleMapper.set(
-    /^https:\/\/space\.bilibili\.com\/\d+\/lists\/\d+.*/,
-    handleSpaceAlbumContentPage,
-);
-handleMapper.set(
-    /^https:\/\/space\.bilibili\.com\/\d+\/lists.*/,
-    handleSpaceAlbumListPage,
-);
-// 个人空间收藏夹
-handleMapper.set(
-    /^https:\/\/space\.bilibili\.com\/\d+\/favlist\?fid=\d+&ftype=create.*/,
-    handleSpaceFavListPage,
-);
-// 个人空间追更的合集
-handleMapper.set(
-    /^https:\/\/space\.bilibili\.com\/\d+\/favlist\?fid=\d+&ftype=collect.*/,
-    handleSpaceFollowCollectPage,
-);
-// 主页
-handleMapper.set(
-    /^https:\/\/space\.bilibili\.com\/\d+.*/,
-    handleSpaceIndexPage,
-);
-// 稍后再看
-handleMapper.set(
-    /^https:\/\/www\.bilibili\.com\/watchlater.*/,
-    handleWatchLaterPage,
-);
+export type VideoSignHandler = () => void | Promise<void>;
 
-// 主站
-handleMapper.set(
-    /^https:\/\/www\.bilibili\.com\/v\/popular\/weekly.*/,
-    handlePopularWeeklyPage,
-);
-handleMapper.set(
-    /^https:\/\/www\.bilibili\.com\/v\/popular\/rank.*/,
-    handlePopularRankPage,
-);
-handleMapper.set(
-    /^https:\/\/www\.bilibili\.com\/v\/popular\/(history|all).*/,
-    handlePopularPage,
-);
-handleMapper.set(
-    /^https:\/\/www\.bilibili\.com\/c.*/,
-    handleIndexChildPage,
-);
-handleMapper.set(/^https:\/\/www\.bilibili\.com.*/, handleIndexPage);
-
-// 搜索页面
-handleMapper.set(
-    /^https:\/\/search\.bilibili\.com.*/,
-    handleSearchPage,
-);
+const parseUrl = (href: string): URL | null => {
+    try {
+        return new URL(href);
+    } catch {
+        return null;
+    }
+};
 
 /**
- * url 对应的回调函数
+ * 空间页的路径段（去掉前后空段）
  */
-export const getVideoSignHandler = () => {
-    const url = window.location.href;
-    const entry = Array.from(handleMapper.entries()).find(
-        ([reg, handle]) => {
-            if (!reg.test(url)) {
-                return false;
-            }
-            return handle;
-        },
-    );
-    if (!entry) return null;
-    return entry[1];
+const getSpacePathParts = (pathname: string): string[] =>
+    pathname.split('/').filter(Boolean);
+
+/**
+ * 根据 url 获取对应的回调函数
+ */
+export const getVideoSignHandler = (
+    href: string = window.location.href,
+): VideoSignHandler | null => {
+    const url = parseUrl(href);
+    if (!url) return null;
+
+    const { hostname, pathname, searchParams } = url;
+
+    // 动态页面
+    if (hostname === 't.bilibili.com') {
+        return handleDynamicPage;
+    }
+
+    // 搜索页面
+    if (hostname === 'search.bilibili.com') {
+        return handleSearchPage;
+    }
+
+    // UP主空间
+    if (hostname === 'space.bilibili.com') {
+        const [mid, ...rest] = getSpacePathParts(pathname);
+        if (!mid || !/^\d+$/.test(mid)) return null;
+
+        if (rest[0] === 'upload' && rest[1] === 'video') {
+            return handleSpaceVideoPage;
+        }
+        if (rest[0] === 'dynamic') {
+            return handleSpaceDynamicPage;
+        }
+        if (rest[0] === 'lists') {
+            return rest.length >= 2
+                ? handleSpaceAlbumContentPage
+                : handleSpaceAlbumListPage;
+        }
+        // 收藏夹：不要求 ftype，缺省按 create
+        if (rest[0] === 'favlist') {
+            return searchParams.get('ftype') === 'collect'
+                ? handleSpaceFollowCollectPage
+                : handleSpaceFavListPage;
+        }
+
+        return handleSpaceIndexPage;
+    }
+
+    // 主站
+    if (hostname === 'www.bilibili.com') {
+        if (pathname.startsWith('/video')) {
+            return handleVideoPage;
+        }
+        if (pathname.startsWith('/watchlater')) {
+            return handleWatchLaterPage;
+        }
+        if (pathname.startsWith('/v/popular/weekly')) {
+            return handlePopularWeeklyPage;
+        }
+        if (pathname.startsWith('/v/popular/rank')) {
+            return handlePopularRankPage;
+        }
+        if (/^\/v\/popular\/(history|all)/.test(pathname)) {
+            return handlePopularPage;
+        }
+        if (pathname.startsWith('/c')) {
+            return handleIndexChildPage;
+        }
+
+        return handleIndexPage;
+    }
+
+    return null;
 };
