@@ -632,9 +632,14 @@ const FIXTURE = {
     multiPPage: 'https://www.bilibili.com/video/BV1p5qrByEtH/',
     /** 合集里可切换的非当前分P */
     albumSwitchBvId: 'BV146BFBzEdw',
-    /** 自己的默认收藏夹（URL 的 fid 是 media_id，不是短 fid） */
+    /**
+     * 自己的默认收藏夹（URL 的 fid 是 media_id，不是短 fid）。
+     * 必须指向 harness 浏览器当前登录的账号；别人的私人收藏夹会被
+     * 重定向到 space 主页，`favlist-other` 与 `favIndexCacheReuse`
+     * 都会退化成首页视频卡片。
+     */
     ownFavList:
-        'https://space.bilibili.com/3546677394803160/favlist?fid=3247420060&ftype=create',
+        'https://space.bilibili.com/12548410/favlist?fid=73654310&ftype=create',
     /** 他人的公开收藏夹（DIYgod） */
     otherFavList:
         'https://space.bilibili.com/2267573/favlist?fid=63692673&ftype=create',
@@ -659,6 +664,61 @@ async function gotoPage(page, url) {
 async function waitForMarks(page, timeout = MARK_TIMEOUT) {
     await page.waitForSelector('.watch-mark', { timeout });
     return page.locator('.watch-mark').count();
+}
+
+/**
+ * 读脚本写在 `<html data-fav-index>` 上的索引状态（D12）。
+ *
+ * GM 存储只在油猴沙箱里可读，页面主世界拿不到，所以回归只能看这个
+ * 属性；索引还没加载时为 null。
+ */
+async function readFavIndexState(page) {
+    return page.evaluate(
+        () => document.documentElement.dataset.favIndex ?? null,
+    );
+}
+
+/**
+ * 点击合集里的目标分P，直到 URL 切走。
+ *
+ * 合集列表是 SSR 的：行节点先出现、Vue 之后才 hydrate，hydrate 前
+ * `row.click()` 不触发路由（实测 1.2s 时点不动，6s 后可切）。所以
+ * 每轮点一次再等 URL 变化，超时才算失败。
+ */
+async function clickAlbumItem(page, bvId) {
+    const deadline = Date.now() + NAV_TIMEOUT;
+
+    while (Date.now() < deadline) {
+        const found = await page.evaluate((id) => {
+            const item = document.querySelector(
+                `.video-pod__item.simple[data-key="${id}"]`,
+            );
+            if (!item) return false;
+
+            const list = item.closest('.video-pod__list');
+            if (list) list.scrollTop = item.offsetTop - 60;
+
+            const row = item.querySelector(
+                '.simple-base-item.head, .simple-base-item.normal, .simple-base-item',
+            );
+            row?.click();
+            return true;
+        }, bvId);
+        if (!found) return 'not-found';
+
+        const switched = await page
+            .waitForURL(
+                (url) =>
+                    url.pathname.includes(bvId) ||
+                    /[?&]p=\d+/.test(url.search),
+                { timeout: 1_000 },
+            )
+            .then(() => true)
+            .catch(() => false);
+        if (switched) return 'switched';
+    }
+
+    return 'timeout';
 }
 
 /**
@@ -717,40 +777,23 @@ const CASES = [
             await gotoPage(page, FIXTURE.multiPPage);
             await waitForMarks(page);
 
-            const switched = await page.evaluate((bvId) => {
-                const item = document.querySelector(
-                    `.video-pod__item.simple[data-key="${bvId}"]`,
-                );
-                if (!item) return false;
-                const list = item.closest('.video-pod__list');
-                if (list) list.scrollTop = item.offsetTop - 60;
-                const row = item.querySelector(
-                    '.simple-base-item.head, .simple-base-item.normal, .simple-base-item',
-                );
-                row?.click();
-                return true;
-            }, FIXTURE.albumSwitchBvId);
-            assert(switched, '没找到要切换的分P');
+            const outcome = await clickAlbumItem(
+                page,
+                FIXTURE.albumSwitchBvId,
+            );
+            assert(outcome !== 'not-found', '没找到要切换的分P');
 
-            await page
-                .waitForURL(
-                    (url) =>
-                        url.pathname.includes(
-                            FIXTURE.albumSwitchBvId,
-                        ) || /[?&]p=\d+/.test(url.search),
-                    { timeout: NAV_TIMEOUT },
-                )
-                .catch(async () => {
-                    const active = await page
-                        .locator(
-                            '.video-pod__item.simple .simple-base-item.active',
-                        )
-                        .first()
-                        .getAttribute('data-key');
-                    throw new Error(
-                        `点击分P后没有切到目标视频（当前 ${page.url()}，播放 ${active}）`,
-                    );
-                });
+            if (outcome === 'timeout') {
+                const active = await page
+                    .locator(
+                        '.video-pod__item.simple .simple-base-item.active',
+                    )
+                    .first()
+                    .getAttribute('data-key');
+                throw new Error(
+                    `点击分P后没有切到目标视频（当前 ${page.url()}，播放 ${active}）`,
+                );
+            }
 
             // spec 用例 2：URL 变化后 3s 内合集标记就该回来
             await page.waitForSelector(
@@ -1009,6 +1052,44 @@ const CASES = [
             );
 
             return `他人 ${other.watched}/${other.items} 已看，自己 ${own.watched}/${own.items} 已看`;
+        },
+    },
+    {
+        id: 'favIndexCacheReuse',
+        title: '收藏夹页首访建索引，硬刷新复用缓存且标记仍在',
+        run: async (page) => {
+            // 首访不假设是 network：同一个 profile 之前可能已经建过缓存。
+            await gotoPage(page, FIXTURE.ownFavList);
+            const firstMarks = await waitForMarks(page);
+            const firstState = await readFavIndexState(page);
+
+            assert(
+                firstState === 'network' || firstState === 'cache',
+                `首访 data-fav-index=${firstState}，期望 network 或 cache`,
+            );
+            assert(
+                firstMarks > 0,
+                '首访收藏夹页没有出现任何 .watch-mark',
+            );
+
+            // TTL 是 5 分钟：硬刷新仍在窗口内，应直接读缓存不发 list-all。
+            await page.reload({
+                waitUntil: 'domcontentloaded',
+                timeout: NAV_TIMEOUT,
+            });
+            const secondMarks = await waitForMarks(page);
+            const secondState = await readFavIndexState(page);
+
+            assert(
+                secondState === 'cache',
+                `刷新后 data-fav-index=${secondState}，期望 cache`,
+            );
+            assert(
+                secondMarks > 0,
+                '刷新后收藏夹页没有出现任何 .watch-mark',
+            );
+
+            return `首访 ${firstState}（${firstMarks} 个标记）→ 刷新 ${secondState}（${secondMarks} 个标记）`;
         },
     },
     {
