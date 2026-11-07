@@ -13,7 +13,7 @@
  *     api_getFavFolderList,
  *     api_getFavResourceIds,
  *     api_getFavVideoStatus,
- * } from '@yiero/bilibili-api-lib/fav';
+ * } from '@yiero/bilibili-api-lib';
  *
  * // 收藏夹列表
  * const folders = await api_getFavFolderList(2);

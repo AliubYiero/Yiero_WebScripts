@@ -103,7 +103,7 @@ console.log(roomInfo.data.live_status);
 
 | 函数 | 请求 | 登录要求 | 文档 |
 |------|------|----------|------|
-| `api_getPgcSeasonByEp` | `GET /pgc/view/web/season`（`ep_id`） | 否（内部携带登录态） | [文档](./docs/pgc/api_getPgcSeasonByEp.md) |
+| `api_getPgcSeasonByEp` | `GET /pgc/view/web/season`（`ep_id`） | 否（匿名可用；仍统一携带登录态，避免大会员/地区差异） | [文档](./docs/pgc/api_getPgcSeasonByEp.md) |
 
 > `fav` / `pgc` 模块的函数均内部使用 `xhrRequest.getWithCredentials`；`pgc` 返回 `result` 信封，其余返回 `data` 信封。
 

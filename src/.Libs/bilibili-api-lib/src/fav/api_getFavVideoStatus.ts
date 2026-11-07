@@ -18,7 +18,7 @@ import type { IFavVideoStatusData } from './interfaces/IFavVideoStatus.ts';
  * ```typescript
  * const status = await api_getFavVideoStatus(114514);
  * console.log(status.data.favoured); // 是否已收藏
- * console.log(status.data.count);    // 该视频被收藏的次数
+ * console.log(status.data.count);    // 接口返回的 count 字段（含义以 B 站为准，未在本库保证）
  *
  * if (status.data.favoured) {
  *     console.log('已收藏');

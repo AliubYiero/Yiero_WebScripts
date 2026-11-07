@@ -39,7 +39,9 @@ describe('Module exports', () => {
     test('pgc module exports', async () => {
         const pgc = await import('../src/pgc');
         expect(pgc.api_getPgcSeasonByEp).toBeDefined();
+    });
 
+    test('main entry re-exports', async () => {
         // 主入口需同时重新导出 fav / pgc 的四个函数
         const index = await import('../src/index');
         expect(index.api_getFavFolderList).toBeDefined();

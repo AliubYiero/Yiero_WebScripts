@@ -24,7 +24,7 @@ function api_getFavVideoStatus(
 
 ## 返回值
 
-返回 `Promise<XhrResponse<IFavVideoStatusData>>`，`data.favoured` 为当前用户是否已收藏，`data.count` 为该视频被收藏的次数。
+返回 `Promise<XhrResponse<IFavVideoStatusData>>`，`data.favoured` 为当前用户是否已收藏，`data.count` 为接口返回的 count 字段（含义以 B 站为准，未在本库保证）。
 
 ## 使用示例
 
@@ -35,7 +35,7 @@ const status = await api_getFavVideoStatus(114514);
 
 if (status.code === 0) {
   console.log('是否已收藏:', status.data.favoured);
-  console.log('被收藏次数:', status.data.count);
+  console.log('count 字段:', status.data.count);
 }
 ```
 
@@ -52,7 +52,7 @@ if (status.code === 0) {
 
 ```typescript
 interface IFavVideoStatusData {
-  /** 该视频被收藏的次数 */
+  /** 接口返回的 count 字段（含义以 B 站为准，未在本库保证） */
   count: number;
   /** 当前登录用户是否已收藏该视频 */
   favoured: boolean;

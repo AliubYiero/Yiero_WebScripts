@@ -41,7 +41,8 @@ const folders = await api_getFavFolderList(2);
 if (folders.code === 0) {
   console.log('收藏夹数量:', folders.data.count);
 
-  folders.data.list.forEach((folder) => {
+  const list = folders.data.list ?? [];
+  list.forEach((folder) => {
     console.log('收藏夹 media_id:', folder.id);
     console.log('收藏夹短 id:', folder.fid);
     console.log('标题:', folder.title);
@@ -53,7 +54,8 @@ if (folders.code === 0) {
 const folderList = await api_getFavFolderList(2, 114514);
 
 if (folderList.code === 0) {
-  const contains = folderList.data.list.filter(
+  const list = folderList.data.list ?? [];
+  const contains = list.filter(
     (folder) => folder.fav_state === 1
   );
   console.log('包含该视频的收藏夹:', contains.map((folder) => folder.title));

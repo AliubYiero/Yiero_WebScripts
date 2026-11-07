@@ -37,8 +37,10 @@ import {
 // 先取收藏夹列表，再取第一个收藏夹的全部内容 ID
 const folders = await api_getFavFolderList(2);
 
-if (folders.code === 0 && folders.data.list.length > 0) {
-  const mediaId = folders.data.list[0].id;
+const list = folders.data.list ?? [];
+
+if (folders.code === 0 && list.length > 0) {
+  const mediaId = list[0].id;
   const resources = await api_getFavResourceIds(mediaId);
 
   if (resources.code === 0) {
