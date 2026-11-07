@@ -27,6 +27,16 @@
 - [api_getUserUploadVideoList](./video/api_getUserUploadVideoList.md) - 获取用户投稿视频列表
 - [getVideoSubtitlesList](./video/quick/getVideoSubtitlesList.md) - 获取视频字幕列表（带快捷调用）
 
+### 收藏夹模块（需登录）
+
+- [api_getFavFolderList](./fav/api_getFavFolderList.md) - 获取用户创建的收藏夹列表
+- [api_getFavResourceIds](./fav/api_getFavResourceIds.md) - 获取收藏夹内的全部内容 ID
+- [api_getFavVideoStatus](./fav/api_getFavVideoStatus.md) - 获取单个视频的收藏状态
+
+### PGC 番剧模块
+
+- [api_getPgcSeasonByEp](./pgc/api_getPgcSeasonByEp.md) - 按剧集 ep_id 获取番剧季度信息
+
 ## 快速开始
 
 ```typescript

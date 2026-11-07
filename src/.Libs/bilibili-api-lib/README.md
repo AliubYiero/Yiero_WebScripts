@@ -91,6 +91,22 @@ console.log(roomInfo.data.live_status);
 | `api_editSeason` | 编辑合集的元数据信息（需要登录） | [文档](./docs/season/api_editSeason.md) |
 | `api_editSeasonSection` | 编辑合集中的小节内容（需要登录） | [文档](./docs/season/api_editSeasonSection.md) |
 
+### 收藏夹模块 (Fav)
+
+| 函数 | 请求 | 登录要求 | 文档 |
+|------|------|----------|------|
+| `api_getFavFolderList` | `GET /x/v3/fav/folder/created/list-all`（可选 `rid` + `type=2`） | 需要 | [文档](./docs/fav/api_getFavFolderList.md) |
+| `api_getFavResourceIds` | `GET /x/v3/fav/resource/ids`（`media_id` + `platform=web`） | 需要 | [文档](./docs/fav/api_getFavResourceIds.md) |
+| `api_getFavVideoStatus` | `GET /x/v2/fav/video/favoured`（`aid`） | 需要 | [文档](./docs/fav/api_getFavVideoStatus.md) |
+
+### 番剧模块 (PGC)
+
+| 函数 | 请求 | 登录要求 | 文档 |
+|------|------|----------|------|
+| `api_getPgcSeasonByEp` | `GET /pgc/view/web/season`（`ep_id`） | 否（内部携带登录态） | [文档](./docs/pgc/api_getPgcSeasonByEp.md) |
+
+> `fav` / `pgc` 模块的函数均内部使用 `xhrRequest.getWithCredentials`；`pgc` 返回 `result` 信封，其余返回 `data` 信封。
+
 
 ## 类型定义
 
@@ -121,7 +137,18 @@ import type {
   ISeasonInfo,
   ISeasonSectionInfo,
   IEditSeasonBody,
-  IEditSeasonSectionBody
+  IEditSeasonSectionBody,
+
+  // 收藏夹模块
+  IFavFolder,
+  IFavFolderListData,
+  IFavResourceId,
+  IFavVideoStatusData,
+
+  // 番剧模块（PGC）
+  IPgcEpisode,
+  IPgcSeason,
+  IPgcSeasonResponse
 } from '@yiero/bilibili-api-lib';
 ```
 
@@ -135,6 +162,8 @@ import type {
 | 视频 | [api_getVideoInfo](./docs/video/api_getVideoInfo.md) · [api_getPlayerInfo](./docs/video/api_getPlayerInfo.md) · [api_getDanmakuInfo](./docs/video/api_getDanmakuInfo.md) · [api_getSubtitleContent](./docs/video/api_getSubtitleContent.md) · [api_getUserUploadVideoList](./docs/video/api_getUserUploadVideoList.md) · [getVideoId](./docs/video/getVideoId.md) |
 | 用户 | [api_getUserCard](./docs/user/api_getUserCard.md) |
 | 合集 | [api_getSeasonInfo](./docs/season/api_getSeasonInfo.md) · [api_getSeasonSectionInfo](./docs/season/api_getSeasonSectionInfo.md) · [api_editSeason](./docs/season/api_editSeason.md) · [api_editSeasonSection](./docs/season/api_editSeasonSection.md) |
+| 收藏夹 | [api_getFavFolderList](./docs/fav/api_getFavFolderList.md) · [api_getFavResourceIds](./docs/fav/api_getFavResourceIds.md) · [api_getFavVideoStatus](./docs/fav/api_getFavVideoStatus.md) |
+| 番剧（PGC） | [api_getPgcSeasonByEp](./docs/pgc/api_getPgcSeasonByEp.md) |
 
 
 ## 开发指南
