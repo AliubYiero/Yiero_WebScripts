@@ -187,33 +187,149 @@ const scanVideoPage = async (): Promise<void> => {
     }
 };
 
-/** 观察者防抖计时器 */
-let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+/** 容器与其观察者的映射 */
+const containerObservers = new Map<HTMLElement, MutationObserver>();
+
+/** 条目扫描节流计时器 */
+let itemScanTimer: ReturnType<typeof setTimeout> | null = null;
+
+/** 容器发现节流计时器 */
+let containerBindTimer: ReturnType<typeof setTimeout> | null = null;
+
+/**
+ * 排一次条目扫描
+ *
+ * 100ms 窗口内的多次变化合并成一次，窗口结束时执行；
+ * 窗口期间路由已切换则丢弃。
+ */
+const scheduleItemScan = () => {
+    if (itemScanTimer !== null) return;
+
+    const version = getPageVersion();
+    itemScanTimer = setTimeout(() => {
+        itemScanTimer = null;
+        if (getPageVersion() !== version) return;
+        void scanVideoPage();
+    }, 100);
+};
+
+/**
+ * 处理容器内的新增节点
+ *
+ * 只看新增元素：命中条目选择器，或其中包含条目，才排扫描。
+ */
+const onContainerRecords = (
+    records: MutationRecord[],
+    group: IScanGroup,
+) => {
+    if (document.hidden) return;
+
+    for (const record of records) {
+        for (const node of record.addedNodes) {
+            if (node.nodeType !== Node.ELEMENT_NODE) continue;
+
+            const element = node as HTMLElement;
+            if (
+                element.matches(group.item) ||
+                element.querySelector(group.item)
+            ) {
+                scheduleItemScan();
+                return;
+            }
+        }
+    }
+};
+
+/**
+ * 清理已失效的容器观察器
+ *
+ * 容器被移出文档，或观察器已被 `ObserverList.reset()` 断开时，
+ * 从映射里移除，等待下次发现时重绑。
+ */
+const pruneDisconnected = () => {
+    for (const [container, observer] of containerObservers) {
+        if (
+            container.isConnected &&
+            ObserverList.list.has(observer)
+        ) {
+            continue;
+        }
+
+        ObserverList.remove(observer);
+        containerObservers.delete(container);
+    }
+};
+
+/**
+ * 绑定当前页面上尚未绑定的扫描容器
+ *
+ * 同一容器可能服务多个解析组（`.rec-list` 有两种卡片），
+ * 因此一个容器只建一个观察器，回调里逐个解析组过滤。
+ */
+const bindContainerObservers = () => {
+    pruneDisconnected();
+
+    for (const group of SCAN_GROUP_LIST) {
+        const containerList = document.querySelectorAll<HTMLElement>(
+            group.container,
+        );
+
+        for (const container of containerList) {
+            if (containerObservers.has(container)) continue;
+
+            const groupList = SCAN_GROUP_LIST.filter((scanGroup) =>
+                container.matches(scanGroup.container),
+            );
+
+            const observer = new MutationObserver((records) => {
+                for (const scanGroup of groupList) {
+                    onContainerRecords(records, scanGroup);
+                }
+            });
+
+            observer.observe(container, {
+                childList: true,
+                subtree: true,
+            });
+
+            ObserverList.add(observer);
+            containerObservers.set(container, observer);
+        }
+    }
+};
+
+/**
+ * 排一次容器发现
+ *
+ * 300ms 窗口内的多次变化合并成一次，窗口结束时执行；
+ * 窗口期间路由已切换则丢弃。
+ */
+const scheduleContainerBind = () => {
+    if (containerBindTimer !== null) return;
+
+    const version = getPageVersion();
+    containerBindTimer = setTimeout(() => {
+        containerBindTimer = null;
+        if (getPageVersion() !== version) return;
+        bindContainerObservers();
+    }, 300);
+};
 
 /**
  * 视频页面的已看视频处理
  *
- * 这里不用 `createMutationObserver`：它只观察直接子节点且不带
- * `subtree`，而视频页的懒加载卡片会出现在深层容器里；同时本页
- * 需要 100ms 防抖把连续插入合并成一次扫描。因此这里自己建
- * observer，并同样登记进 `ObserverList`，由 `updatePage` 统一断开。
+ * body 上的观察器只负责发现容器（节流 300ms + 尾执行），
+ * 每个容器各自观察 `subtree` 的新增节点并过滤条目，
+ * 高频变动因此被限制在局部。所有观察器都登记进
+ * `ObserverList`，由 `updatePage` 统一断开。
  */
 export const handleVideoPage = async () => {
-    await scanVideoPage();
+    // 先绑容器，避免首次扫描期间新出现的容器漏观察
+    bindContainerObservers();
 
     const observer = new MutationObserver(() => {
-        const version = getPageVersion();
-
-        if (debounceTimer !== null) {
-            clearTimeout(debounceTimer);
-        }
-
-        debounceTimer = setTimeout(() => {
-            debounceTimer = null;
-            // 防抖期间路由已切换则丢弃
-            if (getPageVersion() !== version) return;
-            void scanVideoPage();
-        }, 100);
+        if (document.hidden) return;
+        scheduleContainerBind();
     });
 
     observer.observe(document.body, {
@@ -222,4 +338,6 @@ export const handleVideoPage = async () => {
     });
 
     ObserverList.add(observer);
+
+    await scanVideoPage();
 };
