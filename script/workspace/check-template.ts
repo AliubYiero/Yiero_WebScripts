@@ -85,7 +85,7 @@ function collectSources(dir: string): string[] {
             }
             continue;
         }
-        if (/\.(ts|js)$/.test(entry.name)) {
+        if (/\.(ts|js|mjs)$/.test(entry.name)) {
             files.push(join(dir, entry.name));
         }
     }

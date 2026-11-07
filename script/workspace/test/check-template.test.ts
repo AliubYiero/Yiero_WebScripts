@@ -11,6 +11,19 @@ import { join } from 'node:path';
 import { test } from 'node:test';
 import { checkTemplate } from '../check-template';
 import { templateDir } from '../template';
+import { token } from '../tokens';
+
+/** 复制模板到临时目录：删文件、改内容都不碰真模板。 */
+function withCopiedTemplate(run: (target: string) => void): void {
+    const root = mkdtempSync(join(tmpdir(), 'ws-check-'));
+    const target = join(root, 'demo');
+    try {
+        cpSync(templateDir, target, { recursive: true });
+        run(target);
+    } finally {
+        rmSync(root, { recursive: true, force: true });
+    }
+}
 
 test('模板本身没有错误', () => {
     const result = checkTemplate(templateDir, {
@@ -167,4 +180,92 @@ test('TypeScript 语法错误会被报告', () => {
     } finally {
         rmSync(root, { recursive: true, force: true });
     }
+});
+
+test('缺项目级 CLAUDE.md 会被报告', () => {
+    withCopiedTemplate((target) => {
+        rmSync(join(target, 'CLAUDE.md'), { force: true });
+
+        const result = checkTemplate(target, {
+            allowPlaceholders: true,
+        });
+        ok(result.errors.includes('缺少必备文件：CLAUDE.md'));
+    });
+});
+
+test('缺浏览器验证骨架会被报告', () => {
+    withCopiedTemplate((target) => {
+        rmSync(join(target, 'test/browser-verify.mjs'), {
+            force: true,
+        });
+
+        const result = checkTemplate(target, {
+            allowPlaceholders: true,
+        });
+        ok(
+            result.errors.includes(
+                '缺少必备文件：test/browser-verify.mjs',
+            ),
+        );
+    });
+});
+
+test('缺 test:browser 委托命令会被报告', () => {
+    withCopiedTemplate((target) => {
+        const manifestPath = join(target, 'package.json');
+        const manifest = JSON.parse(
+            readFileSync(manifestPath, 'utf8'),
+        ) as { scripts?: Record<string, string> };
+        delete manifest.scripts?.['test:browser'];
+        writeFileSync(manifestPath, JSON.stringify(manifest), 'utf8');
+
+        const result = checkTemplate(target, {
+            allowPlaceholders: true,
+        });
+        ok(result.errors.includes('模板缺少委托命令：test:browser'));
+    });
+});
+
+test('生成物残留仓库根指针会被报告', () => {
+    withCopiedTemplate((target) => {
+        const result = checkTemplate(target);
+        ok(
+            result.errors.includes(
+                `CLAUDE.md 的仓库根指针未替换：${token(
+                    'repoRootPath',
+                )}`,
+            ),
+        );
+    });
+});
+
+test('模板自身允许保留仓库根指针占位符', () => {
+    withCopiedTemplate((target) => {
+        const result = checkTemplate(target, {
+            allowPlaceholders: true,
+        });
+        ok(
+            !result.errors.some((error) =>
+                error.startsWith('CLAUDE.md 的仓库根指针未替换'),
+            ),
+        );
+    });
+});
+
+test('骨架 mjs 的非法 UTF-8 会被报告', () => {
+    withCopiedTemplate((target) => {
+        writeFileSync(
+            join(target, 'test/browser-verify.mjs'),
+            Buffer.from([0x63, 0x6f, 0x6e, 0x73, 0x74, 0xff, 0x3b]),
+        );
+
+        const result = checkTemplate(target, {
+            allowPlaceholders: true,
+        });
+        ok(
+            result.errors.includes(
+                '源码不是合法 UTF-8：test/browser-verify.mjs',
+            ),
+        );
+    });
 });

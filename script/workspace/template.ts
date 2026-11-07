@@ -17,6 +17,8 @@ export const requiredFiles = [
     'types/UserConfig.d.ts',
     'types/UserScript.d.ts',
     'types/scriptcat.d.ts',
+    'CLAUDE.md',
+    'test/browser-verify.mjs',
 ];
 
 /** 模板里不该出现的东西：复制时也用它过滤。 */
@@ -68,6 +70,7 @@ export const standardScripts: Record<string, string> = {
     commit: 'pnpm -w run commit',
     'release:tag': 'pnpm -w run release:tag',
     push: 'pnpm -w run push',
+    'test:browser': 'node test/browser-verify.mjs',
 };
 
 /** 模板依赖族的标准值：模板与它漂移即视为腐烂。 */

@@ -10,6 +10,7 @@
         "dev:sync": "tsc && vite build --mode sync --watch",
         "dev:test": "tsc && vite build --mode test --watch",
         "test": "vitest",
+        "test:browser": "node test/browser-verify.mjs",
         "coverage": "vitest run --coverage",
         "commit": "pnpm -w run commit",
         "release:tag": "pnpm -w run release:tag",
