@@ -10,11 +10,39 @@
 // @namespace      https://github.com/AliubYiero/Yiero_WebScripts
 // @noframes
 // @icon           https://www.youpin898.com/favicon.ico
+// @grant          GM_info
+// @grant          GM_cookie
 // @grant          GM_xmlhttpRequest
 // @grant          GM_addStyle
 // ==/UserScript==
 (function() {
   "use strict";
+  const environmentTest = () => GM_info.scriptHandler;
+  function getCookie(content, key) {
+    const isTextCookie = [
+      /^\w+=[^=;]+$/,
+      /^\w+=[^=;]+;/
+    ].some((reg) => reg.test(content));
+    if (isTextCookie) {
+      const cookieList = content.split(/;\s?/).map((cookie) => cookie.split("="));
+      const cookieMap = new Map(cookieList);
+      const cookieValue = cookieMap.get(key);
+      if (!cookieValue) return Promise.reject(new Error("\u83B7\u53D6 Cookie \u5931\u8D25, key \u4E0D\u5B58\u5728."));
+      return Promise.resolve(cookieValue);
+    }
+    return new Promise((resolve, reject) => {
+      const env = environmentTest();
+      if ("ScriptCat" !== env) return reject(new Error(`\u5F53\u524D\u811A\u672C\u4E0D\u652F\u6301 ${env} \u73AF\u5883, \u4EC5\u652F\u6301 ScriptCat .`));
+      GM_cookie("list", {
+        domain: content
+      }, (cookieList) => {
+        if (!cookieList) return void reject(new Error("\u83B7\u53D6 Cookie \u5931\u8D25, \u8BE5\u57DF\u540D\u4E0B\u6CA1\u6709 cookie. "));
+        const userIdCookie = cookieList.find((cookie) => cookie.name === key);
+        if (!userIdCookie) return void reject(new Error("\u83B7\u53D6 Cookie \u5931\u8D25, key \u4E0D\u5B58\u5728. "));
+        resolve(userIdCookie.value);
+      });
+    });
+  }
   const parseResponseText = (responseText) => {
     try {
       return JSON.parse(responseText);
@@ -245,24 +273,17 @@
   };
   const TREND_API_URL = "https://pc-api.youpin898.com/api/youpin/price/trend/data";
   const TREND_ORDER_TYPE = "13";
-  const formatTradeCount = (count) => {
-    if (count.sevenDay === null) {
-      return [];
-    }
-    const lines = [`\u8FD17\u65E5 ${count.sevenDay} \u6B21\u4EA4\u6613`];
-    if (count.thirtyDay !== null) {
-      lines.push(`\u8FD130\u65E5 ${count.thirtyDay} \u6B21\u4EA4\u6613`);
-    }
-    return lines;
-  };
   const tradeCountCache = /* @__PURE__ */ new Map();
-  const readLoginToken = () => {
-    const cookieItem = document.cookie.split(";").map((item) => item.trim()).find((item) => item.startsWith("uu_token="));
-    if (!cookieItem) {
+  const readLoginToken = async () => {
+    const cookie = document.cookie;
+    if (!cookie) {
       return null;
     }
-    const token = cookieItem.slice("uu_token=".length);
-    return token || null;
+    try {
+      return await getCookie(cookie, "uu_token");
+    } catch {
+      return null;
+    }
   };
   const requestTradeCount = async (templateId, day, token) => {
     try {
@@ -301,7 +322,7 @@
       return cached;
     }
     const pending = (async () => {
-      const token = readLoginToken();
+      const token = await readLoginToken();
       if (!token) {
         return null;
       }
@@ -316,7 +337,7 @@
     })();
     const result = pending.then(
       (count) => {
-        if (count === null) {
+        if (count === null || count.thirtyDay === null) {
           tradeCountCache.delete(templateId);
         }
         return count;
@@ -328,6 +349,13 @@
     );
     tradeCountCache.set(templateId, result);
     return result;
+  };
+  const formatTradeCount = (count) => {
+    const lines = [`\u8FD17\u65E5 ${count.sevenDay} \u6B21\u4EA4\u6613`];
+    if (count.thirtyDay !== null) {
+      lines.push(`\u8FD130\u65E5 ${count.thirtyDay} \u6B21\u4EA4\u6613`);
+    }
+    return lines;
   };
   const SALE_PRICE_SELECTOR = '[id$="-panel-sale"] [class*="price-box"]';
   const parsePriceText = (text) => Number.parseFloat(text.replace(/[¥￥,\s]/g, ""));
@@ -400,7 +428,6 @@
     }
     if (!discountNode.isConnected) return;
     const lines = formatTradeCount(count);
-    if (lines.length === 0) return;
     discountNode.querySelector(".trade-count")?.remove();
     const tradeCountNode = document.createElement("span");
     tradeCountNode.classList.add("trade-count");
