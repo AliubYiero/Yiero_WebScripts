@@ -12,9 +12,9 @@ export const isOwnFavFolder = async (
     if (!Number.isFinite(fid)) return false;
 
     const favIndex = await ensureFavIndex();
-    if (!favIndex) return false;
+    if (favIndex.kind !== 'ok') return false;
 
-    return favIndex.folders.some(
+    return favIndex.index.folders.some(
         (folder) => folder.fid === fid || folder.id === fid,
     );
 };

@@ -1,19 +1,27 @@
-import type { IFavFolderCacheEntry, IFavFolderMeta } from './types';
+import type { IFavFolderMeta, IFavFolderShard } from './types';
 
 /**
- * 对比本地缓存与远端收藏夹列表，算出需要刷新的夹、需要删除的夹
- * 与最新的元信息。
+ * diff 只需要缓存条目的 id / synced / mediaCount。
+ */
+type CachedFolder = Pick<
+    IFavFolderShard,
+    'id' | 'synced' | 'mediaCount'
+>;
+
+/**
+ * 对比本地缓存与远端收藏夹列表，算出需要刷新的夹、需要删除的
+ * 夹与最新的元信息。
  *
  * - 缓存里没有该 id → refresh
  * - 缓存条目的 synced 为 false → refresh
  * - mediaCount 变化 → refresh
  * - remote 里没有的 id → remove
- * - meta 始终返回 remote 列表，用于更新 title / fid / mid
+ * - meta 始终返回 remote 列表，用于更新 title / fid
  *
  * 不做网络请求，也不读写存储。
  */
 export function favFolderDiff(
-    cached: IFavFolderCacheEntry[],
+    cached: CachedFolder[],
     remote: IFavFolderMeta[],
 ): {
     refresh: IFavFolderMeta[];
