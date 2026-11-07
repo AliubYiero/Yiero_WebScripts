@@ -37,7 +37,9 @@ export const handleVideoSign = async (item: IVideoItem) => {
     const aid = await getVideoAvId(item.videoId);
     const response = await api_getFavVideoStatus(aid);
     if (response.code !== 0) {
-        throw new Error(response.message);
+        throw new Error(
+            `favoured ${response.code}: ${response.message}`,
+        );
     }
 
     const videoTag = response.data.favoured ? 'watched' : 'unwatched';
@@ -50,9 +52,30 @@ export const handleVideoSign = async (item: IVideoItem) => {
 };
 
 /**
+ * 回源熔断日志，只打一条，便于现场排查为何不再标记。
+ */
+function logBreakerOpen(failures: number): void {
+    console.info(
+        '[watch-sign] 回源已熔断：' +
+            `连续 ${failures} 次失败，` +
+            '本页剩余视频不再请求',
+    );
+}
+
+/**
  * 视频标记处理队列，用于异步处理
+ *
+ * 同一 videoId 只会入队一次；失败按 2 的幂退避
+ * （1200ms 起，上限 8000ms）；连续 5 次失败即熔断，
+ * 风控时不再自我加压。
  */
 export const videoSignProcessingQueue = new DelayedQueue(
     handleVideoSign,
-    500,
+    {
+        delay: 1200,
+        maxDelay: 8000,
+        breakerThreshold: 5,
+        keyOf: (item) => item.videoId,
+        onBreakerOpen: logBreakerOpen,
+    },
 );
