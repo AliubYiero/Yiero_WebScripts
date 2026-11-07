@@ -1,6 +1,5 @@
 import { deepEqual, equal, ok, throws } from 'node:assert/strict';
 import {
-    cpSync,
     mkdirSync,
     mkdtempSync,
     readFileSync,
@@ -19,7 +18,6 @@ import {
     parseTarget,
 } from '../target-path';
 import { templateDir } from '../template';
-import { token } from '../tokens';
 import { repoRoot, SPECIAL_DOMAINS } from '../workspace';
 
 const NAMESPACE = 'https://github.com/AliubYiero/Yiero_WebScripts';
@@ -70,31 +68,19 @@ test('生成物可以独立体检通过，并默认带 GPL-3', () => {
 });
 
 test('生成物带项目级文档，仓库根指针按深度替换', () => {
-    const root = mkdtempSync(join(tmpdir(), 'ws-scaffold-'));
-    const source = join(root, 'template');
-    const target = join(root, 'demo-project');
-    try {
-        cpSync(templateDir, source, { recursive: true });
-        // 模板 CLAUDE.md 由 ticket 05 提供，这里自己造一份，不依赖它已存在。
-        writeFileSync(
-            join(source, 'CLAUDE.md'),
-            `[仓库根 CLAUDE.md](${token(
-                'repoRootPath',
-            )}/CLAUDE.md)\n`,
-            'utf8',
-        );
-
-        copyTemplateTo(source, target, 'demo-project');
+    withTempProject((target) => {
         fillPlaceholders(target, {
             ...baseOptions,
             runMode: { key: 'match', value: 'https://*/*' },
         });
 
+        // 用的是真实模板（copyTemplateTo 整目录复制），不另造一份。
         const projectDoc = readFileSync(
             join(target, 'CLAUDE.md'),
             'utf8',
         );
         ok(!projectDoc.includes('{{'));
+        ok(projectDoc.includes('docs/agents/gmlib.md'));
 
         const linked = /\]\(([^)]+)\/CLAUDE\.md\)/.exec(projectDoc);
         ok(linked !== null);
@@ -103,9 +89,7 @@ test('生成物带项目级文档，仓库根指针按深度替换', () => {
             resolve(target, linked[1], 'CLAUDE.md'),
             join(repoRoot, 'CLAUDE.md'),
         );
-    } finally {
-        rmSync(root, { recursive: true, force: true });
-    }
+    });
 });
 
 test('定时脚本写入 crontab 且不再带 match', () => {
