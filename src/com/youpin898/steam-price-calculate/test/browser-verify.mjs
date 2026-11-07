@@ -49,6 +49,12 @@ const BANNER_FILE = join(PROJECT_DIR, 'banner', 'UserScript.ts');
 const NO_SALE_PRICE_WARNING =
     '未查询到商品信息或暂时无法读取在售价格';
 
+/** 交易数量行文案，第二组捕获数量 */
+const TRADE_LINE_PATTERN = /^近(7|30)日 (\d+) 次交易$/;
+
+/** 未登录 / 接口异常时交易数量告警里的关键字 */
+const TRADE_COUNT_WARNING = '交易数量';
+
 /** 正常 case 等待 `.discount-info` 的上限 */
 const NORMAL_TIMEOUT = 20_000;
 
@@ -386,6 +392,10 @@ async function readDiscount(page) {
             classes: (percentNode?.className ?? '')
                 .split(/\s+/)
                 .filter(Boolean),
+            // 交易数量块的两行小字，按 DOM 顺序取文本
+            tradeLines: [
+                ...node.querySelectorAll('.trade-count > span'),
+            ].map((item) => (item.textContent ?? '').trim()),
             count: document.querySelectorAll('.discount-info').length,
             hasViewMarket: viewMarket !== null,
             beforeViewMarket:
@@ -408,6 +418,33 @@ async function waitDiscount(page, timeout = NORMAL_TIMEOUT) {
 function requireDiscount(discount) {
     assert(discount !== null, '没有渲染 .discount-info');
     return discount;
+}
+
+/** 把一行「近N日 M 次交易」解析成 `{ day, count }`，不符返回 null */
+function parseTradeLine(line) {
+    const matched = TRADE_LINE_PATTERN.exec(line);
+    if (matched === null) return null;
+
+    return {
+        day: Number.parseInt(matched[1], 10),
+        count: Number.parseInt(matched[2], 10),
+    };
+}
+
+/** 等交易数量块异步补齐，再读出折扣信息 */
+async function waitTradeCount(page, timeout = NORMAL_TIMEOUT) {
+    await page.waitForSelector('.discount-info .trade-count', {
+        state: 'attached',
+        timeout,
+    });
+    return readDiscount(page);
+}
+
+/** 除交易数量外的脚本 warning，干净 profile 未登录会触发一条 */
+function nonTradeWarnings(log) {
+    return scriptWarnings(log).filter(
+        (message) => !message.text.includes(TRADE_COUNT_WARNING),
+    );
 }
 
 /** warning 文本，用于断言失败时给上下文 */
@@ -506,7 +543,7 @@ const CASES = [
                 '折扣没有插在「查看市场」之前',
             );
             assert(
-                scriptWarnings(log).length === 0,
+                nonTradeWarnings(log).length === 0,
                 `出现脚本警告：${describeWarnings(log)}`,
             );
 
@@ -718,6 +755,75 @@ const CASES = [
             );
 
             return `${tags.length} 个标签`;
+        },
+    },
+    {
+        id: 'H',
+        title: '108492 折扣旁出现交易数量块',
+        run: async (page) => {
+            await openDetail(page, 108492);
+            requireDiscount(await waitDiscount(page));
+            const discount = requireDiscount(
+                await waitTradeCount(page),
+            );
+            const lines = discount.tradeLines;
+            const parsed = lines.map(parseTradeLine);
+
+            assert(
+                lines.length >= 1 && lines.length <= 2,
+                `交易数量 ${lines.length} 行，期望 1–2 行：` +
+                    (lines.join(' / ') || '无'),
+            );
+            assert(
+                parsed.every((item) => item !== null),
+                `交易数量文案不符：${lines.join(' / ')}`,
+            );
+
+            // 第一行是 7 日时，该饰品已知有成交，数量应为正
+            const [first] = parsed;
+            if (first.day === 7) {
+                assert(
+                    first.count > 0,
+                    `近7日数量为 ${first.count}，期望大于 0`,
+                );
+            }
+
+            return `${lines.length} 行 ${lines.join(' · ')}`;
+        },
+    },
+    {
+        id: 'I',
+        title: '45040 交易数量两行齐全且 30 日不少于 7 日',
+        run: async (page) => {
+            await openDetail(page, 45040);
+            const discount = requireDiscount(
+                await waitTradeCount(page),
+            );
+            const lines = discount.tradeLines;
+            const parsed = lines.map(parseTradeLine);
+            const seven = parsed.find(
+                (item) => item !== null && item.day === 7,
+            );
+            const thirty = parsed.find(
+                (item) => item !== null && item.day === 30,
+            );
+
+            assert(
+                lines.length === 2,
+                `交易数量 ${lines.length} 行，期望 2 行：` +
+                    (lines.join(' / ') || '无'),
+            );
+            assert(
+                seven !== undefined && thirty !== undefined,
+                '交易数量缺少 7 日或 30 日行：' +
+                    (lines.join(' / ') || '无'),
+            );
+            assert(
+                thirty.count >= seven.count,
+                `30 日 ${thirty.count} 次少于 7 日 ${seven.count} 次`,
+            );
+
+            return `7 日 ${seven.count} / 30 日 ${thirty.count}`;
         },
     },
 ];
