@@ -1,111 +1,139 @@
-import type { IFavResourceId } from '@yiero/bilibili-api-lib';
 import { describe, expect, it } from 'vitest';
 import {
     buildFavLookup,
     favLookupHas,
+    toAid,
 } from '../src/module/favIndex/favLookup';
-import type { IFavFolderCacheEntry } from '../src/module/favIndex/types';
 
-const resource = (
-    id: number,
-    type: number,
-    bvid = '',
-    bv_id = '',
-): IFavResourceId => ({ id, type, bvid, bv_id });
-
-const folder = (
-    id: number,
-    items: IFavResourceId[],
-): IFavFolderCacheEntry => ({
-    id,
-    fid: id + 1000,
-    mid: 42,
-    title: `夹${id}`,
-    mediaCount: items.length,
-    items,
-    synced: true,
-});
-
-const lookupOf = (items: IFavResourceId[], complete = true) =>
-    buildFavLookup([folder(1, items)], complete);
+const lookupOf = (aids: number[], complete = true) =>
+    buildFavLookup(new Set(aids), complete);
 
 describe('buildFavLookup', () => {
-    it('只收 type === 2 的条目', () => {
-        const lookup = lookupOf([
-            resource(1, 2, 'BV1aaa'),
-            resource(2, 12, 'BV1bbb'),
-            resource(3, 21, 'BV1ccc'),
-        ]);
+    it('接收 Set 并透传 aids 与 complete', () => {
+        const lookup = buildFavLookup(new Set([1, 2, 3]), true);
 
-        expect(lookup.aids).toEqual(new Set([1]));
-        expect(lookup.bvids).toEqual(new Set(['BV1AAA']));
+        expect(lookup.aids).toEqual(new Set([1, 2, 3]));
+        expect(lookup.complete).toBe(true);
     });
 
-    it('bvid 缺失时回退到 bv_id', () => {
-        const lookup = lookupOf([resource(4, 2, '', 'BV1bbb')]);
+    it('接收 number[] 并转成 Set', () => {
+        const lookup = buildFavLookup([4, 5], false);
 
-        expect(lookup.bvids).toEqual(new Set(['BV1BBB']));
+        expect(lookup.aids).toBeInstanceOf(Set);
+        expect(lookup.aids).toEqual(new Set([4, 5]));
+        expect(lookup.complete).toBe(false);
+    });
+});
+
+describe('toAid', () => {
+    it('BV 号解码成 aid（库文档样例）', () => {
+        expect(toAid('BV1xx411c7mD')).toBe(2);
     });
 
-    it('bvid 存在时不使用 bv_id', () => {
-        const lookup = lookupOf([resource(5, 2, 'BV1ddd', 'BV1eee')]);
-
-        expect(lookup.bvids).toEqual(new Set(['BV1DDD']));
+    it('BV 前缀小写也能解码', () => {
+        expect(toAid('bv1xx411c7mD')).toBe(2);
     });
 
-    it('空 BV 号不加入集合', () => {
-        const lookup = lookupOf([resource(6, 2, '', '')]);
-
-        expect(lookup.aids).toEqual(new Set([6]));
-        expect(lookup.bvids.size).toBe(0);
+    it('长度不对的 BV 号返回 null', () => {
+        expect(toAid('BV1xx411c7m')).toBeNull();
+        expect(toAid('BV1xx411c7mDD')).toBeNull();
     });
 
-    it('透传 complete 标记', () => {
-        expect(lookupOf([], true).complete).toBe(true);
-        expect(lookupOf([], false).complete).toBe(false);
+    it('含字母表外字符的 BV 号返回 null', () => {
+        expect(toAid('BV1xx411c7m0')).toBeNull();
+    });
+
+    it('回环不一致的 BV 号返回 null', () => {
+        expect(toAid('BV1AAAAAAAAA')).toBeNull();
+    });
+
+    it('av 号与纯数字直取', () => {
+        expect(toAid('av123')).toBe(123);
+        expect(toAid('AV123')).toBe(123);
+        expect(toAid('123')).toBe(123);
+    });
+
+    it('非视频 ID 返回 null', () => {
+        expect(toAid('ep12')).toBeNull();
+        expect(toAid('')).toBeNull();
+        expect(toAid('foo')).toBeNull();
+        expect(toAid('BV')).toBeNull();
+    });
+
+    it('0 与超出安全整数的 ID 返回 null', () => {
+        expect(toAid('0')).toBeNull();
+        expect(toAid('av0')).toBeNull();
+        expect(toAid('-1')).toBeNull();
+        expect(toAid('9007199254740992')).toBeNull();
+        expect(toAid('av9007199254740992')).toBeNull();
     });
 });
 
 describe('favLookupHas', () => {
-    const lookup = lookupOf(
-        [
-            resource(114514, 2, 'BV1xx411c7mD'),
-            resource(1919810, 2, 'BV1yy411c7mE'),
-        ],
-        true,
-    );
+    const lookup = lookupOf([2]);
 
-    it('BV 号大小写不敏感命中', () => {
-        expect(favLookupHas(lookup, 'BV1xx411c7mD')).toBe(true);
-        expect(favLookupHas(lookup, 'bv1XX411c7mD')).toBe(true);
+    it('命中返回 watched', () => {
+        expect(favLookupHas(lookup, 'BV1xx411c7mD')).toEqual({
+            status: 'watched',
+        });
+        expect(favLookupHas(lookup, 'av2')).toEqual({
+            status: 'watched',
+        });
+        expect(favLookupHas(lookup, '2')).toEqual({
+            status: 'watched',
+        });
     });
 
-    it('av 号与纯数字命中', () => {
-        expect(favLookupHas(lookup, 'av114514')).toBe(true);
-        expect(favLookupHas(lookup, '114514')).toBe(true);
-    });
-
-    it('complete=true 未命中返回 false', () => {
-        expect(favLookupHas(lookup, 'BV1zz411c7mF')).toBe(false);
-        expect(favLookupHas(lookup, 'av999')).toBe(false);
-        expect(favLookupHas(lookup, '999')).toBe(false);
-    });
-
-    it('complete=false 未命中返回 null', () => {
-        const incomplete = lookupOf(
-            [resource(114514, 2, 'BV1xx411c7mD')],
-            false,
+    it('BV 与 aid 查询结果等价', () => {
+        expect(favLookupHas(lookup, 'BV1xx411c7mD')).toEqual(
+            favLookupHas(lookup, '2'),
         );
-
-        expect(favLookupHas(incomplete, 'BV1zz411c7mF')).toBeNull();
-        expect(favLookupHas(incomplete, 'av999')).toBeNull();
-        expect(favLookupHas(incomplete, '999')).toBeNull();
+        expect(favLookupHas(lookup, 'BV1xx411c7mE')).toEqual(
+            favLookupHas(lookup, '3'),
+        );
     });
 
-    it('非法 ID 返回 null', () => {
-        expect(favLookupHas(lookup, 'ep123')).toBeNull();
-        expect(favLookupHas(lookup, '')).toBeNull();
-        expect(favLookupHas(lookup, 'foo')).toBeNull();
-        expect(favLookupHas(lookup, 'BV')).toBeNull();
+    it('索引完整时未命中返回 unwatched', () => {
+        expect(favLookupHas(lookup, 'BV1xx411c7mE')).toEqual({
+            status: 'unwatched',
+        });
+        expect(favLookupHas(lookup, '3')).toEqual({
+            status: 'unwatched',
+        });
+    });
+
+    it('索引不完整时未命中返回 unknown/incomplete', () => {
+        const incomplete = lookupOf([2], false);
+
+        expect(favLookupHas(incomplete, '3')).toEqual({
+            status: 'unknown',
+            reason: 'incomplete',
+        });
+        expect(favLookupHas(incomplete, 'BV1xx411c7mE')).toEqual({
+            status: 'unknown',
+            reason: 'incomplete',
+        });
+        expect(favLookupHas(incomplete, 'BV1xx411c7mD')).toEqual({
+            status: 'watched',
+        });
+    });
+
+    it('无法解析的 ID 返回 unknown/unparsable', () => {
+        expect(favLookupHas(lookup, 'ep12')).toEqual({
+            status: 'unknown',
+            reason: 'unparsable',
+        });
+        expect(favLookupHas(lookup, '')).toEqual({
+            status: 'unknown',
+            reason: 'unparsable',
+        });
+        expect(favLookupHas(lookup, 'BV')).toEqual({
+            status: 'unknown',
+            reason: 'unparsable',
+        });
+        expect(favLookupHas(lookup, 'BV1AAAAAAAAA')).toEqual({
+            status: 'unknown',
+            reason: 'unparsable',
+        });
     });
 });
