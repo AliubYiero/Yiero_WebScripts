@@ -7,7 +7,8 @@
 
 import { elementWaiter } from '@yiero/gmlib';
 import type { QueryTemplateDetailData } from '../mockResponse.ts';
-import { formatTradeCount, getTradeCount } from '../tradeTrend.ts';
+import { getTradeCount } from '../tradeTrend.ts';
+import { formatTradeCount } from './formatTradeCount.ts';
 import { parseDiscountDataWithDetail } from './parseDiscountDataWithDetail.ts';
 
 /**
@@ -44,7 +45,6 @@ const appendTradeCount = async (
     if (!discountNode.isConnected) return;
 
     const lines = formatTradeCount(count);
-    if (lines.length === 0) return;
 
     // 幂等: 同一节点内只保留一个交易数量块
     discountNode.querySelector('.trade-count')?.remove();

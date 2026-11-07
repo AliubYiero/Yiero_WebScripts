@@ -392,10 +392,6 @@ async function readDiscount(page) {
             classes: (percentNode?.className ?? '')
                 .split(/\s+/)
                 .filter(Boolean),
-            // 交易数量块的两行小字，按 DOM 顺序取文本
-            tradeLines: [
-                ...node.querySelectorAll('.trade-count > span'),
-            ].map((item) => (item.textContent ?? '').trim()),
             count: document.querySelectorAll('.discount-info').length,
             hasViewMarket: viewMarket !== null,
             beforeViewMarket:
@@ -431,13 +427,40 @@ function parseTradeLine(line) {
     };
 }
 
-/** 等交易数量块异步补齐，再读出折扣信息 */
-async function waitTradeCount(page, timeout = NORMAL_TIMEOUT) {
+/** 断言当前 profile 已登录，H / I 依赖登录态 */
+async function requireLogin(page) {
+    const loggedIn = await page.evaluate(() =>
+        document.cookie.includes('uu_token='),
+    );
+    assert(
+        loggedIn,
+        'H/I 需要已登录的 profile（缺少 uu_token），' +
+            '请在已登录的浏览器里重跑',
+    );
+}
+
+/** 按 DOM 顺序读出交易数量块的文本行 */
+async function readTradeLines(page) {
+    return page.$$eval(
+        '.discount-info .trade-count > span',
+        (nodes) =>
+            nodes.map((node) => (node.textContent ?? '').trim()),
+    );
+}
+
+/**
+ * 打开详情页、确认登录并等交易数量补齐，返回交易数量各行
+ *
+ * H / I 共用：登录态缺失时立刻抛明确错误，而不是等满超时。
+ */
+async function openTradeCountPage(page, templateId) {
+    await openDetail(page, templateId);
+    await requireLogin(page);
     await page.waitForSelector('.discount-info .trade-count', {
         state: 'attached',
-        timeout,
+        timeout: NORMAL_TIMEOUT,
     });
-    return readDiscount(page);
+    return readTradeLines(page);
 }
 
 /** 除交易数量外的脚本 warning，干净 profile 未登录会触发一条 */
@@ -761,12 +784,7 @@ const CASES = [
         id: 'H',
         title: '108492 折扣旁出现交易数量块',
         run: async (page) => {
-            await openDetail(page, 108492);
-            requireDiscount(await waitDiscount(page));
-            const discount = requireDiscount(
-                await waitTradeCount(page),
-            );
-            const lines = discount.tradeLines;
+            const lines = await openTradeCountPage(page, 108492);
             const parsed = lines.map(parseTradeLine);
 
             assert(
@@ -795,11 +813,7 @@ const CASES = [
         id: 'I',
         title: '45040 交易数量两行齐全且 30 日不少于 7 日',
         run: async (page) => {
-            await openDetail(page, 45040);
-            const discount = requireDiscount(
-                await waitTradeCount(page),
-            );
-            const lines = discount.tradeLines;
+            const lines = await openTradeCountPage(page, 45040);
             const parsed = lines.map(parseTradeLine);
             const seven = parsed.find(
                 (item) => item !== null && item.day === 7,

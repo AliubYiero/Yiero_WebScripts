@@ -1,4 +1,4 @@
-import { gmRequest } from '@yiero/gmlib';
+import { getCookie, gmRequest } from '@yiero/gmlib';
 
 /**
  * 价格走势接口地址
@@ -12,62 +12,34 @@ const TREND_API_URL =
 const TREND_ORDER_TYPE = '13';
 
 /**
- * 趋势接口返回的单个成交点
- */
-export type TradeTrendItem = {
-    time: string;
-    price: number;
-    localDate: string;
-    proportion: number;
-    sourceType: number;
-};
-
-/**
  * 价格走势接口响应
+ *
+ * 只声明实际读取的字段: `tradeDataList` 仅用于取长度, 元素结构
+ * 不参与计算, 因此用 `unknown[]`.
  *
  * 用 `type` 而非 `interface`: 请求封装要求泛型参数满足可索引的
  * 记录类型, `interface` 没有隐式索引签名, 会编译不过.
  */
 export type TradeTrendResponse = {
     code: number;
-    msg: string;
     data: {
-        tradeDataList: TradeTrendItem[];
-        tradePriceList: string[];
-        blockNum: number;
+        tradeDataList: unknown[];
     };
 };
 
 /**
- * 近 7 日 / 近 30 日的成交点数量, `null` 表示该窗口取不到数据
+ * 近 7 日 / 近 30 日的成交点数量
+ *
+ * 近 7 日取不到时 `getTradeCount` 整体返回 `null`, 因此这里一定
+ * 有值; 近 30 日取不到时为 `null`, 只少渲染 30 日那一行.
  */
 export type TradeCount = {
-    sevenDay: number | null;
+    sevenDay: number;
     thirtyDay: number | null;
 };
 
 /**
- * 把成交数量格式化为待渲染的文本行
- *
- * @param count 近 7 日与近 30 日的成交数量
- */
-export const formatTradeCount = (count: TradeCount): string[] => {
-    // 7 日缺失时整块不渲染, 调用方据空数组判断
-    if (count.sevenDay === null) {
-        return [];
-    }
-
-    const lines = [`近7日 ${count.sevenDay} 次交易`];
-
-    if (count.thirtyDay !== null) {
-        lines.push(`近30日 ${count.thirtyDay} 次交易`);
-    }
-
-    return lines;
-};
-
-/**
- * 会话级缓存: 按 templateId 去重, 只保留成功结果
+ * 会话级缓存: 按 templateId 去重, 只保留两天都拿到的结果
  *
  * 详情页在售 / 租赁 / 走势之间切换会重复触发详情接口,
  * 缓存把重复请求压掉, 降低限流风险.
@@ -77,20 +49,24 @@ const tradeCountCache = new Map<number, Promise<TradeCount | null>>();
 /**
  * 从页面 Cookie 读取登录票据 `uu_token`
  *
+ * 未登录时 `getCookie` 会 reject, 这里统一降级为 `null`,
+ * 不把异常抛给调用方.
+ *
  * @returns 登录票据, 未登录时为 `null`
  */
-const readLoginToken = (): string | null => {
-    const cookieItem = document.cookie
-        .split(';')
-        .map((item) => item.trim())
-        .find((item) => item.startsWith('uu_token='));
-
-    if (!cookieItem) {
+const readLoginToken = async (): Promise<string | null> => {
+    // 空 cookie 会被 gmlib 当成域名去查 GM_cookie, 先挡掉
+    const cookie = document.cookie;
+    if (!cookie) {
         return null;
     }
 
-    const token = cookieItem.slice('uu_token='.length);
-    return token || null;
+    try {
+        return await getCookie(cookie, 'uu_token');
+    } catch {
+        // key 不存在 / 空 cookie / 非 ScriptCat 环境
+        return null;
+    }
 };
 
 /**
@@ -146,8 +122,8 @@ const requestTradeCount = async (
 /**
  * 获取近 7 日与近 30 日的成交点数量
  *
- * 未登录时不发请求; 7 日取不到时整体返回 `null`;
- * 结果按 templateId 在会话内缓存, 失败结果不缓存, 下次可重试.
+ * 未登录时不发请求; 7 日取不到时整体返回 `null`.
+ * 只有两天都拿到的结果才进缓存, 任一天失败都留给下次进页面重试.
  *
  * @param templateId 饰品模板 id
  */
@@ -160,7 +136,7 @@ export const getTradeCount = (
     }
 
     const pending = (async (): Promise<TradeCount | null> => {
-        const token = readLoginToken();
+        const token = await readLoginToken();
         if (!token) {
             return null;
         }
@@ -179,8 +155,10 @@ export const getTradeCount = (
 
     const result = pending.then(
         (count) => {
-            // 只缓存成功结果, 失败留给下次请求重试
-            if (count === null) {
+            // 只缓存两天都拿到的结果: 30 日缺失同样视为失败,
+            // 否则这次「部分成功」会让 30 日那行在整个 SPA
+            // 会话里永久缺失, 切 tab 也不会重试.
+            if (count === null || count.thirtyDay === null) {
                 tradeCountCache.delete(templateId);
             }
             return count;
