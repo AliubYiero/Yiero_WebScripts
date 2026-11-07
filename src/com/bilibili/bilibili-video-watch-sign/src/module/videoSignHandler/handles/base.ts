@@ -1,7 +1,8 @@
 import { elementWaiter } from '@yiero/gmlib';
 import { createMutationObserver } from '../../../util/createMutationObserver';
+import { getPageVersion } from '../../../util/pageVersion';
 import { getVideoId } from '../../../util/getVideoId';
-import { videoSignProcessingQueue } from '../../videoSignProcessingQueue/videoSignProcessingQueue';
+import { markVideoItems } from '../../favIndex/markVideoItems';
 import type { IVideoItem } from '../types/IVideoItem';
 
 /**
@@ -84,12 +85,19 @@ export const baseVideoSignLoader = async (
         ...options,
     };
 
+    // 进入时的页面版本，等待期间路由可能已切换
+    const pageVersion = getPageVersion();
+
     // 等待元素载入
     try {
         await elementWaiter(selectorList.container, {
             delayPerSecond: 0,
         });
     } catch (e) {
+        return null;
+    }
+
+    if (getPageVersion() !== pageVersion) {
         return null;
     }
 
@@ -115,16 +123,12 @@ export const baseVideoSignLoader = async (
                 loadedContainer.querySelectorAll<HTMLElement>(
                     selectorList.item,
                 ),
-            ).map(parser);
+            )
+                .map(parser)
+                .filter((item) => item !== null);
 
-            // console.log('loadedItemList', loadedItemList, loadedContainer.querySelectorAll<HTMLElement>( selectorList.item ));
-
-            for (const loadedItem of loadedItemList) {
-                if (!loadedItem) {
-                    continue;
-                }
-                // console.log('loadedItem', loadedItem);
-                videoSignProcessingQueue.push(loadedItem);
+            if (loadedItemList.length > 0) {
+                void markVideoItems(loadedItemList);
             }
         }
 
@@ -134,8 +138,6 @@ export const baseVideoSignLoader = async (
             const observer = createMutationObserver(
                 loadedContainer,
                 (item) => {
-                    // console.log('item', item);
-
                     if (!item.closest(selectorList.item)) {
                         return;
                     }
@@ -144,9 +146,8 @@ export const baseVideoSignLoader = async (
                     if (!loadedItem) {
                         return;
                     }
-                    // console.log('loadedItem', loadedItem);
 
-                    videoSignProcessingQueue.push(loadedItem);
+                    void markVideoItems([loadedItem]);
                 },
             );
             if (observer) {
