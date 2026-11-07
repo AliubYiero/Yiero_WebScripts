@@ -50,7 +50,8 @@ const NO_SALE_PRICE_WARNING =
     '未查询到商品信息或暂时无法读取在售价格';
 
 /** 交易数量行文案，第二组捕获数量 */
-const TRADE_LINE_PATTERN = /^近(7|30)日 (\d+) 次交易$/;
+/** 交易数量的一行文本，数字两侧有空格 */
+const TRADE_LINE_PATTERN = /^近\s*(7|30)\s*日\s*(\d+)\s*次交易$/;
 
 /** 未登录 / 接口异常时交易数量告警里的关键字 */
 const TRADE_COUNT_WARNING = '交易数量';

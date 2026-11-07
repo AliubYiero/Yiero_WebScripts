@@ -321,7 +321,7 @@
     if (cached) {
       return cached;
     }
-    const pending = (async () => {
+    const pendingFn = async () => {
       const token = await readLoginToken();
       if (!token) {
         return null;
@@ -334,7 +334,8 @@
         return null;
       }
       return { sevenDay, thirtyDay };
-    })();
+    };
+    const pending = pendingFn();
     const result = pending.then(
       (count) => {
         if (count === null || count.thirtyDay === null) {
@@ -351,9 +352,17 @@
     return result;
   };
   const formatTradeCount = (count) => {
-    const lines = [`\u8FD17\u65E5 ${count.sevenDay} \u6B21\u4EA4\u6613`];
+    const lines = [
+      {
+        day: 7,
+        count: count.sevenDay
+      }
+    ];
     if (count.thirtyDay !== null) {
-      lines.push(`\u8FD130\u65E5 ${count.thirtyDay} \u6B21\u4EA4\u6613`);
+      lines.push({
+        day: 30,
+        count: count.thirtyDay
+      });
     }
     return lines;
   };
@@ -415,6 +424,18 @@
     };
   };
   let hasWarnedTradeCount = false;
+  const createTradeLine = (line) => {
+    const lineNode = document.createElement("span");
+    lineNode.classList.add("trade-line");
+    const dayNode = document.createElement("strong");
+    dayNode.classList.add("trade-day");
+    dayNode.textContent = String(line.day);
+    const countNode = document.createElement("strong");
+    countNode.classList.add("trade-num");
+    countNode.textContent = String(line.count);
+    lineNode.append("\u8FD1 ", dayNode, " \u65E5 ", countNode, " \u6B21\u4EA4\u6613");
+    return lineNode;
+  };
   const appendTradeCount = async (discountNode, templateId) => {
     const count = await getTradeCount(templateId);
     if (count === null) {
@@ -432,9 +453,7 @@
     const tradeCountNode = document.createElement("span");
     tradeCountNode.classList.add("trade-count");
     for (const line of lines) {
-      const lineNode = document.createElement("span");
-      lineNode.textContent = line;
-      tradeCountNode.append(lineNode);
+      tradeCountNode.append(createTradeLine(line));
     }
     discountNode.append(tradeCountNode);
   };
@@ -517,6 +536,7 @@
             response
           );
         }
+        return void 0;
       }
     );
   };
@@ -586,8 +606,22 @@
     font-size: 11px;
     line-height: 14px;
     color: #8A8A8A;
-    vertical-align: middle;
+    vertical-align: text-bottom;
     white-space: nowrap;
+}
+
+/* \u6570\u5B57\u7B49\u5BBD + \u56FA\u5B9A\u5217\u5BBD: \u4E24\u884C\u7684\u300C\u65E5\u300D\u300C\u6B21\u4EA4\u6613\u300D\u624D\u80FD\u4E0A\u4E0B\u5BF9\u9F50 */
+.discount-info .trade-count strong {
+    font-family: Barlow;
+    display: inline-block;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+.discount-info .trade-count .trade-day {
+    min-width: 2ch;
+}
+.discount-info .trade-count .trade-num {
+    min-width: 3ch;
 }
 `;
   const addDiscountStyle = () => {

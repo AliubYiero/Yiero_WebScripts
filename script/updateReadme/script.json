@@ -330,7 +330,7 @@
             "version": "1.1.0",
             "private": false,
             "archive": false,
-            "lastUpdate": 1794035435610.8203,
+            "lastUpdate": 1794038777118.3872,
             "scriptType": "web",
             "userScriptFilepath": "backup/steam-price-calculate.user.js",
             "downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/youpin898/steam-price-calculate/backup/steam-price-calculate.user.js",

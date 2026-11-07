@@ -9,8 +9,8 @@ describe('formatTradeCount', () => {
         });
 
         expect(lines).toEqual([
-            '近7日 44 次交易',
-            '近30日 79 次交易',
+            { day: 7, count: 44 },
+            { day: 30, count: 79 },
         ]);
     });
 
@@ -20,7 +20,7 @@ describe('formatTradeCount', () => {
             thirtyDay: null,
         });
 
-        expect(lines).toEqual(['近7日 44 次交易']);
+        expect(lines).toEqual([{ day: 7, count: 44 }]);
     });
 
     it('7 日为 0 时照常输出一行', () => {
@@ -29,7 +29,7 @@ describe('formatTradeCount', () => {
             thirtyDay: null,
         });
 
-        expect(lines).toEqual(['近7日 0 次交易']);
+        expect(lines).toEqual([{ day: 7, count: 0 }]);
     });
 
     it('7 日是数字就一定有行，30 日为 0 也照常输出', () => {
@@ -38,7 +38,9 @@ describe('formatTradeCount', () => {
             thirtyDay: 0,
         });
 
-        expect(lines.length).toBeGreaterThanOrEqual(1);
-        expect(lines).toEqual(['近7日 3 次交易', '近30日 0 次交易']);
+        expect(lines).toEqual([
+            { day: 7, count: 3 },
+            { day: 30, count: 0 },
+        ]);
     });
 });

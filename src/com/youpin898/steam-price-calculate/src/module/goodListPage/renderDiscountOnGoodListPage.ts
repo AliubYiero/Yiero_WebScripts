@@ -8,13 +8,42 @@
 import { elementWaiter } from '@yiero/gmlib';
 import type { QueryTemplateDetailData } from '../mockResponse.ts';
 import { getTradeCount } from '../tradeTrend.ts';
-import { formatTradeCount } from './formatTradeCount.ts';
+import {
+    formatTradeCount,
+    type TradeCountLine,
+} from './formatTradeCount.ts';
 import { parseDiscountDataWithDetail } from './parseDiscountDataWithDetail.ts';
 
 /**
  * 当前页面是否已经因交易数量失败警告过一次
  */
 let hasWarnedTradeCount = false;
+
+/**
+ * 生成一行交易数量
+ *
+ * 形如 `近 <strong>7</strong> 日 <strong>45</strong> 次交易`;
+ * 两个数字各自包一层 `strong`, 由样式统一成等宽、右对齐,
+ * 两行的「日」「次交易」才能上下对齐.
+ *
+ * @param line 时间窗口与成交点数量
+ */
+const createTradeLine = (line: TradeCountLine): HTMLElement => {
+    const lineNode = document.createElement('span');
+    lineNode.classList.add('trade-line');
+
+    const dayNode = document.createElement('strong');
+    dayNode.classList.add('trade-day');
+    dayNode.textContent = String(line.day);
+
+    const countNode = document.createElement('strong');
+    countNode.classList.add('trade-num');
+    countNode.textContent = String(line.count);
+
+    lineNode.append('近 ', dayNode, ' 日 ', countNode, ' 次交易');
+
+    return lineNode;
+};
 
 /**
  * 在折扣节点内异步补上交易数量
@@ -52,9 +81,7 @@ const appendTradeCount = async (
     const tradeCountNode = document.createElement('span');
     tradeCountNode.classList.add('trade-count');
     for (const line of lines) {
-        const lineNode = document.createElement('span');
-        lineNode.textContent = line;
-        tradeCountNode.append(lineNode);
+        tradeCountNode.append(createTradeLine(line));
     }
 
     discountNode.append(tradeCountNode);

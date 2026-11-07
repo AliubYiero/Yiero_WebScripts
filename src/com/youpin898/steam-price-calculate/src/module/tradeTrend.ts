@@ -135,7 +135,7 @@ export const getTradeCount = (
         return cached;
     }
 
-    const pending = (async (): Promise<TradeCount | null> => {
+    const pendingFn = async (): Promise<TradeCount | null> => {
         const token = await readLoginToken();
         if (!token) {
             return null;
@@ -151,7 +151,8 @@ export const getTradeCount = (
         }
 
         return { sevenDay, thirtyDay };
-    })();
+    };
+    const pending = pendingFn();
 
     const result = pending.then(
         (count) => {
