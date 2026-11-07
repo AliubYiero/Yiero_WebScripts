@@ -1,77 +1,35 @@
-# CLAUDE.md
+# 脚本项目指南
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+本目录是一个脚本项目，仓库根指南见 [仓库根 CLAUDE.md](../../../../CLAUDE.md)，开工前先读它。
 
-## 项目概述
+## 项目命令
 
-这是一个面向起点小说等网站的 UserScript（用户脚本），基于 ScriptCat 运行，实现平滑自动滚动和自动翻页功能。
+在项目目录执行：
 
-支持网站：起点中文网 (`qidian.com`)、QQ阅读 (`book.qq.com`)、微信阅读 (`weread.qq.com`)。
+- `pnpm dev:base` — 日常验证，带 watch
+- `pnpm build` — 生产构建，会写 `backup/` 归档
+- `pnpm test` — 项目单测（vitest）
+- `pnpm test:browser` — 浏览器回归（有 `test/browser-verify.mjs` 时才有这条命令）
+- `pnpm commit <信息>` — 归档当前版本并提交
+- `pnpm release:tag` — 用 banner 版本号打标签
 
-## 常用命令
+## 目录速查
 
-```bash
-# 生产构建（输出 .user.js）
-pnpm build
+- `banner/{UserScript,UserConfig}.ts` — 脚本元数据与用户配置
+- `src/main.ts` — 入口；业务代码可按需拆到 `src/{store,module,util}`
+- `types/` — banner、用户配置与脚本猫 API 的类型
+- `test/` — 单测与 `browser-verify.mjs` 浏览器骨架
+- `docs/更新日志.md` — 项目更新日志，版本从新到旧
+- `README.md` — 项目说明，手写
 
-# 开发模式（监听文件变化，输出 .dev.js）
-pnpm dev:base
+## 必读清单（按场景）
 
-# 同步模式（构建后推送到本地 ScriptCat）
-pnpm dev:sync
+- 要写 `@yiero/gmlib` 调用时：`../../../../docs/agents/gmlib.md`
+- 要写浏览器回归时：`../../../../docs/agents/browser-testing-playbook.md`
+- 要开 issue 或写 spec 时：`../../../../docs/agents/issue-tracker.md`
 
-# 运行测试
-pnpm test
+## 三条不变式
 
-# 测试覆盖率
-pnpm coverage
-```
-
-## 架构概览
-
-### 数据流
-
-```
-main.ts (初始化)
-  ├─ eventHandlers.ts          键盘/可见性事件
-  ├─ command/ScrollCommand.ts  命令层（start/stop/pause/resume/调速）
-  ├─ state/ScrollStateMachine.ts  状态机（ScrollStatus / TurnPageStatus）
-  ├─ driver/ScrollDriver.ts     RAF 驱动滚动，触底派发 REACH_BOTTOM_EVENT
-  ├─ lifecycle/PageTurnLifecycle.ts 翻页生命周期（等待延时、自动恢复）
-  └─ store/RuntimeStateStore.ts    跨页持久化状态
-```
-
-### 核心模块
-
-| 文件 | 职责 |
-|------|------|
-| `src/main.ts` | 初始化入口，挂载事件监听 |
-| `src/module/eventHandlers.ts` | Space 开关/暂停，Shift+PageUp/Down 调速，页面可见性 |
-| `src/command/ScrollCommand.ts` | 滚动命令（start/stop/pause/resume/调速），协调状态机 |
-| `src/state/ScrollStateMachine.ts` | 状态枚举（ScrollStatus / TurnPageStatus） |
-| `src/driver/ScrollDriver.ts` | `requestAnimationFrame` 实现平滑滚动，触底触发事件 |
-| `src/lifecycle/PageTurnLifecycle.ts` | 翻页流程：等待延时 → 执行翻页 → 等待新页加载 → 自动恢复 |
-| `src/lifecycle/DelayCalculator.ts` | 可取消延时计算 |
-| `src/module/pageTurner.ts` | 执行翻页（默认键盘右箭头，支持点击或键盘配置） |
-| `src/store/ConfigStore.ts` | 用户配置读写（`banner/UserConfig.ts`） |
-| `src/store/RuntimeStateStore.ts` | 翻页跨页面状态持久化（GM_getValue/setValue） |
-
-### 配置与元数据
-
-- `src/banner/UserScript.ts` — 脚本 meta 信息（@name, @match, @grant 等）
-- `src/banner/UserConfig.ts` — 用户可配置项定义（滚动速度、翻页延时等）
-
-### 构建模式
-
-| 模式 | 命令 | 输出 |
-|------|------|------|
-| production | `pnpm build` | `.user.js`（移除 console.log） |
-| development | `pnpm dev:base` | `.dev.js`（watch） |
-| sync | `pnpm dev:sync` | `.dev.js`（watch + 推送到 ScriptCat） |
-
-构建由 Vite + 多个 `@yiero/vite-plugin-scriptcat-*` 插件驱动，自动提取 GM grant、生成 meta banner。
-
-## 关键依赖
-
-- `@yiero/gmlib` — 提供 `Message`、`onKeydownMultiple`、`onKeyup`、`simulateClick`、`simulateKeyboard` 等工具
-- ScriptCat API 类型定义在 `src/types/scriptcat.d.ts`
+1. 脚本版本只写在 `banner/UserScript.ts` 的 `version`。
+2. `package.json` 的 `version` 恒为 `0.0.0`。
+3. 根 `README.md` 由生成器产出，不要手改。
