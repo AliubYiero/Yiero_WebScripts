@@ -43,7 +43,7 @@
 ### youpin898.com
 | 脚本名称 | 脚本描述 | 简介 | 脚本类型 | 版本号 | 最后更新 | 安装#1 | 安装#2 | 安装#3 |
 | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| 悠悠有品饰品折扣率计算 | 在首页访问时, 直接显示当前饰品可以倒余额的折扣率. | [README](src/com/youpin898/steam-price-calculate/README.md) | 前台脚本 | 1.0.0 | 2026-11-07 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/youpin898/steam-price-calculate/backup/steam-price-calculate.user.js) |  |  |
+| 悠悠有品饰品折扣率计算 | 在首页访问时, 直接显示当前饰品可以倒余额的折扣率. | [README](src/com/youpin898/steam-price-calculate/README.md) | 前台脚本 | 1.1.0 | 2026-11-07 | [Github 源](https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/youpin898/steam-price-calculate/backup/steam-price-calculate.user.js) |  |  |
 
 
 ### mikannani.me
