@@ -263,7 +263,7 @@ async function syncFolders(
 
         if (items === null) {
             // 保留旧分片与旧 mediaCount，但标记为未同步：
-            // TTL 内再次读缓存时仍算降级，下次 diff 也还会重试
+            // 随后的加载会重跑 list-all + diff，只重试这个夹
             failed = true;
             shardMap.set(folder.id, {
                 ...(shardMap.get(folder.id) ?? {
@@ -350,28 +350,30 @@ async function loadFavIndex(
     // 3) 只保留当前账号的键（D9）
     pruneMidsExcept(mid);
 
-    // 4) 有 manifest 且在 TTL 内：直接复用缓存
+    // 4) 有 manifest 且在 TTL 内：完整缓存直接复用；降级缓存
+    // 要继续回源，只重试失败的夹
     const meta = readMeta(mid);
+    const cachedFolders = meta ? readCachedFolders(mid, meta) : [];
 
     if (
         !force &&
         meta &&
         Date.now() - meta.lastSyncAt < FAV_INDEX_TTL
     ) {
-        const folders = readCachedFolders(mid, meta);
         const index = makeIndex(
-            folders,
+            cachedFolders,
             'cache',
             meta.lastSyncAt,
             meta.folders.length,
             false,
         );
 
-        return markResult({ kind: 'ok', index });
+        if (!index.degraded) {
+            return markResult({ kind: 'ok', index });
+        }
     }
 
     // 5) 否则 list-all
-    const cachedFolders = meta ? readCachedFolders(mid, meta) : [];
     const remoteMeta = await requestFolderList(mid);
 
     if (remoteMeta === null) {
@@ -400,27 +402,26 @@ async function loadFavIndex(
 /**
  * 备忘里的结果是否还在有效期内。
  *
- * `ok` 以索引的 `syncedAt`（即 manifest 的 `lastSyncAt`）为准；
- * 未登录 / 无索引用 60s 负缓存，避免每次 DOM 变动都重打
- * list-all。
+ * 以备忘写入时刻为准：完整索引缓存 5 分钟；降级索引（某个夹
+ * 拉取失败）只缓存 60s，过期后重跑 list-all + diff 并重试失败
+ * 夹；未登录 / 无索引同样 60s 负缓存。
  */
 function isFresh(entry: {
     result: FavIndexLoadResult;
     checkedAt: number;
 }): boolean {
-    if (entry.result.kind === 'ok') {
-        return (
-            Date.now() - entry.result.index.syncedAt < FAV_INDEX_TTL
-        );
-    }
+    const ttl =
+        entry.result.kind === 'ok' && !entry.result.index.degraded
+            ? FAV_INDEX_TTL
+            : NEGATIVE_TTL;
 
-    return Date.now() - entry.checkedAt < NEGATIVE_TTL;
+    return Date.now() - entry.checkedAt < ttl;
 }
 
 /**
  * 复用备忘里的结果：来源改记为 `cache`，并刷新页面标记。
  *
- * 结果本身（`syncedAt` / `aids`）不动，TTL 仍从上次同步算起。
+ * 结果本身（`syncedAt` / `aids`）不动；TTL 按备忘写入时刻算。
  */
 function reuseResult(result: FavIndexLoadResult): FavIndexLoadResult {
     if (result.kind !== 'ok') {
@@ -436,7 +437,7 @@ function reuseResult(result: FavIndexLoadResult): FavIndexLoadResult {
 /**
  * 获取收藏夹索引。并发调用共享同一个加载。
  *
- * 5 分钟内复用同一结果；未登录 / 无索引负缓存 60s。
+ * 完整索引缓存 5 分钟；降级索引与未登录 / 无索引负缓存 60s。
  */
 export function ensureFavIndex(): Promise<FavIndexLoadResult> {
     if (memo && isFresh(memo)) {
@@ -450,25 +451,36 @@ export function ensureFavIndex(): Promise<FavIndexLoadResult> {
     const force = forceNetwork;
     forceNetwork = false;
 
-    inFlight = loadFavIndex(force)
+    const pending: Promise<FavIndexLoadResult> = loadFavIndex(force)
         .catch(() => markResult({ kind: 'unavailable' }))
         .then((result) => {
-            memo = { result, checkedAt: Date.now() };
+            // 被力刷新作废的旧加载不能覆盖新一轮的备忘
+            if (inFlight === pending) {
+                memo = { result, checkedAt: Date.now() };
+            }
             return result;
         })
         .finally(() => {
-            inFlight = null;
+            if (inFlight === pending) {
+                inFlight = null;
+            }
         });
 
-    return inFlight;
+    inFlight = pending;
+
+    return pending;
 }
 
 /**
- * 清掉内存备忘，下次 `ensureFavIndex()` 会越过 TTL 直接重查。
+ * 清掉内存备忘与在飞的加载，下次 `ensureFavIndex()` 会越过
+ * TTL 直接重查。
  *
- * 供刷新按钮（D11）使用；不动持久缓存与分片。
+ * 在飞的加载可能仍在跑，但它的结果不会再写入备忘，也不会
+ * 清掉新一轮的 `inFlight`；不动持久缓存与分片。
+ * 供刷新按钮（D11）使用。
  */
 export function forceRefreshFavIndex(): void {
     memo = null;
+    inFlight = null;
     forceNetwork = true;
 }

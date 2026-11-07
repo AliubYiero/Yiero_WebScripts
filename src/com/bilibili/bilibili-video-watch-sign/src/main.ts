@@ -87,9 +87,14 @@ const main = async () => {
     // 页面刷新时, 清空处理队列, 重置观察
     bindRouteChange();
 
-    // 刷新按钮：越过索引 TTL 后重跑标记（D11）
-    window.addEventListener('updatePage', () => {
+    // 首页刷新按钮：越过索引 TTL 后重跑标记（D11）
+    window.addEventListener('refreshFavIndex', () => {
         forceRefreshFavIndex();
+        void updatePage();
+    });
+
+    // 分页 / 过滤等按钮只重扫 DOM，不动索引 TTL
+    window.addEventListener('updatePage', () => {
         void updatePage();
     });
 

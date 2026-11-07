@@ -1,8 +1,12 @@
 import { elementWaiter } from '@yiero/gmlib';
 import {
+    refreshFavIndexEvent,
     updatePageEvent,
     updateStatusEvent,
 } from '../../../util/updateEvent';
+
+/** 点击按钮后触发的动作 */
+type UpdateWay = 'updatePage' | 'updateStatus' | 'refreshFavIndex';
 
 /**
  * 绑定点击按钮触发的页面更新
@@ -11,7 +15,7 @@ export class BindUpdatePageButton {
     static async base(
         containerSelector: string,
         buttonSelector: string,
-        updateWay: 'updatePage' | 'updateStatus' = 'updatePage',
+        updateWay: UpdateWay = 'updatePage',
     ) {
         // 触发页面更新, 重新绑定标记
         const container = await elementWaiter(containerSelector);
@@ -23,8 +27,13 @@ export class BindUpdatePageButton {
             // console.log( element, buttonSelector, element.closest( buttonSelector )  );
 
             if (element.closest(buttonSelector)) {
-                updateWay === 'updatePage' && updatePageEvent();
-                updateWay === 'updateStatus' && updateStatusEvent();
+                if (updateWay === 'updatePage') {
+                    updatePageEvent();
+                } else if (updateWay === 'updateStatus') {
+                    updateStatusEvent();
+                } else {
+                    refreshFavIndexEvent();
+                }
             }
         });
         container.dataset.bindUpdate = 'true';
@@ -84,8 +93,16 @@ export class BindUpdatePageButton {
      */
     static indexRefresh() {
         return Promise.any([
-            this.base('.feed-roll-btn', '.feed-roll-btn'),
-            this.base('.palette-button-wrap', '.flexible-roll-btn'),
+            this.base(
+                '.feed-roll-btn',
+                '.feed-roll-btn',
+                'refreshFavIndex',
+            ),
+            this.base(
+                '.palette-button-wrap',
+                '.flexible-roll-btn',
+                'refreshFavIndex',
+            ),
         ]);
     }
 }

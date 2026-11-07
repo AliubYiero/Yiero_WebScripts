@@ -9,6 +9,11 @@
 
 本仓库是单 context 布局，不存在 `GLOSSARY-MAP.md`，也不需要逐个 context 去找。
 
+workspace 级 / 跨项目的术语与决策仍放仓库根 `GLOSSARY.md` 与 `docs/adr/`。
+单个脚本项目可以在项目内 `docs/adr/` 与 `docs/GLOSSARY.md` 记录只对该项目
+成立的决策与术语（编号从 0001 起），并在项目 `CLAUDE.md` 或项目 `docs/` 里
+说明入口。
+
 如果这些文件不存在，**静默跳过**。不要点出它们缺失，也不要主动提议先创建。
 `/domain-modeling` 技能（经由 `/grill-with-docs` 与
 `/improve-codebase-architecture` 触达）会在术语或决策真正定下来时按需创建。

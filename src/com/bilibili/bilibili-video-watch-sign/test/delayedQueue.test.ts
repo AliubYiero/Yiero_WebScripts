@@ -34,7 +34,8 @@ function createQueue(
 describe('DelayedQueue', () => {
     beforeEach(() => {
         vi.useFakeTimers();
-        // 抖动因子固定为 1，退避间隔即 min(delay * 2^n, maxDelay)
+        // 抖动因子固定为 1，退避间隔即
+        // min(backoffBase * 2^(n-1), maxDelay)
         vi.spyOn(Math, 'random').mockReturnValue(0.5);
         vi.spyOn(console, 'error').mockImplementation(() => {});
     });
@@ -67,7 +68,41 @@ describe('DelayedQueue', () => {
         expect(processor).toHaveBeenCalledTimes(2);
     });
 
-    it('连续失败时下一次间隔按 2 的幂增长', async () => {
+    it('连续失败时按 backoffBase 的 2 的幂增长', async () => {
+        const processor = vi
+            .fn()
+            .mockRejectedValue(new Error('boom'));
+        const queue = createQueue(processor, { backoffBase: 200 });
+
+        queue.push(
+            { id: 'a' },
+            { id: 'b' },
+            { id: 'c' },
+            { id: 'd' },
+        );
+        await vi.advanceTimersByTimeAsync(0);
+        expect(processor).toHaveBeenCalledTimes(1);
+
+        // 第 1 次失败：200 * 2^0 = 200
+        await vi.advanceTimersByTimeAsync(199);
+        expect(processor).toHaveBeenCalledTimes(1);
+        await vi.advanceTimersByTimeAsync(1);
+        expect(processor).toHaveBeenCalledTimes(2);
+
+        // 第 2 次失败：200 * 2^1 = 400
+        await vi.advanceTimersByTimeAsync(399);
+        expect(processor).toHaveBeenCalledTimes(2);
+        await vi.advanceTimersByTimeAsync(1);
+        expect(processor).toHaveBeenCalledTimes(3);
+
+        // 第 3 次失败：200 * 2^2 = 800
+        await vi.advanceTimersByTimeAsync(799);
+        expect(processor).toHaveBeenCalledTimes(3);
+        await vi.advanceTimersByTimeAsync(1);
+        expect(processor).toHaveBeenCalledTimes(4);
+    });
+
+    it('backoffBase 缺省时等于 delay', async () => {
         const processor = vi
             .fn()
             .mockRejectedValue(new Error('boom'));
@@ -82,20 +117,20 @@ describe('DelayedQueue', () => {
         await vi.advanceTimersByTimeAsync(0);
         expect(processor).toHaveBeenCalledTimes(1);
 
-        // 第 1 次失败：100 * 2^1 = 200
-        await vi.advanceTimersByTimeAsync(199);
+        // 第 1 次失败：100ms（delay）* 2^0 = 100
+        await vi.advanceTimersByTimeAsync(99);
         expect(processor).toHaveBeenCalledTimes(1);
         await vi.advanceTimersByTimeAsync(1);
         expect(processor).toHaveBeenCalledTimes(2);
 
-        // 第 2 次失败：100 * 2^2 = 400
-        await vi.advanceTimersByTimeAsync(399);
+        // 第 2 次失败：100 * 2^1 = 200
+        await vi.advanceTimersByTimeAsync(199);
         expect(processor).toHaveBeenCalledTimes(2);
         await vi.advanceTimersByTimeAsync(1);
         expect(processor).toHaveBeenCalledTimes(3);
 
-        // 第 3 次失败：100 * 2^3 = 800
-        await vi.advanceTimersByTimeAsync(799);
+        // 第 3 次失败：100 * 2^2 = 400
+        await vi.advanceTimersByTimeAsync(399);
         expect(processor).toHaveBeenCalledTimes(3);
         await vi.advanceTimersByTimeAsync(1);
         expect(processor).toHaveBeenCalledTimes(4);
@@ -155,8 +190,8 @@ describe('DelayedQueue', () => {
             { id: 'skip' },
             { id: 'e' },
         );
-        // 4 次失败：200 + 400 + 800 + 1600 = 3000
-        await vi.advanceTimersByTimeAsync(2999);
+        // 4 次失败：100 + 200 + 400 + 800 = 1500
+        await vi.advanceTimersByTimeAsync(1499);
         expect(processor).toHaveBeenCalledTimes(4);
         expect(onBreakerOpen).not.toHaveBeenCalled();
 
@@ -246,8 +281,8 @@ describe('DelayedQueue', () => {
         await vi.advanceTimersByTimeAsync(0);
         expect(processor).toHaveBeenCalledTimes(1);
 
-        // 同步抛出同样计入一次失败，退避 200ms 后继续
-        await vi.advanceTimersByTimeAsync(200);
+        // 同步抛出同样计入一次失败，退避 100ms 后继续
+        await vi.advanceTimersByTimeAsync(100);
         expect(processor).toHaveBeenCalledTimes(2);
         expect(processor).toHaveBeenLastCalledWith({
             id: 'good',

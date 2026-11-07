@@ -132,6 +132,22 @@ describe('favIndexShardStore', () => {
             expect(readMids()).toEqual([42]);
             expect(memory.has(metaKey(7))).toBe(false);
         });
+
+        it('注册表已是 [mid] 且无其它 mid 时不写回', () => {
+            writeMids([42]);
+
+            const setValue = vi.fn();
+            vi.stubGlobal('GM_setValue', setValue);
+
+            pruneMidsExcept(42);
+
+            const midsWrites = setValue.mock.calls.filter(
+                ([key]) => key === MIDS_KEY,
+            );
+            expect(midsWrites).toHaveLength(0);
+            expect(setValue).not.toHaveBeenCalled();
+            expect(readMids()).toEqual([42]);
+        });
     });
 
     describe('readMeta', () => {

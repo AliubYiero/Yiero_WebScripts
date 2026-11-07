@@ -73,14 +73,18 @@ export function writeMids(mids: number[]): void {
 }
 
 /**
- * 删除其它 mid 的 manifest 与全部分片，再只把当前 mid
- * 写回注册表。
+ * 删除其它 mid 的 manifest 与全部分片，并把注册表收敛成
+ * `[mid]`。
  *
+ * 注册表没有变化时不写回，避免每次加载都产生一次写。
  * 分片键靠 manifest 里的文件夹列表枚举，不依赖
  * `GM_listValues`。
  */
 export function pruneMidsExcept(mid: number): void {
-    for (const otherMid of readMids()) {
+    const mids = readMids();
+    const changed = mids.length !== 1 || mids[0] !== mid;
+
+    for (const otherMid of mids) {
         if (otherMid === mid) {
             continue;
         }
@@ -96,7 +100,9 @@ export function pruneMidsExcept(mid: number): void {
         deleteMeta(otherMid);
     }
 
-    writeMids([mid]);
+    if (changed) {
+        writeMids([mid]);
+    }
 }
 
 /**

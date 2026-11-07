@@ -1,8 +1,15 @@
 import { sleep } from 'radash';
 
 export interface DelayedQueueOptions<T> {
-    /** 正常间隔与退避基数，毫秒 */
+    /** 正常间隔，毫秒 */
     delay?: number;
+    /**
+     * 退避基数，毫秒；默认等于 `delay`。
+     *
+     * 第 n 次连续失败后的间隔为
+     * `backoffBase * 2 ** (n - 1)`，再夹到 `maxDelay`。
+     */
+    backoffBase?: number;
     /** 退避间隔上限，毫秒 */
     maxDelay?: number;
     /** 连续失败多少次后熔断；默认 Infinity 即不熔断 */
@@ -22,6 +29,7 @@ export class DelayedQueue<T> {
     private isBreakerOpen: boolean = false;
 
     private readonly delay: number;
+    private readonly backoffBase: number;
     private readonly maxDelay: number;
     private readonly breakerThreshold: number;
     private readonly keyOf: ((item: T) => string) | undefined;
@@ -34,6 +42,7 @@ export class DelayedQueue<T> {
         options: DelayedQueueOptions<T> = {},
     ) {
         this.delay = options.delay ?? 500;
+        this.backoffBase = options.backoffBase ?? this.delay;
         this.maxDelay = options.maxDelay ?? 30_000;
         this.breakerThreshold = options.breakerThreshold ?? Infinity;
         this.keyOf = options.keyOf;
@@ -126,10 +135,13 @@ export class DelayedQueue<T> {
         }
     }
 
-    /** 退避：min(delay * 2^failures, maxDelay) ± 20% 抖动 */
+    /**
+     * 退避：min(backoffBase * 2^(failures - 1), maxDelay)
+     * ± 20% 抖动
+     */
     private getBackoffDelay(): number {
         const base = Math.min(
-            this.delay * 2 ** this.failures,
+            this.backoffBase * 2 ** (this.failures - 1),
             this.maxDelay,
         );
         return base * (0.8 + Math.random() * 0.4);

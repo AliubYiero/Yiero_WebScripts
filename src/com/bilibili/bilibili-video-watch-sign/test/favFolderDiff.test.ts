@@ -1,9 +1,15 @@
 import { describe, expect, it } from 'vitest';
 import { favFolderDiff } from '../src/module/favIndex/favFolderDiff';
 import type {
-    IFavFolderCacheEntry,
     IFavFolderMeta,
+    IFavFolderShard,
 } from '../src/module/favIndex/types';
+
+/** diff 只读缓存条目的这三个字段 */
+type CachedFolder = Pick<
+    IFavFolderShard,
+    'id' | 'synced' | 'mediaCount'
+>;
 
 const meta = (id: number, mediaCount = 3): IFavFolderMeta => ({
     id,
@@ -17,9 +23,9 @@ const entry = (
     id: number,
     mediaCount = 3,
     synced = true,
-): IFavFolderCacheEntry => ({
-    ...meta(id, mediaCount),
-    items: [],
+): CachedFolder => ({
+    id,
+    mediaCount,
     synced,
 });
 
@@ -30,6 +36,13 @@ describe('favFolderDiff', () => {
 
         expect(result.refresh).toEqual(remote);
         expect(result.remove).toEqual([]);
+        expect(result.meta).toEqual(remote);
+    });
+
+    it('meta 始终返回 remote 的最新元信息', () => {
+        const remote = [meta(1, 4), meta(2, 5)];
+        const result = favFolderDiff([entry(1, 3)], remote);
+
         expect(result.meta).toEqual(remote);
     });
 
@@ -74,21 +87,5 @@ describe('favFolderDiff', () => {
         );
 
         expect(result.refresh).toEqual([meta(1, 3)]);
-    });
-
-    it('meta 始终返回 remote 的最新元信息', () => {
-        const remote: IFavFolderMeta[] = [
-            {
-                id: 1,
-                fid: 9999,
-                mid: 7,
-                title: '改名后的夹',
-                mediaCount: 3,
-            },
-        ];
-        const result = favFolderDiff([entry(1, 3)], remote);
-
-        expect(result.refresh).toEqual([]);
-        expect(result.meta).toEqual(remote);
     });
 });

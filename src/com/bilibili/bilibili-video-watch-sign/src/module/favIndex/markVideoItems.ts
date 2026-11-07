@@ -11,8 +11,11 @@ interface IMarkVideoItemsOptions {
     forceWatched?: boolean;
 }
 
-/** 上一次打过提示日志的页面版本；同一版本只提示一次 */
-let loggedVersion: number | null = null;
+/** 上一次打过「索引不可用」提示的页面版本 */
+let loggedIndexVersion: number | null = null;
+
+/** 上一次打过「ID 无法解析」提示的页面版本 */
+let loggedUnparsableVersion: number | null = null;
 
 /**
  * 索引不可用时的说明日志，同一页面版本只打一条。
@@ -20,11 +23,25 @@ let loggedVersion: number | null = null;
  * 索引异常不该打扰页面，但排查时要能看懂为什么没标记（D10）。
  */
 const logIndexSkip = (version: number, message: string): void => {
-    if (loggedVersion === version) {
+    if (loggedIndexVersion === version) {
         return;
     }
 
-    loggedVersion = version;
+    loggedIndexVersion = version;
+    console.info(`[watch-sign] ${message}`);
+};
+
+/**
+ * ID 无法解析时的说明日志，同一页面版本只打一条。
+ *
+ * 与索引不可用的提示各记各的版本：两类跳过互不压制。
+ */
+const logUnparsable = (version: number, message: string): void => {
+    if (loggedUnparsableVersion === version) {
+        return;
+    }
+
+    loggedUnparsableVersion = version;
     console.info(`[watch-sign] ${message}`);
 };
 
@@ -108,7 +125,7 @@ export const markVideoItems = async (
             continue;
         }
 
-        logIndexSkip(
+        logUnparsable(
             version,
             `视频 ID 无法解析（${item.videoId}），不标记`,
         );

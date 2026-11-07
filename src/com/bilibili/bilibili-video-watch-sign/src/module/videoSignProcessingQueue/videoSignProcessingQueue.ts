@@ -6,8 +6,10 @@ import type { IVideoItem } from '../videoSignHandler/types/IVideoItem';
 import { handleAddSign } from './handleAddSign';
 
 /**
- * 逐条兜底：索引未知（降级 / 未登录）时查单条收藏状态。
+ * 逐条兜底：只有索引不完整（`incomplete`）时才查单条收藏
+ * 状态。
  *
+ * 未登录 / 索引不可用 / ID 无法解析都不入队、不回源。
  * 只写会话缓存，不再写持久逐视频缓存。
  */
 export const handleVideoSign = async (item: IVideoItem) => {
@@ -65,14 +67,15 @@ function logBreakerOpen(failures: number): void {
 /**
  * 视频标记处理队列，用于异步处理
  *
- * 同一 videoId 只会入队一次；失败按 2 的幂退避
- * （1200ms 起，上限 8000ms）；连续 5 次失败即熔断，
+ * 同一 videoId 只会入队一次；基础间隔 1200ms，失败后按
+ * 2s / 4s / 8s 退避（上限 8000ms）；连续 5 次失败即熔断，
  * 风控时不再自我加压。
  */
 export const videoSignProcessingQueue = new DelayedQueue(
     handleVideoSign,
     {
         delay: 1200,
+        backoffBase: 2000,
         maxDelay: 8000,
         breakerThreshold: 5,
         keyOf: (item) => item.videoId,

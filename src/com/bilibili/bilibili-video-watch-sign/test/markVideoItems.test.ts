@@ -253,6 +253,25 @@ describe('markVideoItems', () => {
         expect(infoSpy).toHaveBeenCalledTimes(1);
     });
 
+    it('无法解析与索引不可用的提示互不压制', async () => {
+        vi.mocked(favLookupHas).mockReturnValue({
+            status: 'unknown',
+            reason: 'unparsable',
+        });
+
+        await markVideoItems([createItem('BV1foo')]);
+
+        expect(infoSpy).toHaveBeenCalledTimes(1);
+
+        vi.mocked(ensureFavIndex).mockResolvedValue({
+            kind: 'anonymous',
+        });
+
+        await markVideoItems([createItem('BV1bbb')]);
+
+        expect(infoSpy).toHaveBeenCalledTimes(2);
+    });
+
     it('等待期间页面版本变化则不标记', async () => {
         const item = createItem('BV1aaa');
         vi.mocked(getPageVersion)

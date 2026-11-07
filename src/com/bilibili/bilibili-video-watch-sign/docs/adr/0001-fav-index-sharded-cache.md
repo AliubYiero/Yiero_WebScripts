@@ -35,7 +35,7 @@
 | --- | --- | --- |
 | `favIndex:meta:<mid>` | `IFavIndexMeta` | 每轮同步末尾一次 |
 | `favIndex:aids:<mid>:<folderId>` | `number[]` | 该夹内容变化时 |
-| `favIndex:mids` | `number[]` | 新增或回收 mid 时 |
+| `favIndex:mids` | `number[]` | mid 变化时写 |
 | `favIndexCache` | v1 旧键 | 首次加载即删 |
 
 `folderId` 用收藏夹的 `media_id`，与收藏夹页 URL 的 `fid` 相同，
@@ -63,6 +63,12 @@
 分片键都带 mid。加载时先读 `favIndex:mids`，对除当前 mid 外的
 每个 mid：读 manifest，逐个删 aids 分片与 manifest，再从注册表移
 除。只保留当前账号的缓存，不做多账号共存。
+
+### 加载结果探针（对外契约）
+
+每次加载结束都会写 `document.documentElement.dataset.favIndex`，取值
+`network` / `cache` / `degraded` / `anonymous` / `unavailable`。浏览器
+回归靠它断言加载走向，属于对外契约，改动取值要同步回归用例。
 
 ## Consequences
 

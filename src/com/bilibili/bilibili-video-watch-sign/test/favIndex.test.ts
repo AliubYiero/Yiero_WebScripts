@@ -117,6 +117,13 @@ function seedCache(folders: ISeedFolder[], mid = MID): void {
     }
 }
 
+/** 让挂起的 await 链跑完一轮微任务 */
+async function flushMicrotasks(): Promise<void> {
+    for (let i = 0; i < 5; i++) {
+        await Promise.resolve();
+    }
+}
+
 function marker(): string | undefined {
     return document.documentElement.dataset.favIndex;
 }
@@ -351,6 +358,87 @@ describe('ensureFavIndex', () => {
         expect(marker()).toBe('unavailable');
     });
 
+    it('list-all 失败降级后只负缓存 60s', async () => {
+        seedCache([{ id: 100, mediaCount: 2, aids: [1, 2] }]);
+        vi.mocked(api_getFavFolderList).mockResolvedValue({
+            code: -412,
+            message: '请求被拦截',
+            ttl: 1,
+            data: { count: 0, list: [] },
+        });
+
+        await ensureFavIndex();
+        expect(api_getFavFolderList).toHaveBeenCalledTimes(3);
+
+        vi.mocked(api_getFavFolderList).mockClear();
+        now += 30_000;
+        const cached = await ensureFavIndex();
+
+        expect(cached.kind).toBe('ok');
+        expect(api_getFavFolderList).not.toHaveBeenCalled();
+
+        vi.mocked(api_getFavFolderList).mockClear();
+        now += 31_000;
+        await ensureFavIndex();
+
+        expect(api_getFavFolderList).toHaveBeenCalledTimes(3);
+    });
+
+    it('某夹 ids 失败：60s 后重试失败夹，不直接读缓存', async () => {
+        seedCache([{ id: 100, mediaCount: 2, aids: [1] }]);
+        vi.mocked(api_getFavFolderList).mockResolvedValue(
+            listResponse([folder(100, 3), folder(200, 1)]),
+        );
+
+        let folder100Fails = true;
+        vi.mocked(api_getFavResourceIds).mockImplementation(
+            async (mediaId: number) => {
+                if (mediaId === 100 && folder100Fails) {
+                    return {
+                        code: -503,
+                        message: '服务不可用',
+                        ttl: 1,
+                        data: [],
+                    };
+                }
+
+                return idsResponse(
+                    mediaId === 100
+                        ? [resource(1), resource(2), resource(9)]
+                        : [resource(3)],
+                );
+            },
+        );
+
+        const first = await ensureFavIndex();
+
+        expect(first.kind).toBe('ok');
+        if (first.kind !== 'ok') return;
+        expect(first.index.degraded).toBe(true);
+        // 100 失败重试 2 次，200 成功 1 次
+        expect(api_getFavResourceIds).toHaveBeenCalledTimes(3);
+
+        vi.mocked(api_getFavFolderList).mockClear();
+        vi.mocked(api_getFavResourceIds).mockClear();
+        now += 30_000;
+        await ensureFavIndex();
+
+        expect(api_getFavFolderList).not.toHaveBeenCalled();
+
+        folder100Fails = false;
+        now += 31_000;
+        const second = await ensureFavIndex();
+
+        expect(second.kind).toBe('ok');
+        if (second.kind !== 'ok') return;
+
+        expect(second.index.degraded).toBe(false);
+        expect(second.index.lookup.complete).toBe(true);
+        expect(api_getFavFolderList).toHaveBeenCalledTimes(1);
+        expect(api_getFavResourceIds).toHaveBeenCalledTimes(1);
+        expect(api_getFavResourceIds).toHaveBeenCalledWith(100);
+    });
+
     it('某夹 ids 失败：保留旧分片，其它夹照写', async () => {
         seedCache([{ id: 100, mediaCount: 2, aids: [1] }]);
         vi.mocked(api_getFavFolderList).mockResolvedValue(
@@ -431,6 +519,51 @@ describe('ensureFavIndex', () => {
         expect(memory.has(aidsKey(MID, 100))).toBe(false);
         expect(memory.has(metaKey(99))).toBe(true);
         expect(memory.get(MIDS_KEY)).toEqual([99]);
+    });
+
+    it('加载在飞时力刷新：不复用旧 Promise，重新 list-all', async () => {
+        let resolveFirst!: (
+            value: Awaited<ReturnType<typeof api_getFavFolderList>>,
+        ) => void;
+        const firstList = new Promise<
+            Awaited<ReturnType<typeof api_getFavFolderList>>
+        >((resolve) => {
+            resolveFirst = resolve;
+        });
+
+        vi.mocked(api_getFavFolderList)
+            .mockReturnValueOnce(firstList)
+            .mockResolvedValue(listResponse([]));
+
+        const first = ensureFavIndex();
+        await flushMicrotasks();
+
+        expect(api_getFavFolderList).toHaveBeenCalledTimes(1);
+
+        forceRefreshFavIndex();
+        const second = ensureFavIndex();
+        await flushMicrotasks();
+
+        expect(api_getFavFolderList).toHaveBeenCalledTimes(2);
+
+        resolveFirst(listResponse([]));
+
+        const [firstResult, secondResult] = await Promise.all([
+            first,
+            second,
+        ]);
+
+        expect(firstResult.kind).toBe('ok');
+        expect(secondResult.kind).toBe('ok');
+
+        // 旧加载的结果不覆盖新备忘
+        const third = await ensureFavIndex();
+
+        expect(third.kind).toBe('ok');
+        if (third.kind !== 'ok') return;
+
+        expect(third.index.source).toBe('cache');
+        expect(api_getFavFolderList).toHaveBeenCalledTimes(2);
     });
 
     it('并发调用共享同一个 Promise', async () => {
