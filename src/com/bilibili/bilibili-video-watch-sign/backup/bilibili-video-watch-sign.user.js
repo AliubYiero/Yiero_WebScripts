@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Bilibili视频观看状态标记
 // @description    基于收藏夹内容, 自动标记Bilibili视频的观看状态(已看/未看)
-// @version        1.2.0
+// @version        1.2.1
 // @author         Yiero
 // @match          https://*.bilibili.com/*
 // @icon           https://www.bilibili.com/favicon.ico
@@ -1439,6 +1439,11 @@
     );
     BindUpdatePageButton.upDynamic();
   };
+  const markCurrentVideoWatching = (href = window.location.href) => {
+    const videoId = getVideoId(href);
+    if (!videoId) return;
+    cacheWatchedSessionStore.setState(videoId, "watching");
+  };
   const adVideoItemParser = (container) => {
     return baseParser(
       container,
@@ -1626,6 +1631,7 @@
     }, 300);
   };
   const handleVideoPage = async () => {
+    markCurrentVideoWatching();
     bindContainerObservers();
     const observer = new MutationObserver(() => {
       if (document.hidden) return;
@@ -2044,6 +2050,7 @@
       if (event.type === "hash" || stripHash(event.to) === stripHash(event.from)) {
         return;
       }
+      markCurrentVideoWatching(event.to);
       await sleep(100);
       await updatePage();
     });

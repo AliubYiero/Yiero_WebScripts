@@ -3,6 +3,7 @@ import { sleep } from 'radash';
 import { addReadSignStyle } from './module/addReadSignStyle/addReadSignStyle';
 import { forceRefreshFavIndex } from './module/favIndex/favIndex';
 import { getVideoSignHandler } from './module/videoSignHandler/getVideoSignHandler';
+import { markCurrentVideoWatching } from './module/videoSignHandler/markCurrentVideoWatching';
 import { videoSignProcessingQueue } from './module/videoSignProcessingQueue/videoSignProcessingQueue';
 import { ObserverList } from './module/videoSignHandler/handles/base';
 import { cacheWatchedSessionStore } from './store/cacheWatchedSessionStore';
@@ -67,6 +68,10 @@ const bindRouteChange = () => {
         ) {
             return;
         }
+
+        // 路由事件带的是目标地址：先记一次，避免连续快速切换时
+        // 只记到最后一条（进入页面后 handler 还会按最终地址再记）
+        markCurrentVideoWatching(event.to);
 
         await sleep(100);
         await updatePage();

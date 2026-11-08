@@ -1,6 +1,7 @@
 import type { IVideoItem } from '../types/IVideoItem';
 import { baseParser, ObserverList } from './base';
 import { markVideoItems } from '../../favIndex/markVideoItems';
+import { markCurrentVideoWatching } from '../markCurrentVideoWatching';
 import { getPageVersion } from '../../../util/pageVersion';
 
 /**
@@ -324,6 +325,9 @@ const scheduleContainerBind = () => {
  * `ObserverList`，由 `updatePage` 统一断开。
  */
 export const handleVideoPage = async () => {
+    // 进入页面先记当前视频为「正在看」：离开后它才不会退回「未看」
+    markCurrentVideoWatching();
+
     // 先绑容器，避免首次扫描期间新出现的容器漏观察
     bindContainerObservers();
 

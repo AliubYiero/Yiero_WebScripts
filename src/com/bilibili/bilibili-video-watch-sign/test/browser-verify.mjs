@@ -630,6 +630,8 @@ function printUsage() {
 const FIXTURE = {
     /** 多P 合集视频页（当前视频 BV1p5qrByEtH） */
     multiPPage: 'https://www.bilibili.com/video/BV1p5qrByEtH/',
+    /** 首屏正在播放的视频，切换后应保留「正在看」 */
+    initialVideoId: 'BV1p5qrByEtH',
     /** 合集里可切换的非当前分P */
     albumSwitchBvId: 'BV146BFBzEdw',
     /**
@@ -678,6 +680,32 @@ async function readFavIndexState(page) {
     );
 }
 
+/** 合集行内部的标记节点：标题行优先，其次分P行，最后整行 */
+const ALBUM_ROW_SELECTOR =
+    '.simple-base-item.head, .simple-base-item.normal, ' +
+    '.simple-base-item';
+
+/**
+ * 读合集里某一项当前的标记状态；找不到该项返回 null。
+ */
+async function readAlbumMark(page, videoId) {
+    return page.evaluate(
+        ({ id, rowSelector }) => {
+            const item = document.querySelector(
+                `.video-pod__item.simple[data-key="${id}"]`,
+            );
+            if (!item) return null;
+
+            const row = item.querySelector(rowSelector) ?? item;
+            return {
+                className: row.className,
+                label: getComputedStyle(row, '::after').content,
+            };
+        },
+        { id: videoId, rowSelector: ALBUM_ROW_SELECTOR },
+    );
+}
+
 /**
  * 点击合集里的目标分P，直到 URL 切走。
  *
@@ -689,21 +717,22 @@ async function clickAlbumItem(page, bvId) {
     const deadline = Date.now() + NAV_TIMEOUT;
 
     while (Date.now() < deadline) {
-        const found = await page.evaluate((id) => {
-            const item = document.querySelector(
-                `.video-pod__item.simple[data-key="${id}"]`,
-            );
-            if (!item) return false;
+        const found = await page.evaluate(
+            ({ id, rowSelector }) => {
+                const item = document.querySelector(
+                    `.video-pod__item.simple[data-key="${id}"]`,
+                );
+                if (!item) return false;
 
-            const list = item.closest('.video-pod__list');
-            if (list) list.scrollTop = item.offsetTop - 60;
+                const list = item.closest('.video-pod__list');
+                if (list) list.scrollTop = item.offsetTop - 60;
 
-            const row = item.querySelector(
-                '.simple-base-item.head, .simple-base-item.normal, .simple-base-item',
-            );
-            row?.click();
-            return true;
-        }, bvId);
+                const row = item.querySelector(rowSelector) ?? item;
+                row.click();
+                return true;
+            },
+            { id: bvId, rowSelector: ALBUM_ROW_SELECTOR },
+        );
         if (!found) return 'not-found';
 
         const switched = await page
@@ -772,7 +801,7 @@ const CASES = [
     },
     {
         id: 'video-switch-album',
-        title: '页内切换分P后合集标记会重新出现',
+        title: '页内切换分P后标记会重新出现, 切换前的视频保持正在看',
         run: async (page) => {
             await gotoPage(page, FIXTURE.multiPPage);
             await waitForMarks(page);
@@ -809,7 +838,49 @@ const CASES = [
                 '切换分P后合集列表没有重新出现标记',
             );
 
-            return `跳转 ${new URL(page.url()).search} 后合集标记数 ${albumMarks}`;
+            // 切换前看的视频不能退回「未看」：进入视频页时就该记为
+            // 「正在看」，切换后它作为非当前分P重新参与标记。
+            const stillWatching = await page
+                .waitForFunction(
+                    ({ id, rowSelector }) => {
+                        const item = document.querySelector(
+                            `.video-pod__item.simple[data-key="${id}"]`,
+                        );
+                        if (!item) return null;
+
+                        const row =
+                            item.querySelector(rowSelector) ?? item;
+                        return (
+                            row.classList.contains('watching') || null
+                        );
+                    },
+                    {
+                        id: FIXTURE.initialVideoId,
+                        rowSelector: ALBUM_ROW_SELECTOR,
+                    },
+                    { timeout: MARK_TIMEOUT },
+                )
+                .then(() => true)
+                .catch(() => false);
+
+            const previous = await readAlbumMark(
+                page,
+                FIXTURE.initialVideoId,
+            );
+            assert(
+                previous,
+                `切换后合集列表里找不到切换前的视频 ${FIXTURE.initialVideoId}`,
+            );
+            assert(
+                stillWatching,
+                `切换前的视频没有保持「正在看」：${previous.className}`,
+            );
+            assert(
+                /^"?正在看"?$/.test(previous.label),
+                `切换前的视频状态文案不对：${previous.label}`,
+            );
+
+            return `跳转 ${new URL(page.url()).search} 后合集标记数 ${albumMarks}, 切换前视频为「正在看」`;
         },
     },
     {
