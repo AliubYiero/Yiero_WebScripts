@@ -1,104 +1,148 @@
-# Bilibili 观看视频状态标记
-
+# Bilibili 视频观看状态标记
 
 ## 概述
 
-通过收藏夹, 获取当前视频的观看状态 (已看 / 未看), 并在视频卡片处标记. 
+用当前账号的收藏夹判断视频看没看过, 在视频卡片上显示「已看 / 未看」; 本次打开标签页后正在看的视频显示「正在看」.
 
-> 建议与脚本 [BiliBili自动添加视频收藏](https://scriptcat.org/zh-CN/script-show-page/1603) 联动使用. 
+判断只读取你自己的收藏夹, 数据留在本地, 不会上传. 建议与脚本 [BiliBili自动添加视频收藏](https://scriptcat.org/zh-CN/script-show-page/1603) 联动使用: 收藏即视为看过, 浏览时自动标记.
 
+> 第一次初始化需要较长时间, 这是因为需要加载用户所有的收藏夹内容. 等第一次缓存之后就可以快速标记了. 
 
+## 状态说明
+
+| 状态 | 颜色 | 含义 |
+| --- | --- | --- |
+| 已看 | 灰 | 视频在自己创建的一个收藏夹里 |
+| 未看 | 青 | 收藏夹索引完整, 且视频不在自己创建的任何收藏夹里 |
+| 正在看 | 橙 | 本次标签页里点开过, 或正停留在该视频页 |
+| 番剧 | 绿 | 卡片指向番剧 (ep), 只提示类型, 不判断已看 |
+
+鼠标悬停在卡片上时标记会暂时隐藏, 移开后恢复.
 
 ## 功能特性
 
-- 支持以下页面的视频标记: 
-	- 主站: 
-	  - [x] 热门相关: 
-	  	- [x]  排行榜: https://www.bilibili.com/v/popular/rank/
-	  	- [x] 综合热门: https://www.bilibili.com/v/popular/all
-	  	- [x] 每周必看: https://www.bilibili.com/v/popular/weekly
-	  	- [x] 入站必刷: https://www.bilibili.com/v/popular/history
-	  - [x] 稍后再看: https://www.bilibili.com/watchlater/list
-	  - [x] 视频:  https://www.bilibili.com/video/*
-	  - [x] 子分类 https://www.bilibili.com/c/*
-	- 搜索: 
-		- [x] 搜索 - 综合: https://search.bilibili.com/all
-		- [x] 搜索 - 视频: https://search.bilibili.com/video
-	- 动态: 
-		- [x] 全部分类 https://t.bilibili.com/?tab=all
-		- [x] 视频分类 https://t.bilibili.com/?tab=video
-		- [x] 单<UP>动态分类
-	- 空间: 
-		- [x] 主页: https://space.bilibili.com/15810
-		- [x] 动态: https://space.bilibili.com/15810/dynamic
-			- [x] UP主动态-全部
-			- [x] UP主动态-视频
-		- [x] 投稿 https://space.bilibili.com/15810/upload/video
-		- [x] 合集 https://space.bilibili.com/15810/lists
-			- [x] 合集列表 https://space.bilibili.com/15810/lists
-			- [x] 合集/系列内容 https://space.bilibili.com/15810/lists/4299954?type=series
-	- 个人空间
-	
-		- [x] 收藏夹 https://space.bilibili.com/<uid>/favlist?fid=<fid>&ftype=create
-	
-		- [x] 追更的合集/收藏夹 https://space.bilibili.com/<uid>/favlist?fid=<fid>&ftype=collect
-- 不支持以下页面的视频标记: 
-	- 主站 - 番剧相关页面
-		- 番剧: https://www.bilibili.com/anime/
-		- 国创: https://www.bilibili.com/guochuang/
-		- 综艺: https://www.bilibili.com/variety/
-		- 电影: https://www.bilibili.com/movie/
-		- 电视剧: https://www.bilibili.com/tv/
-		- 纪录片: https://www.bilibili.com/documentary/
-	- 动态 - 番剧分类
-	  - 追番追剧: https://t.bilibili.com/?tab=pgc
-	- 历史记录
-	  - 历史记录: https://www.bilibili.com/history
+### 观看状态
 
+- 用自己创建的收藏夹建立索引, 常态下整页视频一次比对, 不必逐条请求.
+- 索引完整时: 命中收藏夹的标「已看」, 没命中的标「未看」.
+- 索引不完整时 (某个收藏夹拉取失败): 只对没命中的视频逐条回源查询, 不会把整页误标成「未看」.
+- 未登录, 或索引不可用时, 保持原样不标记, 也不发多余请求.
+- 会话状态优先: 点开「未看」卡片, 或进入视频页, 该视频立即记为「正在看」; 同一标签页内它不会再被收藏夹判定改回「已看」. 关闭标签页后会话状态清除.
+- 收藏夹索引 5 分钟内复用; 首页右下角的刷新按钮可以越过缓存, 立即重拉索引并重扫页面.
 
+### 支持的页面
 
+主站:
 
-> 如果存在没有处理的页面, 并且没有明确不支持的页面, 请按照 [BUG 反馈模板](#BUG 反馈模板) 的内容向 aluibyiero@qq.com 发送反馈邮箱. 
->
-> 若使用修改 Bilibili UI 的脚本, 如 [Bilibili Evolved](https://github.com/the1812/Bilibili-Evolved). 不保证可用, 且不会进行兼容. 
+- 首页推荐: https://www.bilibili.com/
+- 热门:
+  - 排行榜: https://www.bilibili.com/v/popular/rank/
+  - 综合热门: https://www.bilibili.com/v/popular/all
+  - 每周必看: https://www.bilibili.com/v/popular/weekly
+  - 入站必刷: https://www.bilibili.com/v/popular/history
+- 稍后再看: https://www.bilibili.com/watchlater/list
+- 视频页: https://www.bilibili.com/video/*
+  - 相关推荐, 合集与播放列表
+  - 进入页面时把当前视频记为「正在看」, 合集内切换后前一个视频仍保持该状态
+- 分区: https://www.bilibili.com/c/*
 
+搜索:
 
+- 综合: https://search.bilibili.com/all
+- 视频: https://search.bilibili.com/video
+
+动态 (https://t.bilibili.com/):
+
+- 全部分类 `?tab=all`
+- 视频分类 `?tab=video`
+- 单 UP 主动态
+
+空间 (https://space.bilibili.com/<uid>/):
+
+- 主页
+- 动态, 含全部与视频分类
+- 投稿: `/upload/video`
+- 合集列表: `/lists`
+- 合集/系列内容: `/lists/<id>?type=series`
+- 收藏夹: `/favlist?fid=<fid>&ftype=create`
+- 追更的合集/收藏夹: `/favlist?fid=<fid>&ftype=collect`
+
+### 暂不支持
+
+- 番剧相关页面: 番剧, 国创, 综艺, 电影, 电视剧, 纪录片, 以及番剧播放页 `/bangumi/play/ep...`
+- 动态 - 追番追剧分类 (`?tab=pgc`)
+- 历史记录: https://www.bilibili.com/history
+- 列表播放页: https://www.bilibili.com/list/...
+
+如果遇到没有处理, 也不在上面的「暂不支持」里的页面, 欢迎按 [BUG 反馈模板](#bug-反馈模板) 反馈.
 
 ## 使用方法
 
-安装网页拓展 [脚本猫](https://scriptcat.org/zh-CN), 点击脚本详情页面的 **安装脚本** 按钮. 
+1. 安装脚本管理器 [脚本猫](https://scriptcat.org/zh-CN).
+2. 在脚本详情页点击 **安装脚本**.
+3. 登录 B 站, 打开上面列出的页面, 视频卡片会自动出现标记.
 
+首次打开页面时 (或索引已超过 5 分钟) 会拉取一次收藏夹索引; 收藏夹很多或视频很多时, 稍等片刻即可. 脚本没有需要配置的选项.
 
+## 工作原理
 
-## 功能流程
+1. 收集页面上的视频卡片, 并持续监听后续加载 (滚动, 懒加载, 分页, 筛选).
+2. 从卡片链接解析视频 ID (BV / av / ep).
+3. 先看会话状态: 正在看, 或本标签页内已判定的结果, 直接使用.
+4. 其余视频走收藏夹索引:
+   - 拉取自己创建的收藏夹列表;
+   - 只同步有变化的收藏夹的视频 ID, 按收藏夹分片缓存在本地;
+   - 完整索引缓存 5 分钟; 拉取失败或未登录的结果 60 秒内不重复请求;
+   - 索引完整时直接给出「已看 / 未看」.
+5. 索引不完整时, 把没命中的视频放进回源队列逐条查询:
+   - 同一视频只入队一次;
+   - 基础间隔 1.2 秒;
+   - 失败按 2 / 4 / 8 秒退避;
+   - 连续失败 5 次后暂停本页回源, 避免风控时继续加压.
+6. 写入标记; 路由切换, 分页或筛选后重新扫描页面.
 
-1. 进入页面
-2. 获取当前页面视频卡片, 并持续监听视频卡片载入
-3. 解析视频卡片, 获取视频ID
-4. 传入处理队列, 进行排队添加标记:
-	1. 通过视频ID, 发送网络请求, 判断当前视频是否已经收藏
-	2. 添加标记
-	3. 冷却 500ms , 防止持续频繁的网络请求导致 IP 被封 / 账号异常. 
+## 数据与隐私
 
----
+- 只请求 `api.bilibili.com` 的收藏夹相关接口: 收藏夹列表, 收藏夹内容, 单视频收藏状态.
+- 通过登录 Cookie 识别当前账号; 收藏夹索引存放在脚本猫的本地存储中, 按账号隔离, 只保留当前账号的一份.
+- 「正在看」等会话状态存放在当前标签页的 sessionStorage 中, 关闭标签页即失效.
+- 不上传浏览记录, 收藏夹内容或任何统计信息.
 
-### 备注
+## 常见问题
 
-1. [UP主投稿页面](https://space.bilibili.com/15810/upload/video) 切换分页时, 加载标记的顺序是从最后一个到第一个进行的. 这是 Bilibili 加载数据的顺序导致. 
-2. [视频页面](https://www.bilibili.com/video/BV1opDwYYE4Y) 若合集长度过长, 会导致超长的加载时长. 
+**刚收藏的视频还是显示「未看」**
+
+索引有 5 分钟缓存. 回到首页点右下角的刷新按钮, 会立即重拉收藏夹索引并重新标记.
+
+**整页视频都没有标记**
+
+确认已登录 B 站. 如果刚打开页面, 等索引拉取完成; 仍不出现时打开控制台看是否有 `[watch-sign]` 开头的提示. 未登录或索引不可用时, 脚本会刻意跳过标记, 而不是把视频误标为「未看」.
+
+**当前正在播放的合集分 P 没有标记**
+
+当前播放的分 P 默认跳过, 不加标记; 切到别的分 P 后, 前一个视频会显示「正在看」.
+
+**切换账号后标记不对**
+
+索引按账号隔离, 只保留当前账号的一份. 切换账号后重新打开页面会重新拉取.
+
+## 备注
+
+1. 第一次初始化需要较长时间, 这是因为需要加载用户所有的收藏夹内容. 
+2. [UP 主投稿页面](https://space.bilibili.com/15810/upload/video) 切换分页时, 标记顺序是从最后一个到第一个. 这是 B 站加载数据的顺序导致的. 正常情况是无感知整页标记. 
+3. 若同时使用修改 B 站 UI 的脚本, 如 [Bilibili Evolved](https://github.com/the1812/Bilibili-Evolved), 不保证标记位置与样式正常, 也不做兼容.
+
+完整变更记录见 [更新日志](docs/更新日志.md).
 
 ## 许可证
 
 [GPL-3](https://www.gnu.org/licenses/gpl-3.0.zh-cn.html)
 
-
-
 ## 技术支持
 
-如有问题或建议，请联系：
+如有问题或建议, 请联系:
+
 - 邮箱: aluibyiero@qq.com
-
-
 
 ### BUG 反馈模板
 
@@ -111,21 +155,22 @@
 **正文**
 
 ```
-脚本:  Bilibili 观看视频状态标记
-脚本版本: <如: 1.0.0>
+脚本:  Bilibili 视频观看状态标记
+脚本版本: <如: 1.2.1>
 浏览器: <如: Google Chrome 版本 142.0.7444.176>
 
 B站UI版本: <新版/旧版>
 是否使用其它修改B站样式的脚本: <如 Bilibili Evolved>
 
-出现的问题: 
+问题页面: <出现问题的页面 URL>
+
+出现的问题:
 [...]
 
-重现步骤: 
-1. 
-2. 
-3. 
+重现步骤:
+1.
+2.
+3.
 
-补充(如报错截图): 
+补充(如报错截图):
 ```
-
