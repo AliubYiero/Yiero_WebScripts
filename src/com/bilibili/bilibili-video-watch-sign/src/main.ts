@@ -2,6 +2,10 @@ import { onRouteChange } from '@yiero/gmlib';
 import { sleep } from 'radash';
 import { addReadSignStyle } from './module/addReadSignStyle/addReadSignStyle';
 import { forceRefreshFavIndex } from './module/favIndex/favIndex';
+import {
+    closeFavIndexProgress,
+    startFavIndexProgress,
+} from './module/favIndex/favIndexProgress';
 import { getVideoSignHandler } from './module/videoSignHandler/getVideoSignHandler';
 import { markCurrentVideoWatching } from './module/videoSignHandler/markCurrentVideoWatching';
 import { videoSignProcessingQueue } from './module/videoSignProcessingQueue/videoSignProcessingQueue';
@@ -69,6 +73,10 @@ const bindRouteChange = () => {
             return;
         }
 
+        // 旧页面的进度卡立即消失，新页面按自己的加载重新判断；
+        // 旧加载不中止，订阅保留
+        closeFavIndexProgress();
+
         // 路由事件带的是目标地址：先记一次，避免连续快速切换时
         // 只记到最后一条（进入页面后 handler 还会按最终地址再记）
         markCurrentVideoWatching(event.to);
@@ -84,6 +92,10 @@ const bindRouteChange = () => {
 const main = async () => {
     // 添加已看标记样式
     addReadSignStyle();
+
+    // 订阅收藏夹索引的进度事件：一轮加载只出一张卡，
+    // 由进度卡模块自己判阈值
+    startFavIndexProgress();
 
     // 执行视频标记处理
     const videoSignHandler = getVideoSignHandler();

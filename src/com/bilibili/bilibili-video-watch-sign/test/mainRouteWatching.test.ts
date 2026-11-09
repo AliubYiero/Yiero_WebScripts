@@ -31,6 +31,11 @@ vi.mock('../src/module/favIndex/favIndex', () => ({
     forceRefreshFavIndex: vi.fn(),
 }));
 
+vi.mock('../src/module/favIndex/favIndexProgress', () => ({
+    startFavIndexProgress: vi.fn(),
+    closeFavIndexProgress: vi.fn(),
+}));
+
 const readCache = () =>
     JSON.parse(sessionStorage.getItem('cacheWatched') || '{}');
 

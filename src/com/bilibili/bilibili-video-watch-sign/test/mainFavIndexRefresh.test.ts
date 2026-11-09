@@ -8,6 +8,11 @@ vi.mock('../src/module/favIndex/favIndex', () => ({
     forceRefreshFavIndex,
 }));
 
+vi.mock('../src/module/favIndex/favIndexProgress', () => ({
+    startFavIndexProgress: vi.fn(),
+    closeFavIndexProgress: vi.fn(),
+}));
+
 vi.mock('../src/module/addReadSignStyle/addReadSignStyle', () => ({
     addReadSignStyle: vi.fn(),
 }));
