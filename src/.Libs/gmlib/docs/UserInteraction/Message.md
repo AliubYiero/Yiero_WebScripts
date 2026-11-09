@@ -24,9 +24,26 @@ Message.info(message: string, options?: Omit<MessageDetail, 'type' | 'message'>)
 | 属性/方法 | 类型 | 描述 |
 | :-------- | :--- | :--- |
 | `close` | `() => void` | 手动关闭消息的方法 |
+| `update` | `(patch: MessageUpdatePatch) => void` | 更新消息的文案 / 类型 / 时长（不可改位置） |
 | `element` | `HTMLElement` | 消息 DOM 元素的引用 |
 
-通过返回的 `MessageInstance`，可以手动控制消息的关闭，或访问消息元素进行进一步操作。
+通过返回的 `MessageInstance`，可以手动关闭消息、就地更新消息内容，或访问消息元素进行进一步操作。
+
+### `update(patch)` 参数
+
+`patch` 中的字段都可选，只更新传入的字段，未传入的保持不变：
+
+| 字段 | 类型 | 描述 |
+| :-------- | :--- | :--- |
+| `message` | `string` | 新的消息文案，不能为空字符串 |
+| `type` | `'success'` \| `'info'` \| `'warning'` \| `'error'` | 新的消息类型，会同步换图标与配色 |
+| `duration` | `number` | 新的显示时长（毫秒），`0` 表示常驻；其余须 ≥ 100 |
+
+两点行为约定：
+
+- `position` **不可更新**：类型上不接受，运行时会忽略。改位置要联动堆叠重排，本版本不做。
+- `update` 会**重置**自动关闭计时器：清掉旧计时器后按新 `duration` 重设；新 `duration` 为 `0` 则清掉后不再设。
+- 改 `type` 会触发一次堆叠位置重算（卡片高度可能变化），避免下方消息被压字。
 
 ## 参数
 
@@ -46,7 +63,7 @@ Message.info(message: string, options?: Omit<MessageDetail, 'type' | 'message'>)
 | :--------- | :----------------------------------------------------------- | :------- | :--------------------------------------- |
 | `message`  | `string`                                                     | (必需)   | 要显示的消息内容                         |
 | `type`     | `'success'` | `'info'` | `'warning'` | `'error'`             | `'info'` | 消息类型，决定消息的样式和图标           |
-| `duration` | `number`                                                     | `3000`   | 消息显示的持续时间（毫秒），之后自动关闭。最小值：100ms |
+| `duration` | `number`                                                     | `3000`   | 消息显示的持续时间（毫秒），之后自动关闭。最小值：100ms；`0` 表示常驻（不自动关闭） |
 | `position` | `'top-left'` | `'top'` | `'top-right'`<br />``'left'`` | `right`<br />`bottom-left` | `bottom` | `bottom-right` | `'top'`  | 消息在页面上的显示位置                   |
 
 ### 快捷方法参数
@@ -141,16 +158,30 @@ Message.success('底部消息', { position: 'bottom' });
 
 ## 消息数量限制
 
-系统最多同时显示 **3 条消息**。当超出限制时，最早的消息会被自动关闭。
+系统最多同时显示 **3 条**非常驻消息。当超出限制时，最旧的**非常驻**消息会被自动关闭。
+
+常驻消息（`duration: 0`）：
+
+- **计入条数**：常驻消息仍然占用同屏名额，页面上的消息总量仍在预期范围内
+- **豁免淘汰**：常驻消息不会被后续消息挤掉，被关闭的永远是最旧的非常驻消息
+- **全部常驻时不再强行关闭**：若同屏消息全部常驻，允许超过 3 条
 
 ```ts
-// 连续创建 4 条消息
+// 连续创建 4 条普通消息
 Message.success('消息 1');
 Message.success('消息 2');
 Message.success('消息 3');
 Message.success('消息 4'); // 触发限制，消息 1 被自动关闭
 
 // 最终只显示消息 2、3、4
+```
+
+```ts
+// 常驻消息不会被挤掉
+const task = Message({ message: '任务进行中', duration: 0 });
+Message.info('提示 1');
+Message.info('提示 2');
+Message.info('提示 3'); // 触发限制，被关闭的是「提示 1」，task 仍在
 ```
 
 ## 消息移除与位置重算
