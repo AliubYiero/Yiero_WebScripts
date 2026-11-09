@@ -13,14 +13,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm format` — 使用 Biome 格式化代码
 - `pnpm update:readme` — 重新生成 README.md 与 docs/README.md
 - `pnpm install` — 安装整个 workspace 的依赖（增删项目后重跑）
-- `pnpm commit <提交信息>` — 暂存当前项目（根目录调用则整仓）并提交；当前版本未归档时先构建
+- `pnpm commit <type> <主题>` — 暂存当前项目（根目录调用则整仓）并提交；当前版本未归档时先构建。提交信息写成 `<type>(<项目名>): <主题>`（整仓时省略括号段），缺参数时终端交互补问
 - `pnpm push` — 推当前分支 + 当前项目前缀下的标签（根目录调用则推当前分支 + 全部标签）
 - `pnpm build` — 只构建「banner 版本号尚未归档」的项目
 - `pnpm build:all` — 全量构建（会临时移走 `backup/`，避免同版本重复归档报错）
 - `pnpm build --dry-run` — 打印构建计划（JSON）
 - `pnpm build --all`（别名 `--force`）— 含例外项目在内全量构建
 - `pnpm build --project src/com/bilibili/xxx` — 只构建计划里的某个项目
-- `pnpm new:script 域/子域/项目名` — 用 `templates/ts-template` 生成新脚本项目
+- `pnpm new:script 域/子域/项目名` — 用 `templates/ts-template` 生成新脚本项目（不给路径时终端里问你一次）
 - `pnpm check:template` — 体检模板（必备文件、依赖族、运行期依赖、委托命令、元数据键）
 - `pnpm sync:project-docs` — 用模板重写各脚本项目的 `CLAUDE.md`（`--check` 只比对不写，有漂移退出 1）
 - `pnpm check:tags` — 校验 git 标签是否符合「域/子域/项目/v版本」（`--remote` 一并比对远程）
@@ -39,7 +39,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm dev:base` — 开发构建（development 模式，带 `--watch` 监听）
 - `pnpm dev:sync` — 开发构建并推送至脚本猫客户端（sync 模式，带 `--watch`）
 - `pnpm dev:test` — 测试构建（test 模式，会覆盖脚本元数据用于本地测试，带 `--watch`）
-- `pnpm commit <提交信息>` — 提交当前项目目录（当前版本未归档时先构建；没有可提交的变更时以 0 退出）
+- `pnpm commit <type> <主题>` — 提交当前项目目录（当前版本未归档时先构建；没有可提交的变更时以 0 退出；缺参数时终端交互补问）
 - `pnpm release:tag` — 用 banner 版本号给当前项目打标签（当前版本未归档时先构建；同名标签指向同一 commit 时静默通过）
 - `pnpm push` — 推当前分支 + 当前项目前缀下的标签
 
@@ -57,7 +57,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 2. `pnpm install` — 让新包进 workspace；不跑的话后面按包名 `--filter` 找不到它。
 3. 改 `banner/UserScript.ts` 的 `name`、`description`、`version`（新项目从 `0.1.0` 起）、`match`（默认按目录推导成 `https://*.<二级域>.<顶级域>/*`，`.Global` 是 `https://*/*`，`.Crontab` 换成 `@crontab`）。`@grant` 由构建期从代码里提取，不用手填。
 4. `pnpm --filter @webscripts/<项目名> dev:base` — 日常开发（development 模式，带 watch）。
-5. `pnpm commit <提交信息>` — 归档当前版本并提交。
+5. `pnpm commit <type> <主题>` — 归档当前版本并提交。
 6. `pnpm release:tag <项目> --push` — 打标签并推远程。顺序不能反，见「版本标签」。
 
 模板自带两样东西：项目级 `CLAUDE.md` 指针（由模板渲染，不要手改，改了 `pnpm sync:project-docs --check` 会红）和 `test/browser-verify.mjs` 浏览器回归骨架（`CASES` 为空时打印用法并以 0 退出，项目里对应 `pnpm test:browser`）。

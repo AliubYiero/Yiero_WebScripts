@@ -26,6 +26,10 @@ banner 里用 `@crontab` 声明运行频率、不带 `@match` 的脚本，位于
 
 一次委托提交要包含哪些路径：项目目录里调用时只暂存该项目目录，仓库根调用时是整仓。注意 git 索引是整仓一份，「范围」只决定命令**新增**哪些暂存项，不影响别人已经暂存的改动。
 
+## 提交信息
+
+`pnpm commit` 最终写给 `git commit -m` 的那一行，形状为 `<type>(<项目名>): <主题>`。`<type>` 取自白名单（`feat` / `fix` / `docs` / `style` / `refactor` / `perf` / `test` / `chore` / `build` / `ci` / `revert`），不在白名单直接拒绝；`<主题>` 压成单行。仓库根调用没有项目名可选，退化为 `<type>: <主题>`——不编造 scope。参数没给全时在终端里逐项补问。
+
 ## 版本号唯一来源
 
 脚本的版本号只存在于 `banner/UserScript.ts` 的 `@version`。`package.json` 的 `version` 固定为 `0.0.0`，不参与任何语义。

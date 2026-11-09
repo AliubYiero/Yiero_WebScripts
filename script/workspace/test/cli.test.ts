@@ -294,3 +294,61 @@ test('--project 缺少参数时退出码为 2', () => {
     ]);
     equal(status, 2);
 });
+
+// 这些用例经 spawnSync 调用，stdin 不是 TTY：
+// 参数没给全时必须报用法退出，而不是在管道上等输入。
+test('commit 没有参数且非交互时报用法', () => {
+    const { status, stderr } = runTsx([
+        join('script', 'workspace', 'cli', 'commit.ts'),
+        '--dry-run',
+    ]);
+    equal(status, 2);
+    ok(stderr.includes('用法：pnpm commit <type> <主题>'), stderr);
+});
+
+test('commit 只给类型、非交互时报用法', () => {
+    const { status, stderr } = runTsx([
+        join('script', 'workspace', 'cli', 'commit.ts'),
+        'feat',
+        '--dry-run',
+    ]);
+    equal(status, 2);
+    ok(stderr.includes('用法：pnpm commit <type> <主题>'), stderr);
+});
+
+test('commit 类型不在白名单时退出码为 2', () => {
+    const { status, stderr } = runTsx([
+        join('script', 'workspace', 'cli', 'commit.ts'),
+        'feta',
+        '修复点击',
+        '--dry-run',
+    ]);
+    equal(status, 2);
+    ok(stderr.includes('未知提交类型：feta'), stderr);
+});
+
+test('commit 的提交信息带项目名', () => {
+    const { status, stdout } = runTsx([
+        join('script', 'workspace', 'cli', 'commit.ts'),
+        'feat',
+        '修复 点击问题',
+        '--project',
+        'src/com/bilibili/bilibili-video-timeline',
+        '--dry-run',
+    ]);
+    equal(status, 0);
+    ok(
+        stdout.includes(
+            'feat(bilibili-video-timeline): 修复 点击问题',
+        ),
+        stdout,
+    );
+});
+
+test('new:script 没有参数且非交互时报用法', () => {
+    const { status, stderr } = runTsx([
+        join('script', 'workspace', 'cli', 'new-script.ts'),
+    ]);
+    equal(status, 2);
+    ok(stderr.includes('用法：pnpm new:script'), stderr);
+});

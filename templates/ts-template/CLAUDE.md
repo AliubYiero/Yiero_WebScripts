@@ -10,7 +10,7 @@
 - `pnpm build` — 生产构建，会写 `backup/` 归档
 - `pnpm test` — 项目单测（`test/` 目录与 vitest 是模板自带；存量项目可能没有）
 - `pnpm test:browser` — 浏览器回归（有 `test/browser-verify.mjs` 时才有这条命令）
-- `pnpm commit <信息>` — 归档当前版本并提交
+- `pnpm commit <type> <主题>` — 归档当前版本并提交（提交信息写成 `<type>(<项目名>): <主题>`；缺参数时终端交互补问）
 - `pnpm release:tag` — 用 banner 版本号打标签
 
 ## 目录速查
