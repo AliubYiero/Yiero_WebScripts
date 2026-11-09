@@ -1,5 +1,18 @@
 # 更新日志
 
+### 0.4.8 - feat
+
+**Message 可更新与常驻:**
+- 新增: `MessageInstance.update(patch)`, 可改 `message` / `type` / `duration` 三个字段, 未传入的保持不变
+- 新增: `duration: 0` 表示常驻消息, 不启动自动关闭定时器
+- 改进: `duration` 默认值改用显式 `undefined` 判断, `0` 不再被塌成 `3000`
+- 改进: `update` 会重置自动关闭计时器, 常驻转普通、普通转常驻都即时生效
+- 改进: `update` 改 `type` 后触发堆叠位置重算, 避免下方消息被压字
+- 变更: 数量上限淘汰只针对非常驻消息; 常驻消息仍计入条数但豁免淘汰, 全部常驻时允许超过 3 条
+- 不变: `position` 不可更新（类型上不接受、运行时不处理）
+- 新增测试: `tests/UserInteraction/Message.test.ts` 补充 update / 常驻 / 淘汰豁免用例
+- 文档: `docs/UserInteraction/Message.md` 补 `update` 与 `duration: 0`
+
 ### 0.4.7 - feat
 
 **Logger 新增:**

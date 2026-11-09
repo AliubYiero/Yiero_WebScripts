@@ -21,11 +21,16 @@ describe('Message', () => {
     });
 
     afterEach(() => {
-        // 清空消息容器内的内容
+        // 先逐条关闭残留消息，让它们从模块级 activeMessages 中移除。
+        // 常驻消息不会被自动淘汰，只清 DOM 会把它留在活动列表里影响后续用例。
         const container = document.querySelector(
             'div[style*="position: fixed"][style*="pointer-events: none"]',
         );
         if (container) {
+            for (const el of container.querySelectorAll('div')) {
+                (el as HTMLElement).click();
+            }
+            // 清空消息容器内的内容
             container.innerHTML = '';
         }
         vi.useRealTimers();
@@ -339,6 +344,182 @@ describe('Message', () => {
             );
             const messageEl = container?.querySelector('div');
             expect(messageEl).toBeFalsy();
+        });
+    });
+
+    describe('message update', () => {
+        it('should update message content', () => {
+            const instance = Message('初始文案');
+
+            instance.update({ message: '更新后的文案' });
+
+            expect(instance.element.textContent).toContain(
+                '更新后的文案',
+            );
+            expect(instance.element.textContent).not.toContain(
+                '初始文案',
+            );
+        });
+
+        it('should update message type with icon and color', () => {
+            const instance = Message('type 变更');
+            const iconBefore =
+                instance.element.querySelector('span')?.textContent;
+            const backgroundBefore =
+                instance.element.style.backgroundColor;
+
+            instance.update({ type: 'warning' });
+
+            expect(iconBefore).toBe('i');
+            expect(
+                instance.element.querySelector('span')?.textContent,
+            ).toBe('⚠');
+            expect(instance.element.style.backgroundColor).not.toBe(
+                backgroundBefore,
+            );
+            // 文案与位置不受影响
+            expect(instance.element.textContent).toContain(
+                'type 变更',
+            );
+            expect(instance.element.dataset.position).toBe('top');
+        });
+
+        it('should reject invalid duration in update', () => {
+            const instance = Message('test');
+            expect(() => instance.update({ duration: 50 })).toThrow(
+                'duration',
+            );
+        });
+
+        it('should ignore position in update patch', () => {
+            const instance = Message({
+                message: '不改位置',
+                position: 'top',
+            });
+
+            instance.update({
+                // biome-ignore lint/suspicious/noExplicitAny: 验证 position 不可改
+                position: 'bottom',
+            } as any);
+
+            expect(instance.element.dataset.position).toBe('top');
+        });
+
+        it('should reset auto close timer when duration is updated', () => {
+            vi.useFakeTimers();
+
+            const instance = Message({
+                message: '重置计时',
+                duration: 1000,
+            });
+
+            // 已过 800ms，距自动关闭只剩 200ms
+            vi.advanceTimersByTime(800);
+            instance.update({ duration: 2000 });
+
+            // 计时器被重置：更新后 1500ms 仍在
+            vi.advanceTimersByTime(1500);
+            expect(instance.element.parentNode).toBeTruthy();
+
+            // 更新后超过 2000ms，自动关闭（含 300ms 关闭动画）
+            vi.advanceTimersByTime(1000);
+            expect(instance.element.parentNode).toBeFalsy();
+        });
+
+        it('should become permanent when updated with duration 0', () => {
+            vi.useFakeTimers();
+
+            const instance = Message({
+                message: '转常驻',
+                duration: 500,
+            });
+
+            instance.update({ duration: 0 });
+            vi.advanceTimersByTime(10000);
+
+            expect(instance.element.parentNode).toBeTruthy();
+        });
+
+        it('should recalculate stacking positions after type update', () => {
+            const first = Message({
+                message: '第一条',
+                position: 'top-right',
+            });
+            const second = Message({
+                message: '第二条',
+                position: 'top-right',
+            });
+
+            const topBefore = second.element.style.top;
+
+            // 模拟类型切换带来的高度变化（happy-dom 无布局）
+            Object.defineProperty(first.element, 'offsetHeight', {
+                value: 80,
+                configurable: true,
+            });
+
+            first.update({ type: 'error' });
+
+            const topAfter = second.element.style.top;
+            expect(parseFloat(topAfter)).toBe(
+                parseFloat(topBefore) + 80,
+            );
+        });
+    });
+
+    describe('permanent message', () => {
+        it('should not auto close when created with duration 0', () => {
+            vi.useFakeTimers();
+
+            const instance = Message({
+                message: '常驻消息',
+                duration: 0,
+            });
+
+            vi.advanceTimersByTime(60000);
+
+            expect(instance.element.parentNode).toBeTruthy();
+            expect(instance.element.textContent).toContain(
+                '常驻消息',
+            );
+        });
+
+        it('should not be evicted by limit but still count to it', () => {
+            vi.useFakeTimers();
+
+            const permanent = Message({
+                message: '常驻',
+                duration: 0,
+            });
+            const first = Message('普通 1');
+            const second = Message('普通 2');
+
+            // 常驻计入条数，所以第 3 条普通消息会触发淘汰
+            Message('普通 3');
+            vi.advanceTimersByTime(400);
+
+            // 常驻消息不被挤掉
+            expect(permanent.element.parentNode).toBeTruthy();
+            // 被淘汰的是最旧的非常驻消息
+            expect(first.element.parentNode).toBeFalsy();
+            expect(second.element.parentNode).toBeTruthy();
+        });
+
+        it('should allow more than 3 messages when all permanent', () => {
+            vi.useFakeTimers();
+
+            const instances = [1, 2, 3, 4].map((index) =>
+                Message({
+                    message: `常驻 ${index}`,
+                    duration: 0,
+                }),
+            );
+
+            vi.advanceTimersByTime(400);
+
+            for (const instance of instances) {
+                expect(instance.element.parentNode).toBeTruthy();
+            }
         });
     });
 

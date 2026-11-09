@@ -7,6 +7,9 @@ const activeMessages: MessageInstance[] = [];
 // 最大同时显示消息数量
 const MAX_MESSAGES = 3;
 
+// 常驻消息元素（duration: 0）：不自动关闭，并豁免数量上限淘汰
+const permanentMessages = new WeakSet<HTMLElement>();
+
 // 消息类型配置
 const messageTypes = {
     success: {
@@ -133,13 +136,34 @@ function createMessageContainer(): HTMLElement {
 
 /**
  * 执行消息数量限制
- * 当活动消息达到上限时，关闭最早的消息
+ * 当活动消息达到上限时，关闭最旧的**非常驻**消息；
+ * 若同屏消息全部常驻，则不再强行关闭，允许超过上限
  */
 function enforceMessageLimit(): void {
     while (activeMessages.length >= MAX_MESSAGES) {
-        const oldestMessage = activeMessages[0];
+        const oldestMessage = activeMessages.find(
+            (msg) => !permanentMessages.has(msg.element),
+        );
+        if (!oldestMessage) {
+            return;
+        }
         oldestMessage.close();
     }
+}
+
+/**
+ * 应用消息类型的视觉样式（背景、边框、文字色），不覆盖位置与动画属性
+ * @param element - 消息元素
+ * @param type - 消息类型
+ */
+function applyMessageTypeStyle(
+    element: HTMLElement,
+    type: NonNullable<MessageDetail['type']>,
+): void {
+    const typeConfig = messageTypes[type];
+    element.style.backgroundColor = typeConfig.backgroundColor;
+    element.style.border = `1px solid ${typeConfig.borderColor}`;
+    element.style.color = typeConfig.textColor;
 }
 
 /**
@@ -179,12 +203,14 @@ function validateMessageOptions(
     // 校验 duration
     const MIN_DURATION = 100;
     if (detail.duration !== undefined) {
+        // 0 表示常驻，是唯一允许低于 MIN_DURATION 的取值
+        const isPermanent = detail.duration === 0;
         if (
             typeof detail.duration !== 'number' ||
-            detail.duration < MIN_DURATION
+            (!isPermanent && detail.duration < MIN_DURATION)
         ) {
             throw new Error(
-                `Message: duration 必须是 >= ${MIN_DURATION} 的数字`,
+                `Message: duration 必须是 0（常驻）或 >= ${MIN_DURATION} 的数字`,
             );
         }
     }
@@ -246,7 +272,7 @@ interface MessageDetail {
     message: string;
     /** 消息类型,默认 'info' */
     type?: 'success' | 'warning' | 'error' | 'info';
-    /** 显示持续时间 (毫秒),默认 3000,最小值 100 */
+    /** 显示持续时间 (毫秒),默认 3000,最小值 100;0 表示常驻 */
     duration?: number;
     /** 显示位置,默认 'top' */
     position?:
@@ -267,8 +293,23 @@ interface MessageDetail {
 interface MessageInstance {
     /** 手动关闭消息 */
     close: () => void;
+    /** 更新消息内容、类型或时长（不可改位置） */
+    update: (patch: MessageUpdatePatch) => void;
     /** 消息元素引用 */
     element: HTMLElement;
+}
+
+/**
+ * 消息更新参数
+ * 只更新传入的字段；`position` 不可改
+ */
+interface MessageUpdatePatch {
+    /** 新的消息内容 */
+    message?: string;
+    /** 新的消息类型 */
+    type?: MessageDetail['type'];
+    /** 新的显示持续时间（毫秒），`0` 表示常驻 */
+    duration?: number;
 }
 
 /**
@@ -325,7 +366,9 @@ const Message: MessageFunction = ((
     // 获取实际使用的参数值 (应用默认值)
     const messageType = detail.type || 'info';
     const messagePosition = detail.position || 'top';
-    const messageDuration = detail.duration || 3000;
+    // 显式判断 undefined: duration 为 0 表示常驻, 不能被 || 塌成默认值
+    let messageDuration =
+        detail.duration === undefined ? 3000 : detail.duration;
 
     // 获取消息类型配置
     const typeConfig = messageTypes[messageType];
@@ -421,33 +464,91 @@ const Message: MessageFunction = ((
     });
 
     // 自动关闭
-    const timer = setTimeout(() => {
-        closeMessage(messageEl, messagePosition);
-    }, messageDuration);
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    /** 清掉现有自动关闭计时器 */
+    const clearAutoCloseTimer = () => {
+        if (timer !== null) {
+            clearTimeout(timer);
+            timer = null;
+        }
+    };
+
+    /**
+     * 根据当前 duration 重设自动关闭计时器
+     * duration 为 0 时清除计时器并标记为常驻（豁免数量上限淘汰）
+     */
+    const applyAutoCloseTimer = () => {
+        clearAutoCloseTimer();
+
+        if (messageDuration === 0) {
+            permanentMessages.add(messageEl);
+            return;
+        }
+
+        permanentMessages.delete(messageEl);
+        timer = setTimeout(() => {
+            closeMessage(messageEl, messagePosition);
+        }, messageDuration);
+    };
+
+    applyAutoCloseTimer();
 
     // 点击关闭
     messageEl.addEventListener('click', () => {
-        clearTimeout(timer);
+        clearAutoCloseTimer();
         closeMessage(messageEl, messagePosition);
     });
 
     // 键盘支持: Escape 键关闭
     messageEl.addEventListener('keydown', (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
-            clearTimeout(timer);
+            clearAutoCloseTimer();
             closeMessage(messageEl, messagePosition);
         }
     });
 
     // 定义手动关闭方法
     const close = () => {
-        clearTimeout(timer);
+        clearAutoCloseTimer();
         closeMessage(messageEl, messagePosition);
+    };
+
+    // 定义消息更新方法
+    const update = (patch: MessageUpdatePatch) => {
+        if (patch.message !== undefined) {
+            validateMessageOptions({ message: patch.message });
+            contentEl.textContent = patch.message;
+        }
+
+        if (patch.type !== undefined) {
+            validateMessageOptions({
+                message: contentEl.textContent || '',
+                type: patch.type,
+            });
+            iconEl.textContent = messageTypes[patch.type].icon;
+            applyMessageTypeStyle(messageEl, patch.type);
+            // 类型变化可能改变卡片高度，重算堆叠位置，避免下方消息被压字
+            recalculateMessagePositions();
+        }
+
+        if (patch.duration !== undefined) {
+            validateMessageOptions({
+                message: contentEl.textContent || '',
+                duration: patch.duration,
+            });
+            messageDuration = patch.duration;
+            // 重置自动关闭计时；新 duration 为 0 则转常驻
+            applyAutoCloseTimer();
+        }
+
+        // position 不可改: 类型上不接受，运行时忽略
     };
 
     // 创建消息实例
     const messageInstance: MessageInstance = {
         close,
+        update,
         element: messageEl,
     };
 
