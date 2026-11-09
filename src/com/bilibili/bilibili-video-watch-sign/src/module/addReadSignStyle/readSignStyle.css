@@ -15,10 +15,10 @@
     align-items: center;
     border-radius: 2px;
     display: flex;
-    height: 18px;
-    padding: 0 5px;
+    height: 19px;
+    padding: 0 4px;
     pointer-events: none;
-    top: 8px;
+    top: 6px;
     z-index: 10;
 }
 
@@ -53,11 +53,11 @@
 }
 
 .watch-mark.left::after {
-    left: 8px;
+    left: 6px;
 }
 
 .watch-mark.right::after {
-    right: 8px;
+    right: 6px;
 }
 
 /* 浮动时隐藏 */
