@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Bilibili视频观看状态标记
 // @description    基于收藏夹内容, 自动标记Bilibili视频的观看状态(已看/未看)
-// @version        1.2.1
+// @version        1.3.0
 // @author         Yiero
 // @match          https://*.bilibili.com/*
 // @icon           https://www.bilibili.com/favicon.ico
@@ -147,6 +147,323 @@
       }
     }
   }
+  let messageContainer = null;
+  const activeMessages = [];
+  const MAX_MESSAGES = 3;
+  const permanentMessages = /* @__PURE__ */ new WeakSet();
+  const messageTypes = {
+    success: {
+      backgroundColor: "#f0f9eb",
+      borderColor: "#e1f3d8",
+      textColor: "#67c23a",
+      icon: "\u2713"
+    },
+    warning: {
+      backgroundColor: "#fdf6ec",
+      borderColor: "#faecd8",
+      textColor: "#e6a23c",
+      icon: "\u26A0"
+    },
+    error: {
+      backgroundColor: "#fef0f0",
+      borderColor: "#fde2e2",
+      textColor: "#f56c6c",
+      icon: "\u2715"
+    },
+    info: {
+      backgroundColor: "#edf2fc",
+      borderColor: "#e4e7ed",
+      textColor: "#909399",
+      icon: "i"
+    }
+  };
+  const messagePositions = {
+    top: {
+      top: "20px"
+    },
+    "top-left": {
+      top: "20px",
+      left: "20px"
+    },
+    "top-right": {
+      top: "20px",
+      right: "20px"
+    },
+    left: {
+      left: "20px"
+    },
+    right: {
+      right: "20px"
+    },
+    bottom: {
+      bottom: "20px"
+    },
+    "bottom-left": {
+      bottom: "20px",
+      left: "20px"
+    },
+    "bottom-right": {
+      bottom: "20px",
+      right: "20px"
+    }
+  };
+  const MESSAGE_STACK_CONFIG = {
+    GAP: 10,
+    BASE_OFFSET: 20
+  };
+  function calculateStackOffset(position) {
+    const samePositionMessages = activeMessages.filter((msg) => msg.element.dataset.position === position);
+    if (0 === samePositionMessages.length) return {};
+    const totalOffset = samePositionMessages.reduce((acc, msg) => acc + msg.element.offsetHeight + MESSAGE_STACK_CONFIG.GAP, 0);
+    const isBottom = position.includes("bottom");
+    if (isBottom) return {
+      bottom: `${MESSAGE_STACK_CONFIG.BASE_OFFSET + totalOffset}px`
+    };
+    return {
+      top: `${MESSAGE_STACK_CONFIG.BASE_OFFSET + totalOffset}px`
+    };
+  }
+  function createMessageContainer() {
+    if (!messageContainer) {
+      messageContainer = document.createElement("div");
+      messageContainer.setAttribute("style", `
+                    position: fixed;
+                    z-index: 9999999999;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    bottom: 0;
+                    pointer-events: none;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    width: 100vw;
+                `);
+      document.body.appendChild(messageContainer);
+    }
+    return messageContainer;
+  }
+  function enforceMessageLimit() {
+    while (activeMessages.length >= MAX_MESSAGES) {
+      const oldestMessage = activeMessages.find((msg) => !permanentMessages.has(msg.element));
+      if (!oldestMessage) return;
+      oldestMessage.close();
+    }
+  }
+  function applyMessageTypeStyle(element, type) {
+    const typeConfig = messageTypes[type];
+    element.style.backgroundColor = typeConfig.backgroundColor;
+    element.style.border = `1px solid ${typeConfig.borderColor}`;
+    element.style.color = typeConfig.textColor;
+  }
+  function getAnimationOffset(position, isEnter) {
+    const isBottom = position.includes("bottom");
+    return isBottom ? 20 : -20;
+  }
+  function validateMessageOptions(detail) {
+    if (!detail.message || "string" != typeof detail.message) throw new Error("Message: message \u53C2\u6570\u5FC5\u987B\u662F\u6709\u6548\u7684\u975E\u7A7A\u5B57\u7B26\u4E32");
+    const MIN_DURATION = 100;
+    if (void 0 !== detail.duration) {
+      const isPermanent = 0 === detail.duration;
+      if ("number" != typeof detail.duration || !isPermanent && detail.duration < MIN_DURATION) throw new Error(`Message: duration \u5FC5\u987B\u662F 0\uFF08\u5E38\u9A7B\uFF09\u6216 >= ${MIN_DURATION} \u7684\u6570\u5B57`);
+    }
+    const validTypes = [
+      "success",
+      "warning",
+      "error",
+      "info"
+    ];
+    if (void 0 !== detail.type && !validTypes.includes(detail.type)) throw new Error(`Message: type \u5FC5\u987B\u662F ${validTypes.join(" | ")} \u4E4B\u4E00`);
+    const validPositions = [
+      "top",
+      "top-left",
+      "top-right",
+      "left",
+      "right",
+      "bottom",
+      "bottom-left",
+      "bottom-right"
+    ];
+    if (void 0 !== detail.position && !validPositions.includes(detail.position)) throw new Error(`Message: position \u5FC5\u987B\u662F ${validPositions.join(" | ")} \u4E4B\u4E00`);
+  }
+  const Message = (options) => {
+    const detail = {
+      type: "info",
+      duration: 3e3,
+      position: "top"
+    };
+    if ("string" == typeof options) detail.message = options;
+    else Object.assign(detail, options);
+    validateMessageOptions(detail);
+    messageContainer = createMessageContainer();
+    const messageEl = document.createElement("div");
+    const messageType = detail.type || "info";
+    const messagePosition = detail.position || "top";
+    let messageDuration = void 0 === detail.duration ? 3e3 : detail.duration;
+    const typeConfig = messageTypes[messageType];
+    const initialOffset = getAnimationOffset(messagePosition);
+    messageEl.setAttribute("style", `
+                position: absolute;
+                min-width: 300px;
+                max-width: 500px;
+                padding: 15px 20px;
+                border-radius: 8px;
+                transform: translateY(${initialOffset}px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                background-color: ${typeConfig.backgroundColor};
+                border: 1px solid ${typeConfig.borderColor};
+                color: ${typeConfig.textColor};
+                display: flex;
+                align-items: center;
+                transition: all 0.3s ease;
+                opacity: 0;
+                pointer-events: auto;
+                cursor: pointer;
+                ${Object.entries(messagePositions[messagePosition]).map(([k, v]) => `${k}: ${v};`).join(" ")}
+            `);
+    messageEl.dataset.position = messagePosition;
+    enforceMessageLimit();
+    messageEl.setAttribute("role", "alert");
+    messageEl.setAttribute("aria-live", "polite");
+    messageEl.setAttribute("aria-atomic", "true");
+    messageEl.setAttribute("tabindex", "0");
+    const iconEl = document.createElement("span");
+    iconEl.setAttribute("style", `
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                width: 24px;
+                height: 24px;
+                margin-right: 12px;
+                font-size: 16px;
+                font-weight: bold;
+            `);
+    iconEl.textContent = typeConfig.icon;
+    messageEl.appendChild(iconEl);
+    const contentEl = document.createElement("span");
+    contentEl.setAttribute("style", `
+                flex: 1;
+                font-size: 14px;
+                line-height: 1.5;
+            `);
+    contentEl.textContent = detail.message;
+    messageEl.appendChild(contentEl);
+    messageContainer.appendChild(messageEl);
+    const stackOffset = calculateStackOffset(messagePosition);
+    if (stackOffset.top) messageEl.style.top = stackOffset.top;
+    if (stackOffset.bottom) messageEl.style.bottom = stackOffset.bottom;
+    requestAnimationFrame(() => {
+      messageEl.style.opacity = "1";
+      messageEl.style.transform = "translateY(0)";
+    });
+    let timer = null;
+    const clearAutoCloseTimer = () => {
+      if (null !== timer) {
+        clearTimeout(timer);
+        timer = null;
+      }
+    };
+    const applyAutoCloseTimer = () => {
+      clearAutoCloseTimer();
+      if (0 === messageDuration) return void permanentMessages.add(messageEl);
+      permanentMessages.delete(messageEl);
+      timer = setTimeout(() => {
+        closeMessage(messageEl, messagePosition);
+      }, messageDuration);
+    };
+    applyAutoCloseTimer();
+    messageEl.addEventListener("click", () => {
+      clearAutoCloseTimer();
+      closeMessage(messageEl, messagePosition);
+    });
+    messageEl.addEventListener("keydown", (e) => {
+      if ("Escape" === e.key) {
+        clearAutoCloseTimer();
+        closeMessage(messageEl, messagePosition);
+      }
+    });
+    const close = () => {
+      clearAutoCloseTimer();
+      closeMessage(messageEl, messagePosition);
+    };
+    const update = (patch) => {
+      let touched = false;
+      if (void 0 !== patch.message) {
+        validateMessageOptions({
+          message: patch.message
+        });
+        contentEl.textContent = patch.message;
+        touched = true;
+      }
+      if (void 0 !== patch.type) {
+        validateMessageOptions({
+          message: contentEl.textContent || "",
+          type: patch.type
+        });
+        iconEl.textContent = messageTypes[patch.type].icon;
+        applyMessageTypeStyle(messageEl, patch.type);
+        recalculateMessagePositions();
+        touched = true;
+      }
+      if (void 0 !== patch.duration) {
+        validateMessageOptions({
+          message: contentEl.textContent || "",
+          duration: patch.duration
+        });
+        messageDuration = patch.duration;
+        touched = true;
+      }
+      if (touched) applyAutoCloseTimer();
+    };
+    const messageInstance = {
+      close,
+      update,
+      element: messageEl
+    };
+    activeMessages.push(messageInstance);
+    return messageInstance;
+  };
+  function recalculateMessagePositions() {
+    const positionGroups = /* @__PURE__ */ new Map();
+    for (const msg of activeMessages) {
+      const pos = msg.element.dataset.position || "top";
+      if (!positionGroups.has(pos)) positionGroups.set(pos, []);
+      positionGroups.get(pos)?.push(msg);
+    }
+    for (const [position, messages] of positionGroups) {
+      const isBottom = position.includes("bottom");
+      let currentOffset = MESSAGE_STACK_CONFIG.BASE_OFFSET;
+      for (const msg of messages) {
+        if (isBottom) msg.element.style.bottom = `${currentOffset}px`;
+        else msg.element.style.top = `${currentOffset}px`;
+        currentOffset += msg.element.offsetHeight + MESSAGE_STACK_CONFIG.GAP;
+      }
+    }
+  }
+  function closeMessage(element, position = "top") {
+    const index = activeMessages.findIndex((msg) => msg.element === element);
+    if (-1 !== index) activeMessages.splice(index, 1);
+    recalculateMessagePositions();
+    const exitOffset = getAnimationOffset(position);
+    element.style.opacity = "0";
+    element.style.transform = `translateY(${exitOffset}px)`;
+    setTimeout(() => {
+      if (element.parentNode) element.parentNode.removeChild(element);
+    }, 300);
+  }
+  const messageTypes_shortcuts = [
+    "success",
+    "warning",
+    "error",
+    "info"
+  ];
+  messageTypes_shortcuts.forEach((type) => {
+    Message[type] = (message, options) => Message({
+      ...options,
+      message,
+      type
+    });
+  });
   let currentCallback = null;
   let originalPushState = null;
   let originalReplaceState = null;
@@ -258,10 +575,10 @@
     align-items: center;
     border-radius: 2px;
     display: flex;
-    height: 18px;
-    padding: 0 5px;
+    height: 19px;
+    padding: 0 4px;
     pointer-events: none;
-    top: 8px;
+    top: 6px;
     z-index: 10;
 }
 
@@ -296,11 +613,11 @@
 }
 
 .watch-mark.left::after {
-    left: 8px;
+    left: 6px;
 }
 
 .watch-mark.right::after {
-    right: 8px;
+    right: 6px;
 }
 
 /* \u6D6E\u52A8\u65F6\u9690\u85CF */
@@ -642,9 +959,32 @@
   const NEGATIVE_TTL = 6e4;
   const LIST_ALL_RETRY_DELAYS = [300, 800];
   const RESOURCE_IDS_RETRY_DELAYS = [0];
+  const FOLDER_REQUEST_INTERVAL = 500;
   let memo = null;
   let inFlight = null;
   let forceNetwork = false;
+  const progressListeners = /* @__PURE__ */ new Set();
+  function onFavIndexProgress(listener) {
+    progressListeners.add(listener);
+    return () => {
+      progressListeners.delete(listener);
+    };
+  }
+  function emitProgress(event) {
+    for (const listener of progressListeners) {
+      try {
+        listener(event);
+      } catch {
+      }
+    }
+  }
+  function emitStart(total) {
+    emitProgress({
+      phase: "start",
+      total,
+      intervalMs: FOLDER_REQUEST_INTERVAL
+    });
+  }
   function toFolderMeta(folder) {
     return {
       id: folder.id,
@@ -701,19 +1041,21 @@
       (folder) => folder.synced && folder.itemCount === folder.mediaCount
     );
   }
-  function makeIndex(folders, source, syncedAt, expectedCount, failed) {
+  function makeIndex(folders, source, syncedAt, expectedCount, failedFolderIds = []) {
     const aids = /* @__PURE__ */ new Set();
     for (const folder of folders) {
       for (const aid of folder.aids) {
         aids.add(aid);
       }
     }
+    const failed = failedFolderIds.length > 0;
     const complete = !failed && isComplete(folders, expectedCount);
     return {
       folders,
       lookup: buildFavLookup(aids, complete),
       source,
       degraded: !complete,
+      failedFolderIds,
       syncedAt
     };
   }
@@ -754,11 +1096,16 @@
         mediaCount: remote.mediaCount
       });
     }
-    let failed = false;
+    const failedFolderIds = [];
+    let done = 0;
+    emitStart(refresh.length);
     for (const folder of refresh) {
+      if (done > 0) {
+        await sleep(FOLDER_REQUEST_INTERVAL);
+      }
       const items = await requestFolderItems(folder.id);
       if (items === null) {
-        failed = true;
+        failedFolderIds.push(folder.id);
         shardMap.set(folder.id, {
           ...shardMap.get(folder.id) ?? {
             id: folder.id,
@@ -770,18 +1117,24 @@
           },
           synced: false
         });
-        continue;
+      } else {
+        const aids = items.filter((item) => item.type === 2).map((item) => item.id);
+        writeFolderAids(mid, folder.id, aids);
+        shardMap.set(folder.id, {
+          id: folder.id,
+          fid: folder.fid,
+          title: folder.title,
+          mediaCount: folder.mediaCount,
+          itemCount: items.length,
+          synced: true,
+          aids
+        });
       }
-      const aids = items.filter((item) => item.type === 2).map((item) => item.id);
-      writeFolderAids(mid, folder.id, aids);
-      shardMap.set(folder.id, {
-        id: folder.id,
-        fid: folder.fid,
-        title: folder.title,
-        mediaCount: folder.mediaCount,
-        itemCount: items.length,
-        synced: true,
-        aids
+      done++;
+      emitProgress({
+        phase: "progress",
+        done,
+        total: refresh.length
       });
     }
     const folders = remoteMeta.map((folder) => shardMap.get(folder.id)).filter(
@@ -807,7 +1160,7 @@
       "network",
       syncedAt,
       remoteMeta.length,
-      failed
+      failedFolderIds
     );
   }
   async function loadFavIndex(force) {
@@ -826,8 +1179,7 @@
         cachedFolders,
         "cache",
         meta.lastSyncAt,
-        meta.folders.length,
-        false
+        meta.folders.length
       );
       if (!index2.degraded) {
         return markResult({ kind: "ok", index: index2 });
@@ -835,6 +1187,7 @@
     }
     const remoteMeta = await requestFolderList(mid);
     if (remoteMeta === null) {
+      emitStart(0);
       if (!meta) {
         return markResult({ kind: "unavailable" });
       }
@@ -843,7 +1196,7 @@
         "cache",
         meta.lastSyncAt,
         meta.folders.length,
-        true
+        cachedFolders.map((folder) => folder.id)
       );
       return markResult({ kind: "ok", index: index2 });
     }
@@ -876,6 +1229,7 @@
       if (inFlight === pending2) {
         memo = { result, checkedAt: Date.now() };
       }
+      emitProgress({ phase: "end", result });
       return result;
     }).finally(() => {
       if (inFlight === pending2) {
@@ -889,6 +1243,211 @@
     memo = null;
     inFlight = null;
     forceNetwork = true;
+  }
+  const MIN_FOLDER_COUNT = 5;
+  const CARD_POSITION = "top-left";
+  const MIN_VISIBLE_MS = 500;
+  const INITIAL_REQUEST_MS = 300;
+  const SAMPLE_THRESHOLD = 2;
+  const SUCCESS_DURATION = 2e3;
+  const WARNING_DURATION = 5e3;
+  const ERROR_DURATION = 5e3;
+  const ANONYMOUS_DURATION = 3e3;
+  let started = false;
+  let round = null;
+  let visibleCard = null;
+  function createRound(total, intervalMs) {
+    return {
+      total,
+      intervalMs,
+      done: 0,
+      lastMarkAt: Date.now(),
+      requestMsSum: 0,
+      card: null,
+      createdAt: 0,
+      dismissed: false,
+      abandoned: false
+    };
+  }
+  function averageRequestMs(state) {
+    return state.done >= SAMPLE_THRESHOLD ? state.requestMsSum / state.done : INITIAL_REQUEST_MS;
+  }
+  function etaText(state) {
+    const remainingFolders = state.total - state.done;
+    if (remainingFolders <= 0) {
+      return "";
+    }
+    const perFolderMs = state.intervalMs + averageRequestMs(state);
+    const seconds = Math.ceil(
+      remainingFolders * perFolderMs / 1e3
+    );
+    return `\uFF0C\u7EA6\u5269 ${Math.max(1, seconds)} \u79D2`;
+  }
+  function progressText(state) {
+    return `\u6536\u85CF\u5939\u5DF2\u8BFB ${state.done}/${state.total}${etaText(state)}`;
+  }
+  function isCardAlive(state) {
+    return state.card !== null && state.card.element.isConnected;
+  }
+  function watchUserClose(state, instance) {
+    const markDismissed = () => {
+      if (state.card !== instance) {
+        return;
+      }
+      state.dismissed = true;
+      state.card = null;
+      visibleCard = null;
+    };
+    instance.element.addEventListener("click", markDismissed);
+    instance.element.addEventListener("keydown", (event) => {
+      if (event.key === "Escape") {
+        markDismissed();
+      }
+    });
+  }
+  function mountCard(state, message, type = "info", duration = 0) {
+    closeVisibleCard();
+    const instance = Message({
+      message,
+      type,
+      position: CARD_POSITION,
+      duration
+    });
+    state.card = instance;
+    state.createdAt = Date.now();
+    visibleCard = instance;
+    watchUserClose(state, instance);
+  }
+  function closeVisibleCard() {
+    const shown = visibleCard;
+    visibleCard = null;
+    if (shown === null) {
+      return;
+    }
+    if (round !== null && round.card === shown) {
+      round.card = null;
+    }
+    shown.close();
+  }
+  function endState(result) {
+    if (result.kind === "anonymous") {
+      return {
+        message: "\u672A\u767B\u5F55\uFF0C\u4E0D\u505A\u6807\u8BB0",
+        type: "info",
+        duration: ANONYMOUS_DURATION
+      };
+    }
+    if (result.kind === "unavailable") {
+      return {
+        message: "\u6536\u85CF\u5939\u7D22\u5F15\u8BFB\u53D6\u5931\u8D25",
+        type: "error",
+        duration: ERROR_DURATION
+      };
+    }
+    const failedCount = result.index.failedFolderIds.length;
+    if (failedCount > 0) {
+      console.info(
+        `[\u6536\u85CF\u5939\u7D22\u5F15] ${failedCount} \u4E2A\u6536\u85CF\u5939\u672A\u8BFB\u53D6\uFF1A`,
+        result.index.failedFolderIds
+      );
+      return {
+        message: `${failedCount} \u4E2A\u6536\u85CF\u5939\u672A\u8BFB\u53D6`,
+        type: "warning",
+        duration: WARNING_DURATION
+      };
+    }
+    return {
+      message: `\u7D22\u5F15\u5DF2\u66F4\u65B0\uFF08${result.index.folders.length} \u4E2A\u6536\u85CF\u5939\uFF09`,
+      type: "success",
+      duration: SUCCESS_DURATION
+    };
+  }
+  function handleStart(event) {
+    const state = createRound(event.total, event.intervalMs);
+    round = state;
+    if (state.total < MIN_FOLDER_COUNT) {
+      return;
+    }
+    mountCard(state, progressText(state));
+  }
+  function handleProgress(event) {
+    if (round === null) {
+      return;
+    }
+    const state = round;
+    const now = Date.now();
+    const elapsed = now - state.lastMarkAt;
+    state.requestMsSum += event.done <= 1 ? elapsed : Math.max(0, elapsed - state.intervalMs);
+    state.lastMarkAt = now;
+    state.done = event.done;
+    if (isCardAlive(state)) {
+      state.card.update({ message: progressText(state) });
+    }
+  }
+  function handleEnd(event) {
+    const terminal = endState(event.result);
+    const current = round;
+    round = null;
+    if (current?.abandoned) {
+      return;
+    }
+    if (current?.dismissed) {
+      return;
+    }
+    if (current != null && isCardAlive(current)) {
+      switchToEndState(current, terminal);
+      return;
+    }
+    if (event.result.kind === "ok" && event.result.index.failedFolderIds.length === 0) {
+      return;
+    }
+    const fresh = current ?? createRound(0, 0);
+    mountCard(
+      fresh,
+      terminal.message,
+      terminal.type,
+      terminal.duration
+    );
+  }
+  function switchToEndState(state, end) {
+    const target = state.card;
+    const wait = state.createdAt + MIN_VISIBLE_MS - Date.now();
+    const apply = () => {
+      if (!target.element.isConnected || state.card !== target) {
+        return;
+      }
+      target.update(end);
+    };
+    if (wait <= 0) {
+      apply();
+      return;
+    }
+    setTimeout(apply, wait);
+  }
+  function handleEvent(event) {
+    if (event.phase === "start") {
+      handleStart(event);
+      return;
+    }
+    if (event.phase === "progress") {
+      handleProgress(event);
+      return;
+    }
+    handleEnd(event);
+  }
+  function startFavIndexProgress() {
+    if (started) {
+      return;
+    }
+    started = true;
+    onFavIndexProgress(handleEvent);
+  }
+  function closeFavIndexProgress() {
+    const current = round;
+    if (current !== null) {
+      current.abandoned = true;
+    }
+    closeVisibleCard();
   }
   const createMutationObserver = (target, callback, options = {
     childList: true,
@@ -2050,6 +2609,7 @@
       if (event.type === "hash" || stripHash(event.to) === stripHash(event.from)) {
         return;
       }
+      closeFavIndexProgress();
       markCurrentVideoWatching(event.to);
       await sleep(100);
       await updatePage();
@@ -2057,6 +2617,7 @@
   };
   const main = async () => {
     addReadSignStyle();
+    startFavIndexProgress();
     const videoSignHandler = getVideoSignHandler();
     void videoSignHandler?.();
     bindRouteChange();
