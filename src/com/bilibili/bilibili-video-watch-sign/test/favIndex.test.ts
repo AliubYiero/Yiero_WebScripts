@@ -12,12 +12,17 @@ import {
     it,
     vi,
 } from 'vitest';
+import { sleep } from 'radash';
 import {
     ensureFavIndex,
     forceRefreshFavIndex,
+    onFavIndexProgress,
 } from '../src/module/favIndex/favIndex';
 import { getCurrentMid } from '../src/module/favIndex/getCurrentMid';
-import type { IFavIndexMeta } from '../src/module/favIndex/types';
+import type {
+    FavIndexProgressEvent,
+    IFavIndexMeta,
+} from '../src/module/favIndex/types';
 import {
     aidsKey,
     LEGACY_CACHE_KEY,
@@ -126,6 +131,21 @@ async function flushMicrotasks(): Promise<void> {
 
 function marker(): string | undefined {
     return document.documentElement.dataset.favIndex;
+}
+
+/**
+ * 订阅进度事件，返回收到的全部事件与取消订阅函数。
+ */
+function captureProgress(): {
+    events: FavIndexProgressEvent[];
+    stop: () => void;
+} {
+    const events: FavIndexProgressEvent[] = [];
+    const stop = onFavIndexProgress((event) => {
+        events.push(event);
+    });
+
+    return { events, stop };
 }
 
 describe('ensureFavIndex', () => {
@@ -578,5 +598,261 @@ describe('ensureFavIndex', () => {
 
         expect(first).toEqual(second);
         expect(api_getFavFolderList).toHaveBeenCalledTimes(1);
+    });
+});
+
+describe('onFavIndexProgress', () => {
+    beforeEach(() => {
+        memory = new Map();
+        now = NOW;
+
+        vi.spyOn(Date, 'now').mockImplementation(() => now);
+        vi.stubGlobal(
+            'GM_getValue',
+            (key: string, defaultValue: unknown) =>
+                memory.has(key) ? memory.get(key) : defaultValue,
+        );
+        vi.stubGlobal(
+            'GM_setValue',
+            (key: string, value: unknown) => {
+                memory.set(key, value);
+            },
+        );
+        vi.stubGlobal('GM_deleteValue', (key: string) => {
+            memory.delete(key);
+        });
+
+        vi.mocked(getCurrentMid).mockReset();
+        vi.mocked(getCurrentMid).mockResolvedValue(MID);
+        vi.mocked(api_getFavFolderList).mockReset();
+        vi.mocked(api_getFavResourceIds).mockReset();
+        vi.mocked(sleep).mockClear();
+
+        forceRefreshFavIndex();
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+        vi.unstubAllGlobals();
+    });
+
+    it('缓存命中不发 start，只发一次 end', async () => {
+        vi.mocked(api_getFavFolderList).mockResolvedValue(
+            listResponse([folder(100, 1)]),
+        );
+        vi.mocked(api_getFavResourceIds).mockResolvedValue(
+            idsResponse([resource(1)]),
+        );
+
+        await ensureFavIndex();
+
+        const { events, stop } = captureProgress();
+        now += 60_000;
+        await ensureFavIndex();
+        stop();
+
+        expect(events.map((event) => event.phase)).toEqual(['end']);
+        const [end] = events;
+        expect(end.phase).toBe('end');
+        if (end.phase !== 'end') return;
+        expect(end.result.kind).toBe('ok');
+    });
+
+    it('未登录不发 start，end 为 anonymous', async () => {
+        vi.mocked(getCurrentMid).mockResolvedValue(null);
+
+        const { events, stop } = captureProgress();
+        await ensureFavIndex();
+        stop();
+
+        expect(events).toEqual([
+            { phase: 'end', result: { kind: 'anonymous' } },
+        ]);
+        expect(sleep).not.toHaveBeenCalled();
+    });
+
+    it('取消订阅后收不到事件', async () => {
+        vi.mocked(api_getFavFolderList).mockResolvedValue(
+            listResponse([folder(100, 1)]),
+        );
+        vi.mocked(api_getFavResourceIds).mockResolvedValue(
+            idsResponse([resource(1)]),
+        );
+
+        const { events, stop } = captureProgress();
+        stop();
+        await ensureFavIndex();
+
+        expect(events).toEqual([]);
+    });
+
+    it('首次加载：start → progress×N → end 完整序列', async () => {
+        vi.mocked(api_getFavFolderList).mockResolvedValue(
+            listResponse([
+                folder(100, 1),
+                folder(200, 1),
+                folder(300, 1),
+            ]),
+        );
+        vi.mocked(api_getFavResourceIds).mockResolvedValue(
+            idsResponse([resource(1)]),
+        );
+
+        const { events, stop } = captureProgress();
+        const result = await ensureFavIndex();
+        stop();
+
+        expect(events.map((event) => event.phase)).toEqual([
+            'start',
+            'progress',
+            'progress',
+            'progress',
+            'end',
+        ]);
+
+        const [start] = events;
+        expect(start).toEqual({
+            phase: 'start',
+            total: 3,
+            intervalMs: 500,
+        });
+
+        expect(events[1]).toEqual({
+            phase: 'progress',
+            done: 1,
+            total: 3,
+        });
+        expect(events[3]).toEqual({
+            phase: 'progress',
+            done: 3,
+            total: 3,
+        });
+
+        const end = events[4];
+        expect(end.phase).toBe('end');
+        if (end.phase !== 'end') return;
+        expect(end.result).toBe(result);
+    });
+
+    it('N 个夹等 N−1 次，每次 500ms', async () => {
+        vi.mocked(api_getFavFolderList).mockResolvedValue(
+            listResponse([
+                folder(100, 1),
+                folder(200, 1),
+                folder(300, 1),
+            ]),
+        );
+        vi.mocked(api_getFavResourceIds).mockResolvedValue(
+            idsResponse([resource(1)]),
+        );
+
+        await ensureFavIndex();
+
+        expect(sleep).toHaveBeenCalledTimes(2);
+        expect(vi.mocked(sleep).mock.calls).toEqual([[500], [500]]);
+    });
+
+    it('只有一个夹时不等待', async () => {
+        vi.mocked(api_getFavFolderList).mockResolvedValue(
+            listResponse([folder(100, 1)]),
+        );
+        vi.mocked(api_getFavResourceIds).mockResolvedValue(
+            idsResponse([resource(1)]),
+        );
+
+        await ensureFavIndex();
+
+        expect(sleep).not.toHaveBeenCalled();
+    });
+
+    it('list-all 失败时 start.total 为 0，end 为 unavailable', async () => {
+        vi.mocked(api_getFavFolderList).mockResolvedValue({
+            code: -412,
+            message: '请求被拦截',
+            ttl: 1,
+            data: { count: 0, list: [] },
+        });
+
+        const { events, stop } = captureProgress();
+        await ensureFavIndex();
+        stop();
+
+        expect(events.map((event) => event.phase)).toEqual([
+            'start',
+            'end',
+        ]);
+        expect(events[0]).toEqual({
+            phase: 'start',
+            total: 0,
+            intervalMs: 500,
+        });
+        expect(events[1]).toEqual({
+            phase: 'end',
+            result: { kind: 'unavailable' },
+        });
+    });
+
+    it('失败夹进 failedFolderIds，且不写进 manifest', async () => {
+        vi.mocked(api_getFavFolderList).mockResolvedValue(
+            listResponse([folder(100, 1), folder(200, 1)]),
+        );
+        vi.mocked(api_getFavResourceIds).mockImplementation(
+            async (mediaId: number) =>
+                mediaId === 200
+                    ? {
+                          code: -503,
+                          message: '服务不可用',
+                          ttl: 1,
+                          data: [],
+                      }
+                    : idsResponse([resource(1)]),
+        );
+
+        const result = await ensureFavIndex();
+
+        expect(result.kind).toBe('ok');
+        if (result.kind !== 'ok') return;
+
+        expect(result.index.failedFolderIds).toEqual([200]);
+        expect(result.index.degraded).toBe(true);
+
+        const meta = memory.get(metaKey(MID)) as IFavIndexMeta & {
+            failedFolderIds?: number[];
+        };
+        expect(meta.failedFolderIds).toBeUndefined();
+        expect(meta.folders[1]).toMatchObject({
+            id: 200,
+            synced: false,
+        });
+    });
+
+    it('全部成功时 failedFolderIds 为空数组', async () => {
+        vi.mocked(api_getFavFolderList).mockResolvedValue(
+            listResponse([folder(100, 1)]),
+        );
+        vi.mocked(api_getFavResourceIds).mockResolvedValue(
+            idsResponse([resource(1)]),
+        );
+
+        const result = await ensureFavIndex();
+
+        expect(result.kind).toBe('ok');
+        if (result.kind !== 'ok') return;
+
+        expect(result.index.failedFolderIds).toEqual([]);
+    });
+
+    it('加载抛错时仍然发一次 end（unavailable）', async () => {
+        // 取 mid 在重试逻辑之外，抛出会直接落到 ensureFavIndex 的兜底
+        vi.mocked(getCurrentMid).mockRejectedValue(new Error('boom'));
+
+        const { events, stop } = captureProgress();
+        const result = await ensureFavIndex();
+        stop();
+
+        expect(result).toEqual({ kind: 'unavailable' });
+        expect(events).toEqual([
+            { phase: 'end', result: { kind: 'unavailable' } },
+        ]);
     });
 });
