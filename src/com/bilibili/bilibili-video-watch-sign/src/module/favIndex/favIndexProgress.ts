@@ -28,6 +28,16 @@ const ANONYMOUS_DURATION = 3000;
 
 type CardInstance = ReturnType<typeof Message>;
 
+/** 卡片类型，与库的取值域一致 */
+type MessageKind = 'success' | 'warning' | 'error' | 'info';
+
+/** 终态卡的文案、图标类型与停留时长 */
+interface IEndState {
+    message: string;
+    type: MessageKind;
+    duration: number;
+}
+
 /**
  * 一轮加载的内存状态。
  *
@@ -51,10 +61,12 @@ interface IRound {
     createdAt: number;
     /** 用户是否已关掉本轮的卡：关掉后本轮不再出卡 */
     dismissed: boolean;
+    /** 换页作废的一轮：它迟到的 end 不能再出卡 */
+    abandoned: boolean;
 }
 
-/** 进度事件订阅的取消函数，只在首次启动时注册 */
-let unsubscribe: (() => void) | null = null;
+/** 进度事件是否已订阅（`onFavIndexProgress` 只在首次启动时调） */
+let started = false;
 
 /** 本轮加载的内存状态 */
 let round: IRound | null = null;
@@ -66,6 +78,21 @@ let round: IRound | null = null;
  * 屏幕上停 2~5 秒，路由切换时仍要能关掉它。
  */
 let visibleCard: CardInstance | null = null;
+
+/** 开新的一轮 */
+function createRound(total: number, intervalMs: number): IRound {
+    return {
+        total,
+        intervalMs,
+        done: 0,
+        lastMarkAt: Date.now(),
+        requestMsSum: 0,
+        card: null,
+        createdAt: 0,
+        dismissed: false,
+        abandoned: false,
+    };
+}
 
 /** 本轮平均每个夹的请求耗时 */
 function averageRequestMs(state: IRound): number {
@@ -136,9 +163,13 @@ function watchUserClose(state: IRound, instance: CardInstance): void {
 function mountCard(
     state: IRound,
     message: string,
-    type: 'success' | 'warning' | 'error' | 'info' = 'info',
+    type: MessageKind = 'info',
     duration = 0,
 ): void {
+    // 一轮只出一张卡：上一轮的终态卡还挂着就先关掉，
+    // 否则新卡会和它并排叠在屏幕上
+    closeVisibleCard();
+
     const instance = Message({
         message,
         type,
@@ -152,17 +183,30 @@ function mountCard(
     watchUserClose(state, instance);
 }
 
+/** 关掉屏幕上还挂着的那张卡，并断开与轮次的联系 */
+function closeVisibleCard(): void {
+    const shown = visibleCard;
+    visibleCard = null;
+
+    if (shown === null) {
+        return;
+    }
+
+    // 上一轮的 state 不能再引用这张卡，否则它的后续事件会改旧卡
+    if (round !== null && round.card === shown) {
+        round.card = null;
+    }
+
+    shown.close();
+}
+
 /**
  * 把本轮结果折成终态的文案、类型与时长。
  *
  * 失败绕过阈值：这一轮没建过卡时也要出卡，它的价值是解释
  * 「为什么卡片上没有标记」。
  */
-function endState(result: FavIndexLoadResult): {
-    message: string;
-    type: 'success' | 'warning' | 'error' | 'info';
-    duration: number;
-} {
+function endState(result: FavIndexLoadResult): IEndState {
     if (result.kind === 'anonymous') {
         return {
             message: '未登录，不做标记',
@@ -206,17 +250,7 @@ function endState(result: FavIndexLoadResult): {
 function handleStart(
     event: Extract<FavIndexProgressEvent, { phase: 'start' }>,
 ): void {
-    const state: IRound = {
-        total: event.total,
-        intervalMs: event.intervalMs,
-        done: 0,
-        lastMarkAt: Date.now(),
-        requestMsSum: 0,
-        card: null,
-        createdAt: 0,
-        dismissed: false,
-    };
-
+    const state = createRound(event.total, event.intervalMs);
     round = state;
 
     if (state.total < MIN_FOLDER_COUNT) {
@@ -258,9 +292,14 @@ function handleProgress(
 function handleEnd(
     event: Extract<FavIndexProgressEvent, { phase: 'end' }>,
 ): void {
-    const state = endState(event.result);
+    const terminal = endState(event.result);
     const current = round;
     round = null;
+
+    // 换页作废的一轮：它的卡已经关了，迟到的 end 不能带到新页面
+    if (current?.abandoned) {
+        return;
+    }
 
     // 本轮已被用户关掉：本轮不再出卡，加载继续
     if (current?.dismissed) {
@@ -268,7 +307,7 @@ function handleEnd(
     }
 
     if (current != null && isCardAlive(current)) {
-        switchToEndState(current, state);
+        switchToEndState(current, terminal);
         return;
     }
 
@@ -281,28 +320,20 @@ function handleEnd(
         return;
     }
 
-    const fresh: IRound = current ?? {
-        total: 0,
-        intervalMs: 0,
-        done: 0,
-        lastMarkAt: 0,
-        requestMsSum: 0,
-        card: null,
-        createdAt: 0,
-        dismissed: false,
-    };
+    const fresh = current ?? createRound(0, 0);
 
-    mountCard(fresh, state.message, state.type, state.duration);
+    mountCard(
+        fresh,
+        terminal.message,
+        terminal.type,
+        terminal.duration,
+    );
 }
 
 /** 把还在的卡切成终态，极快完成时延后到满最短驻留 */
 function switchToEndState(
     state: IRound & { card: CardInstance },
-    end: {
-        message: string;
-        type: 'success' | 'warning' | 'error' | 'info';
-        duration: number;
-    },
+    end: IEndState,
 ): void {
     const target = state.card;
     const wait = state.createdAt + MIN_VISIBLE_MS - Date.now();
@@ -346,28 +377,31 @@ function handleEvent(event: FavIndexProgressEvent): void {
  * 可重复调用，只订阅一次；重复调用不会叠加 listener。
  */
 export function startFavIndexProgress(): void {
-    if (unsubscribe !== null) {
+    if (started) {
         return;
     }
 
-    unsubscribe = onFavIndexProgress(handleEvent);
+    started = true;
+    // 订阅一旦建立就跟着页面走，换页不取消：返回值故意不留
+    onFavIndexProgress(handleEvent);
 }
 
 /**
- * 关闭进度卡并清掉本轮状态。
+ * 关闭进度卡并作废本轮。
  *
  * 供路由切换回调调用：旧页面的卡立即消失，新页面按自己的加载
  * 重新判断；订阅保留，加载本身不中止。
+ *
+ * 本轮只标记作废、不直接丢弃：旧加载还会迟到地发一个 end，
+ * 丢掉引用会让它被当成「没收到 start 的新一轮」，把失败卡弹到
+ * 新页面上。
  */
 export function closeFavIndexProgress(): void {
     const current = round;
-    const shown = visibleCard;
-    round = null;
-    visibleCard = null;
 
     if (current !== null) {
-        current.card = null;
+        current.abandoned = true;
     }
 
-    shown?.close();
+    closeVisibleCard();
 }

@@ -516,9 +516,14 @@ const Message: MessageFunction = ((
 
     // 定义消息更新方法
     const update = (patch: MessageUpdatePatch) => {
+        // 任何字段更新都算一次「用户又看到了一条新内容」，
+        // 自动关闭时间从这一刻重新算起；常驻消息 remain 常驻
+        let touched = false;
+
         if (patch.message !== undefined) {
             validateMessageOptions({ message: patch.message });
             contentEl.textContent = patch.message;
+            touched = true;
         }
 
         if (patch.type !== undefined) {
@@ -530,6 +535,7 @@ const Message: MessageFunction = ((
             applyMessageTypeStyle(messageEl, patch.type);
             // 类型变化可能改变卡片高度，重算堆叠位置，避免下方消息被压字
             recalculateMessagePositions();
+            touched = true;
         }
 
         if (patch.duration !== undefined) {
@@ -538,7 +544,11 @@ const Message: MessageFunction = ((
                 duration: patch.duration,
             });
             messageDuration = patch.duration;
-            // 重置自动关闭计时；新 duration 为 0 则转常驻
+            touched = true;
+        }
+
+        if (touched) {
+            // 重置自动关闭计时；duration 为 0 则转常驻
             applyAutoCloseTimer();
         }
 

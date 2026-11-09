@@ -426,6 +426,42 @@ describe('Message', () => {
             expect(instance.element.parentNode).toBeFalsy();
         });
 
+        it('should reset auto close timer on any update', () => {
+            vi.useFakeTimers();
+
+            const instance = Message({
+                message: '只改文案',
+                duration: 3000,
+            });
+
+            // 已过 1500ms，距自动关闭只剩 1500ms
+            vi.advanceTimersByTime(1500);
+            instance.update({ message: '改完文案' });
+
+            // 原计时到点在 3000ms、动画走完在 3300ms。
+            // 任何更新都该重算计时期，所以此刻还在
+            vi.advanceTimersByTime(1900);
+            expect(instance.element.parentNode).toBeTruthy();
+
+            // 重算后的 3000ms 到点（4500ms）+ 300ms 动画后消失
+            vi.advanceTimersByTime(1500);
+            expect(instance.element.parentNode).toBeFalsy();
+        });
+
+        it('should keep permanent message permanent on non-duration update', () => {
+            vi.useFakeTimers();
+
+            const instance = Message({
+                message: '常驻',
+                duration: 0,
+            });
+
+            instance.update({ message: '常驻改文案' });
+            vi.advanceTimersByTime(60000);
+
+            expect(instance.element.parentNode).toBeTruthy();
+        });
+
         it('should become permanent when updated with duration 0', () => {
             vi.useFakeTimers();
 

@@ -1,6 +1,6 @@
 # gmlib 速查
 
-`@yiero/gmlib` 是本仓自产的 GM 工具库，当前版本 **0.4.7**（以
+`@yiero/gmlib` 是本仓自产的 GM 工具库，当前版本 **0.4.8**（以
 `src/.Libs/gmlib/package.json` 为准）。值、类型都从同一个入口引入：
 
 ```ts

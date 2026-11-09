@@ -97,6 +97,20 @@ function emitProgress(event: FavIndexProgressEvent): void {
 }
 
 /**
+ * 广播本轮加载的首次 `start` 事件。
+ *
+ * 总夹数各处算法不同（diff 差值 / list-all 失败时记 0），
+ * 但事件形状与间隔恒定，收在一处免得两处走样。
+ */
+function emitStart(total: number): void {
+    emitProgress({
+        phase: 'start',
+        total,
+        intervalMs: FOLDER_REQUEST_INTERVAL,
+    });
+}
+
+/**
  * 把远端收藏夹信息转成内部元信息。
  */
 function toFolderMeta(folder: IFavFolder): IFavFolderMeta {
@@ -211,14 +225,14 @@ function isComplete(
 /**
  * 由分片列表组装一次索引结果。
  *
- * `failed` 表示本轮有请求失败；失败一律降级为不完整。
+ * `failedFolderIds` 是本轮没读到夹的唯一来源：有失败夹就一律
+ * 降级为不完整，`degraded` 与它不会互相矛盾。
  */
 function makeIndex(
     folders: IFavFolderShard[],
     source: IFavIndex['source'],
     syncedAt: number,
     expectedCount: number,
-    failed: boolean,
     failedFolderIds: number[] = [],
 ): IFavIndex {
     const aids = new Set<number>();
@@ -229,6 +243,7 @@ function makeIndex(
         }
     }
 
+    const failed = failedFolderIds.length > 0;
     const complete = !failed && isComplete(folders, expectedCount);
 
     return {
@@ -303,16 +318,11 @@ async function syncFolders(
         });
     }
 
-    let failed = false;
     const failedFolderIds: number[] = [];
     let done = 0;
 
     // total 取差值里本轮真正要取的夹数
-    emitProgress({
-        phase: 'start',
-        total: refresh.length,
-        intervalMs: FOLDER_REQUEST_INTERVAL,
-    });
+    emitStart(refresh.length);
 
     for (const folder of refresh) {
         // 首个夹不等，其后每个夹请求前固定等一轮
@@ -325,7 +335,6 @@ async function syncFolders(
         if (items === null) {
             // 保留旧分片与旧 mediaCount，但标记为未同步：
             // 随后的加载会重跑 list-all + diff，只重试这个夹
-            failed = true;
             failedFolderIds.push(folder.id);
             shardMap.set(folder.id, {
                 ...(shardMap.get(folder.id) ?? {
@@ -391,7 +400,6 @@ async function syncFolders(
         'network',
         syncedAt,
         remoteMeta.length,
-        failed,
         failedFolderIds,
     );
 }
@@ -434,7 +442,6 @@ async function loadFavIndex(
             'cache',
             meta.lastSyncAt,
             meta.folders.length,
-            false,
         );
 
         if (!index.degraded) {
@@ -447,23 +454,21 @@ async function loadFavIndex(
 
     if (remoteMeta === null) {
         // list-all 挂了，本轮没有要取的夹：total 记 0，UI 不出进度卡
-        emitProgress({
-            phase: 'start',
-            total: 0,
-            intervalMs: FOLDER_REQUEST_INTERVAL,
-        });
+        emitStart(0);
 
         // 有缓存则降级复用；无缓存则视为不可用
         if (!meta) {
             return markResult({ kind: 'unavailable' });
         }
 
+        // 这一轮一个夹都没读到：有缓存就一律记为未读取，
+        // 免得 `degraded` 与失败夹数量互相矛盾
         const index = makeIndex(
             cachedFolders,
             'cache',
             meta.lastSyncAt,
             meta.folders.length,
-            true,
+            cachedFolders.map((folder) => folder.id),
         );
 
         return markResult({ kind: 'ok', index });
@@ -518,10 +523,9 @@ function reuseResult(result: FavIndexLoadResult): FavIndexLoadResult {
  */
 export function ensureFavIndex(): Promise<FavIndexLoadResult> {
     if (memo && isFresh(memo)) {
-        const result = reuseResult(memo.result);
-        emitProgress({ phase: 'end', result });
-
-        return Promise.resolve(result);
+        // 备忘命中不是一轮加载：不发任何事件，否则同页内被
+        // 反复调用会一遍遍弹回用户已经关掉的终态卡
+        return Promise.resolve(reuseResult(memo.result));
     }
 
     if (inFlight) {
