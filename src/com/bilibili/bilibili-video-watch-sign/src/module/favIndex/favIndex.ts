@@ -20,6 +20,7 @@ import { buildFavLookup } from './favLookup';
 import { getCurrentMid } from './getCurrentMid';
 import type {
     FavIndexLoadResult,
+    FavIndexProgressEvent,
     IFavFolderMeta,
     IFavFolderShard,
     IFavIndex,
@@ -38,6 +39,9 @@ const LIST_ALL_RETRY_DELAYS = [300, 800];
 /** resource/ids 重试前的等待时间（无间隔，共 2 次） */
 const RESOURCE_IDS_RETRY_DELAYS = [0];
 
+/** 取分片之间固定的请求间隔（硬等待，不随网络快慢变化） */
+const FOLDER_REQUEST_INTERVAL = 500;
+
 /** 已解析结果的内存备忘 */
 let memo: {
     result: FavIndexLoadResult;
@@ -50,6 +54,47 @@ let inFlight: Promise<FavIndexLoadResult> | null = null;
 
 /** 下一次加载是否越过 TTL（刷新按钮用） */
 let forceNetwork = false;
+
+/**
+ * 进度事件订阅者。
+ *
+ * 放模块级而不是塞进 `ensureFavIndex()` 的 options：加载本身靠
+ * `inFlight` 复用，回调进 options 的话第二个调用者传的回调会被
+ * 静默丢弃。
+ */
+const progressListeners = new Set<
+    (event: FavIndexProgressEvent) => void
+>();
+
+/**
+ * 订阅索引加载进度事件，返回取消订阅函数。
+ *
+ * 不补发历史事件：加载中途才订阅的监听者只收到后续事件。
+ */
+export function onFavIndexProgress(
+    listener: (event: FavIndexProgressEvent) => void,
+): () => void {
+    progressListeners.add(listener);
+
+    return () => {
+        progressListeners.delete(listener);
+    };
+}
+
+/**
+ * 向所有订阅者广播一次进度事件。
+ *
+ * 监听者抛错不能打断加载，逐个隔离。
+ */
+function emitProgress(event: FavIndexProgressEvent): void {
+    for (const listener of progressListeners) {
+        try {
+            listener(event);
+        } catch {
+            // 订阅方的错误不影响索引加载
+        }
+    }
+}
 
 /**
  * 把远端收藏夹信息转成内部元信息。
@@ -174,6 +219,7 @@ function makeIndex(
     syncedAt: number,
     expectedCount: number,
     failed: boolean,
+    failedFolderIds: number[] = [],
 ): IFavIndex {
     const aids = new Set<number>();
 
@@ -190,6 +236,7 @@ function makeIndex(
         lookup: buildFavLookup(aids, complete),
         source,
         degraded: !complete,
+        failedFolderIds,
         syncedAt,
     };
 }
@@ -257,14 +304,29 @@ async function syncFolders(
     }
 
     let failed = false;
+    const failedFolderIds: number[] = [];
+    let done = 0;
+
+    // total 取差值里本轮真正要取的夹数
+    emitProgress({
+        phase: 'start',
+        total: refresh.length,
+        intervalMs: FOLDER_REQUEST_INTERVAL,
+    });
 
     for (const folder of refresh) {
+        // 首个夹不等，其后每个夹请求前固定等一轮
+        if (done > 0) {
+            await sleep(FOLDER_REQUEST_INTERVAL);
+        }
+
         const items = await requestFolderItems(folder.id);
 
         if (items === null) {
             // 保留旧分片与旧 mediaCount，但标记为未同步：
             // 随后的加载会重跑 list-all + diff，只重试这个夹
             failed = true;
+            failedFolderIds.push(folder.id);
             shardMap.set(folder.id, {
                 ...(shardMap.get(folder.id) ?? {
                     id: folder.id,
@@ -276,22 +338,28 @@ async function syncFolders(
                 }),
                 synced: false,
             });
-            continue;
+        } else {
+            const aids = items
+                .filter((item) => item.type === 2)
+                .map((item) => item.id);
+
+            writeFolderAids(mid, folder.id, aids);
+            shardMap.set(folder.id, {
+                id: folder.id,
+                fid: folder.fid,
+                title: folder.title,
+                mediaCount: folder.mediaCount,
+                itemCount: items.length,
+                synced: true,
+                aids,
+            });
         }
 
-        const aids = items
-            .filter((item) => item.type === 2)
-            .map((item) => item.id);
-
-        writeFolderAids(mid, folder.id, aids);
-        shardMap.set(folder.id, {
-            id: folder.id,
-            fid: folder.fid,
-            title: folder.title,
-            mediaCount: folder.mediaCount,
-            itemCount: items.length,
-            synced: true,
-            aids,
+        done++;
+        emitProgress({
+            phase: 'progress',
+            done,
+            total: refresh.length,
         });
     }
 
@@ -324,6 +392,7 @@ async function syncFolders(
         syncedAt,
         remoteMeta.length,
         failed,
+        failedFolderIds,
     );
 }
 
@@ -377,6 +446,13 @@ async function loadFavIndex(
     const remoteMeta = await requestFolderList(mid);
 
     if (remoteMeta === null) {
+        // list-all 挂了，本轮没有要取的夹：total 记 0，UI 不出进度卡
+        emitProgress({
+            phase: 'start',
+            total: 0,
+            intervalMs: FOLDER_REQUEST_INTERVAL,
+        });
+
         // 有缓存则降级复用；无缓存则视为不可用
         if (!meta) {
             return markResult({ kind: 'unavailable' });
@@ -394,6 +470,7 @@ async function loadFavIndex(
     }
 
     // 6) + 7) diff → 拉变化夹 ids → 写分片与 manifest
+    // start 由 syncFolders 在拿到 diff 后带 refresh 数发出
     const index = await syncFolders(mid, cachedFolders, remoteMeta);
 
     return markResult({ kind: 'ok', index });
@@ -441,7 +518,10 @@ function reuseResult(result: FavIndexLoadResult): FavIndexLoadResult {
  */
 export function ensureFavIndex(): Promise<FavIndexLoadResult> {
     if (memo && isFresh(memo)) {
-        return Promise.resolve(reuseResult(memo.result));
+        const result = reuseResult(memo.result);
+        emitProgress({ phase: 'end', result });
+
+        return Promise.resolve(result);
     }
 
     if (inFlight) {
@@ -458,6 +538,10 @@ export function ensureFavIndex(): Promise<FavIndexLoadResult> {
             if (inFlight === pending) {
                 memo = { result, checkedAt: Date.now() };
             }
+
+            // 每次加载恰好一次 end，异常兜底也走到这里
+            emitProgress({ phase: 'end', result });
+
             return result;
         })
         .finally(() => {

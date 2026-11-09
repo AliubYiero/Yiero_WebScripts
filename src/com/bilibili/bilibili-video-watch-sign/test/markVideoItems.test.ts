@@ -73,6 +73,7 @@ const fakeIndex: IFavIndex = {
     lookup: { aids: new Set<number>(), complete: true },
     source: 'network',
     degraded: false,
+    failedFolderIds: [],
     syncedAt: 0,
 };
 

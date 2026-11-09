@@ -44,6 +44,22 @@ export type FavIndexLoadResult =
     | { kind: 'unavailable' };
 
 /**
+ * 索引加载进度事件。
+ *
+ * 数据层在这个联合上对外广播加载过程，UI 据此出进度卡；形状即契约，
+ * 改动需同步 `onFavIndexProgress` 的消费方。
+ *
+ * - `start`：真正要走网络时发一次。`total` 是本轮要取的夹数，
+ *   `list-all` 失败时为 0；`intervalMs` 是取分片之间的固定等待。
+ * - `progress`：每读完一个夹（成功或失败）发一次，`done` 为已完成数。
+ * - `end`：每次加载恰好一次，覆盖 ok / anonymous / unavailable。
+ */
+export type FavIndexProgressEvent =
+    | { phase: 'start'; total: number; intervalMs: number }
+    | { phase: 'progress'; done: number; total: number }
+    | { phase: 'end'; result: FavIndexLoadResult };
+
+/**
  * 收藏夹索引查询集合
  */
 export interface IFavLookup {
@@ -93,6 +109,13 @@ export interface IFavIndex {
     source: 'cache' | 'network';
     /** 有请求失败 / 有夹没同步 */
     degraded: boolean;
+    /**
+     * 本轮拉取失败的夹 id。
+     *
+     * 纯内存字段，不写入 manifest：只在本次加载的结果里用来数失败
+     * 数量与打诊断日志。
+     */
+    failedFolderIds: number[];
     /** manifest `lastSyncAt` 的内存副本，供 TTL 判断 */
     syncedAt: number;
 }
