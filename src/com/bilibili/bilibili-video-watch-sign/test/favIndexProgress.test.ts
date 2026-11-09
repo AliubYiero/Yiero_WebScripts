@@ -403,6 +403,40 @@ describe('收藏夹索引进度卡', () => {
         expect(getCards()).toHaveLength(0);
     });
 
+    it('新一轮开始时先关掉上一轮还在屏幕上的终态卡', () => {
+        emit({ phase: 'start', total: 5, intervalMs: 500 });
+        vi.advanceTimersByTime(1000);
+        emit({ phase: 'end', result: ok(5) });
+        expect(cardIcon()).toBe('✓');
+
+        // 成功卡本该停 2 秒，但新一轮已经开始了
+        emit({ phase: 'start', total: 6, intervalMs: 500 });
+        vi.advanceTimersByTime(400);
+
+        // 屏幕上只有新一轮那一张，不能并排两张
+        expect(getCards()).toHaveLength(1);
+        expect(cardText()).toContain('收藏夹已读 0/6');
+    });
+
+    it('路由切换后，旧加载迟到的 end 不再弹卡', () => {
+        emit({ phase: 'start', total: 8, intervalMs: 500 });
+        expect(getCards()).toHaveLength(1);
+
+        closeFavIndexProgress();
+        vi.advanceTimersByTime(400);
+        expect(getCards()).toHaveLength(0);
+
+        // 旧页面那一轮加载迟到结束：失败卡不能弹到新页面上
+        emit({ phase: 'end', result: { kind: 'unavailable' } });
+        vi.advanceTimersByTime(400);
+        expect(getCards()).toHaveLength(0);
+
+        // 新页面照常按自己的加载出卡
+        emit({ phase: 'start', total: 6, intervalMs: 500 });
+        expect(getCards()).toHaveLength(1);
+        expect(cardText()).toContain('收藏夹已读 0/6');
+    });
+
     it('本轮夹数不到阈值但有夹失败，绕过阈值出警告卡', () => {
         const consoleInfo = vi
             .spyOn(console, 'info')

@@ -363,6 +363,28 @@ describe('ensureFavIndex', () => {
         expect(marker()).toBe('degraded');
     });
 
+    it('list-all 失败但有缓存：全部缓存夹记为未读取', async () => {
+        seedCache([
+            { id: 100, mediaCount: 2, aids: [1, 2] },
+            { id: 200, mediaCount: 1, aids: [3] },
+        ]);
+        vi.mocked(api_getFavFolderList).mockResolvedValue({
+            code: -412,
+            message: '请求被拦截',
+            ttl: 1,
+            data: { count: 0, list: [] },
+        });
+
+        const result = await ensureFavIndex();
+
+        expect(result.kind).toBe('ok');
+        if (result.kind !== 'ok') return;
+
+        // 降级不能自相矛盾：这一轮一个夹都没读到，就得报出来
+        expect(result.index.degraded).toBe(true);
+        expect(result.index.failedFolderIds).toEqual([100, 200]);
+    });
+
     it('list-all 失败且无缓存：unavailable', async () => {
         vi.mocked(api_getFavFolderList).mockResolvedValue({
             code: -412,
@@ -636,7 +658,7 @@ describe('onFavIndexProgress', () => {
         vi.unstubAllGlobals();
     });
 
-    it('缓存命中不发 start，只发一次 end', async () => {
+    it('缓存命中不发任何进度事件（不补发历史 end）', async () => {
         vi.mocked(api_getFavFolderList).mockResolvedValue(
             listResponse([folder(100, 1)]),
         );
@@ -649,13 +671,34 @@ describe('onFavIndexProgress', () => {
         const { events, stop } = captureProgress();
         now += 60_000;
         await ensureFavIndex();
+        // 同页内会被反复调用，每次都不该再弹终态卡
+        await ensureFavIndex();
+        now += 60_000;
+        await ensureFavIndex();
         stop();
 
-        expect(events.map((event) => event.phase)).toEqual(['end']);
-        const [end] = events;
-        expect(end.phase).toBe('end');
-        if (end.phase !== 'end') return;
-        expect(end.result.kind).toBe('ok');
+        expect(events).toEqual([]);
+    });
+
+    it('缓存命中的结果仍然返回，只是不发事件', async () => {
+        vi.mocked(api_getFavFolderList).mockResolvedValue(
+            listResponse([folder(100, 1)]),
+        );
+        vi.mocked(api_getFavResourceIds).mockResolvedValue(
+            idsResponse([resource(1)]),
+        );
+
+        await ensureFavIndex();
+        now += 60_000;
+
+        const { events, stop } = captureProgress();
+        const result = await ensureFavIndex();
+        stop();
+
+        expect(events).toEqual([]);
+        expect(result.kind).toBe('ok');
+        if (result.kind !== 'ok') return;
+        expect(result.index.source).toBe('cache');
     });
 
     it('未登录不发 start，end 为 anonymous', async () => {

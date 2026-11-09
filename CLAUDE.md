@@ -184,7 +184,7 @@ vite.config.utils.ts  — 入口文件探测（getEntryFileName）
 `src/.Libs/<库名>/` 存放本仓自产的库，两层布局，当前两个：
 
 ```
-src/.Libs/gmlib/             — @yiero/gmlib 0.4.7（原仓库 AliubYiero/GmLib 整史导入）
+src/.Libs/gmlib/             — @yiero/gmlib 0.4.8（原仓库 AliubYiero/GmLib 整史导入）
 src/.Libs/bilibili-api-lib/  — @yiero/bilibili-api-lib 0.3.2（原 src/com/bilibili/.bilibili-api-lib）
 ```
 
