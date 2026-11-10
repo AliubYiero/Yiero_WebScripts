@@ -6,7 +6,7 @@ const UserScript: ScriptCatUserScript = [
         'description',
         '在Bilibili直播栏中, 弹幕 @其他人 时, 显示其最后一条弹幕的发言. 可以更直观地知道弹幕在讨论什么. ',
     ],
-    ['version', '0.1.0'],
+    ['version', '1.0.0'],
     ['author', 'Yiero'],
     ['match', 'https://live.bilibili.com/*'],
     ['require', ''],

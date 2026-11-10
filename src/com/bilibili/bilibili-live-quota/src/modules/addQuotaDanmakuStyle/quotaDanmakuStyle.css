@@ -10,6 +10,19 @@
 
         word-break: break-all;
     }
+    & .bili-quota-item.v2 {
+        background-color: rgba(0, 0, 0, 0.04);
+        border-left: none;
+        padding: 4px 8px;
+        margin: 4px 0 6px 0;
+        border-radius: 4px;
+        font-size: 12px;
+        line-height: 1.4;
+        color: #61666d;
+        border-left: none;
+        width: 100%;
+        box-sizing: border-box;
+    }
 
     /* 引用中的用户名 */
     & .bili-quota-name {

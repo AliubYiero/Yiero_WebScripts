@@ -109,10 +109,10 @@
         "bilibili-live-quota": {
             "name": "Bilibili直播引用弹幕显示",
             "description": "在Bilibili直播栏中, 弹幕 @其他人 时, 显示其最后一条弹幕的发言. 可以更直观地知道弹幕在讨论什么.",
-            "version": "0.1.0",
+            "version": "1.0.0",
             "private": false,
             "archive": false,
-            "lastUpdate": 1794338879521.802,
+            "lastUpdate": 1794341166302.1267,
             "scriptType": "web",
             "userScriptFilepath": "backup/bilibili-live-quota.user.js",
             "downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-quota/backup/bilibili-live-quota.user.js",
