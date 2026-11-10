@@ -1,9 +1,8 @@
 import { execFileSync } from 'node:child_process';
-import { rmSync } from 'node:fs';
 import {
-    mergeRestore,
+    prepareArchiveRebuild,
     restoreDirectory,
-    snapshotDirectory,
+    settleArchiveRebuild,
 } from './backup-snapshot';
 import { type PackageInfo, repoRoot } from './workspace';
 
@@ -15,33 +14,41 @@ export interface BuildOutcome {
 }
 
 /**
- * 构建单个项目：先把 `backup/` 快照到临时目录，构建成功后合并
- * 恢复，失败或被中断则原样退回。与 `pnpm build` 的单项目步骤等价。
+ * 构建单个项目。
+ *
+ * 已归档的版本直接构建会撞上备份插件的重复归档检查，所以这里
+ * 先拍一份 `backup/` 快照、把当前版本从归档登记里摘掉，让插件
+ * 肯重建；`<name>.zip` 不动，插件因此会在旧 zip 上追加，历史
+ * 版本不会被截成只剩当前版本。
+ *
+ * 构建结束后按「该版本原本是否已归档」收尾：原本已归档，说明这
+ * 是一次校验性重建，整体还原快照，连修改时间都保持原样——
+ * `backup/<name>.user.js` 的 mtime 是 `pnpm update:readme` 的
+ * 「最后更新」来源，不该被一次全量构建刷成今天；原本未归档则是
+ * 正常发版，保留新产物。构建失败或被中断同样整体回滚。
  */
 export function buildPackage(pkg: PackageInfo): BuildOutcome {
-    const snapshot = pkg.backupDir
-        ? snapshotDirectory(pkg.backupDir)
-        : null;
-    if (pkg.backupDir) {
-        rmSync(pkg.backupDir, { recursive: true, force: true });
-    }
+    const snapshot =
+        pkg.backupDir && pkg.scriptVersion
+            ? prepareArchiveRebuild(pkg.backupDir, pkg.scriptVersion)
+            : null;
 
-    /** 构建成功合并新归档，失败则退回快照。 */
-    const restore = (keepNew: boolean): void => {
+    /** 构建失败整体回滚；成功则由快照决定还原还是保留。 */
+    const settle = (ok: boolean): void => {
         if (snapshot === null) {
             return;
         }
-        if (keepNew) {
-            mergeRestore(snapshot);
+        if (ok) {
+            settleArchiveRebuild(snapshot);
         } else {
             restoreDirectory(snapshot);
         }
     };
 
     // Ctrl-C 打断时进程可能直接退出、走不到 finally，
-    // 所以先挂信号处理把 backup/ 回滚，避免归档停在已删除状态。
+    // 所以先挂信号处理把 backup/ 回滚，避免归档停在半改状态。
     const onSignal = (signal: NodeJS.Signals): void => {
-        restore(false);
+        settle(false);
         console.error(
             `✖ 构建被 ${signal} 中断，已回滚 ${pkg.relDir}/backup`,
         );
@@ -64,7 +71,7 @@ export function buildPackage(pkg: PackageInfo): BuildOutcome {
         process.off('SIGTERM', onSignal);
     }
 
-    restore(ok);
+    settle(ok);
     return { ok };
 }
 

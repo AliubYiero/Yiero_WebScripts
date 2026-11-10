@@ -16,7 +16,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 - `pnpm commit <type> <主题>` — 暂存当前项目（根目录调用则整仓）并提交；当前版本未归档时先构建。提交信息写成 `<type>(<项目名>): <主题>`（整仓时省略括号段），缺参数时终端交互补问
 - `pnpm push` — 推当前分支 + 当前项目前缀下的标签（根目录调用则推当前分支 + 全部标签）
 - `pnpm build` — 只构建「banner 版本号尚未归档」的项目
-- `pnpm build:all` — 全量构建（会临时移走 `backup/`，避免同版本重复归档报错）
+- `pnpm build:all` — 全量构建（已归档的版本按快照还原，含修改时间，归档目录不会被改写；版本号变了的项目照常产出新归档）
 - `pnpm build --dry-run` — 打印构建计划（JSON）
 - `pnpm build --all`（别名 `--force`）— 含例外项目在内全量构建
 - `pnpm build --project src/com/bilibili/xxx` — 只构建计划里的某个项目

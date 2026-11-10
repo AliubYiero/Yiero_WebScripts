@@ -246,7 +246,7 @@ pnpm --filter @webscripts/bilibili-video-timeline dev:base
 pnpm build
 \`\`\`
 
-> 全量构建: 覆盖所有项目, 会临时移走 backup 目录, 避免同版本重复归档报错
+> 全量构建: 覆盖所有项目, 已归档的版本按快照还原（含修改时间）, 归档目录不会被改写
 
 \`\`\`bash
 pnpm build:all
