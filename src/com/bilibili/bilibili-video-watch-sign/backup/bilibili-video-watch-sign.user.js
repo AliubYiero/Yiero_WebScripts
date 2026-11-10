@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name           Bilibili视频观看状态标记
 // @description    基于收藏夹内容, 自动标记Bilibili视频的观看状态(已看/未看)
-// @version        1.3.0
+// @version        1.3.1
 // @author         Yiero
 // @match          https://*.bilibili.com/*
 // @icon           https://www.bilibili.com/favicon.ico
@@ -211,16 +211,46 @@
     GAP: 10,
     BASE_OFFSET: 20
   };
-  function calculateStackOffset(position) {
-    const samePositionMessages = activeMessages.filter((msg) => msg.element.dataset.position === position);
+  const CUSTOM_EDGES = [
+    "top",
+    "left",
+    "right",
+    "bottom"
+  ];
+  function toCssValue(value) {
+    return "number" == typeof value ? `${value}px` : value;
+  }
+  function readOffsetPx(value) {
+    if ("number" == typeof value) return value;
+    if ("string" == typeof value) {
+      const matched = /^(-?\d+(?:\.\d+)?)px$/.exec(value.trim());
+      if (matched) return Number(matched[1]);
+    }
+    return null;
+  }
+  function activeEdges(offset) {
+    return CUSTOM_EDGES.filter((edge) => void 0 !== offset[edge]);
+  }
+  function hasCustomOffset(offset) {
+    return activeEdges(offset).length > 0;
+  }
+  function customPlacementKey(offset) {
+    const edges = activeEdges(offset).map((edge) => {
+      const value = offset[edge];
+      return `${edge}:${toCssValue(value)}`;
+    });
+    return `custom(${edges.join(",")})`;
+  }
+  function calculateStackOffset(placementKey, baseOffset, stackUp) {
+    const samePositionMessages = activeMessages.filter((msg) => msg.element.dataset.position === placementKey);
     if (0 === samePositionMessages.length) return {};
+    if (null === baseOffset) return {};
     const totalOffset = samePositionMessages.reduce((acc, msg) => acc + msg.element.offsetHeight + MESSAGE_STACK_CONFIG.GAP, 0);
-    const isBottom = position.includes("bottom");
-    if (isBottom) return {
-      bottom: `${MESSAGE_STACK_CONFIG.BASE_OFFSET + totalOffset}px`
+    if (stackUp) return {
+      bottom: `${baseOffset + totalOffset}px`
     };
     return {
-      top: `${MESSAGE_STACK_CONFIG.BASE_OFFSET + totalOffset}px`
+      top: `${baseOffset + totalOffset}px`
     };
   }
   function createMessageContainer() {
@@ -256,9 +286,8 @@
     element.style.border = `1px solid ${typeConfig.borderColor}`;
     element.style.color = typeConfig.textColor;
   }
-  function getAnimationOffset(position, isEnter) {
-    const isBottom = position.includes("bottom");
-    return isBottom ? 20 : -20;
+  function getAnimationOffset(stackUp, isEnter) {
+    return stackUp ? 20 : -20;
   }
   function validateMessageOptions(detail) {
     if (!detail.message || "string" != typeof detail.message) throw new Error("Message: message \u53C2\u6570\u5FC5\u987B\u662F\u6709\u6548\u7684\u975E\u7A7A\u5B57\u7B26\u4E32");
@@ -285,6 +314,13 @@
       "bottom-right"
     ];
     if (void 0 !== detail.position && !validPositions.includes(detail.position)) throw new Error(`Message: position \u5FC5\u987B\u662F ${validPositions.join(" | ")} \u4E4B\u4E00`);
+    for (const edge of CUSTOM_EDGES) {
+      const value = detail[edge];
+      if (void 0 === value) continue;
+      const isValidNumber = "number" == typeof value && Number.isFinite(value);
+      const isValidString = "string" == typeof value && "" !== value.trim();
+      if (!isValidNumber && !isValidString) throw new Error(`Message: \u81EA\u5B9A\u4E49\u5B9A\u4F4D ${edge} \u5FC5\u987B\u662F\u975E\u7A7A\u5B57\u7B26\u4E32\u6216\u6709\u9650\u6570\u5B57`);
+    }
   }
   const Message = (options) => {
     const detail = {
@@ -301,7 +337,12 @@
     const messagePosition = detail.position || "top";
     let messageDuration = void 0 === detail.duration ? 3e3 : detail.duration;
     const typeConfig = messageTypes[messageType];
-    const initialOffset = getAnimationOffset(messagePosition);
+    const customOffset = hasCustomOffset(detail);
+    const placementKey = customOffset ? customPlacementKey(detail) : messagePosition;
+    const placementStyle = customOffset ? activeEdges(detail).map((edge) => `${edge}: ${toCssValue(detail[edge])};`).join(" ") : Object.entries(messagePositions[messagePosition]).map(([k, v]) => `${k}: ${v};`).join(" ");
+    const stackBase = customOffset ? readOffsetPx(detail.bottom ?? detail.top) : MESSAGE_STACK_CONFIG.BASE_OFFSET;
+    const stackUp = customOffset ? void 0 !== detail.bottom : messagePosition.includes("bottom");
+    const initialOffset = getAnimationOffset(stackUp);
     messageEl.setAttribute("style", `
                 position: absolute;
                 min-width: 300px;
@@ -319,9 +360,11 @@
                 opacity: 0;
                 pointer-events: auto;
                 cursor: pointer;
-                ${Object.entries(messagePositions[messagePosition]).map(([k, v]) => `${k}: ${v};`).join(" ")}
+                ${placementStyle}
             `);
-    messageEl.dataset.position = messagePosition;
+    messageEl.dataset.position = placementKey;
+    messageEl.dataset.stackBase = null === stackBase ? "" : String(stackBase);
+    messageEl.dataset.stackUp = stackUp ? "1" : "0";
     enforceMessageLimit();
     messageEl.setAttribute("role", "alert");
     messageEl.setAttribute("aria-live", "polite");
@@ -349,7 +392,7 @@
     contentEl.textContent = detail.message;
     messageEl.appendChild(contentEl);
     messageContainer.appendChild(messageEl);
-    const stackOffset = calculateStackOffset(messagePosition);
+    const stackOffset = calculateStackOffset(placementKey, stackBase, stackUp);
     if (stackOffset.top) messageEl.style.top = stackOffset.top;
     if (stackOffset.bottom) messageEl.style.bottom = stackOffset.bottom;
     requestAnimationFrame(() => {
@@ -368,23 +411,23 @@
       if (0 === messageDuration) return void permanentMessages.add(messageEl);
       permanentMessages.delete(messageEl);
       timer = setTimeout(() => {
-        closeMessage(messageEl, messagePosition);
+        closeMessage(messageEl);
       }, messageDuration);
     };
     applyAutoCloseTimer();
     messageEl.addEventListener("click", () => {
       clearAutoCloseTimer();
-      closeMessage(messageEl, messagePosition);
+      closeMessage(messageEl);
     });
     messageEl.addEventListener("keydown", (e) => {
       if ("Escape" === e.key) {
         clearAutoCloseTimer();
-        closeMessage(messageEl, messagePosition);
+        closeMessage(messageEl);
       }
     });
     const close = () => {
       clearAutoCloseTimer();
-      closeMessage(messageEl, messagePosition);
+      closeMessage(messageEl);
     };
     const update = (patch) => {
       let touched = false;
@@ -431,20 +474,25 @@
       positionGroups.get(pos)?.push(msg);
     }
     for (const [position, messages] of positionGroups) {
-      const isBottom = position.includes("bottom");
-      let currentOffset = MESSAGE_STACK_CONFIG.BASE_OFFSET;
+      const first = messages[0];
+      const baseText = first?.element.dataset.stackBase ?? "";
+      if ("" === baseText) continue;
+      const baseOffset = Number(baseText);
+      const stackUp = (first?.element.dataset.stackUp ?? (position.includes("bottom") ? "1" : "0")) === "1";
+      let currentOffset = Number.isFinite(baseOffset) ? baseOffset : MESSAGE_STACK_CONFIG.BASE_OFFSET;
       for (const msg of messages) {
-        if (isBottom) msg.element.style.bottom = `${currentOffset}px`;
+        if (stackUp) msg.element.style.bottom = `${currentOffset}px`;
         else msg.element.style.top = `${currentOffset}px`;
         currentOffset += msg.element.offsetHeight + MESSAGE_STACK_CONFIG.GAP;
       }
     }
   }
-  function closeMessage(element, position = "top") {
+  function closeMessage(element) {
     const index = activeMessages.findIndex((msg) => msg.element === element);
     if (-1 !== index) activeMessages.splice(index, 1);
     recalculateMessagePositions();
-    const exitOffset = getAnimationOffset(position);
+    const stackUp = "1" === element.dataset.stackUp;
+    const exitOffset = getAnimationOffset(stackUp);
     element.style.opacity = "0";
     element.style.transform = `translateY(${exitOffset}px)`;
     setTimeout(() => {
@@ -1068,7 +1116,27 @@
     document.documentElement.dataset.favIndex = index.degraded ? "degraded" : index.source === "cache" ? "cache" : "network";
     return result;
   }
-  async function syncFolders(mid, cachedFolders, remoteMeta) {
+  function writeManifest(mid, remoteMeta, shardMap, pendingIds, lastSyncAt) {
+    writeMeta({
+      version: 2,
+      mid,
+      lastSyncAt,
+      folders: remoteMeta.map((folder) => {
+        const shard = shardMap.get(folder.id);
+        return {
+          id: folder.id,
+          fid: folder.fid,
+          title: folder.title,
+          // 失败的夹保留旧分片里的 mediaCount，与分片对齐
+          mediaCount: shard?.mediaCount ?? folder.mediaCount,
+          itemCount: shard?.itemCount ?? 0,
+          aidCount: shard?.aids.length ?? 0,
+          synced: !pendingIds.has(folder.id) && (shard?.synced ?? false)
+        };
+      })
+    });
+  }
+  async function syncFolders(mid, cachedFolders, remoteMeta, previousSyncedAt) {
     const { refresh, remove } = favFolderDiff(
       cachedFolders,
       remoteMeta
@@ -1098,6 +1166,7 @@
     }
     const failedFolderIds = [];
     let done = 0;
+    const pendingIds = new Set(refreshIds);
     emitStart(refresh.length);
     for (const folder of refresh) {
       if (done > 0) {
@@ -1130,6 +1199,14 @@
           aids
         });
       }
+      pendingIds.delete(folder.id);
+      writeManifest(
+        mid,
+        remoteMeta,
+        shardMap,
+        pendingIds,
+        previousSyncedAt
+      );
       done++;
       emitProgress({
         phase: "progress",
@@ -1141,20 +1218,7 @@
       (folder) => folder !== void 0
     );
     const syncedAt = Date.now();
-    writeMeta({
-      version: 2,
-      mid,
-      lastSyncAt: syncedAt,
-      folders: folders.map((folder) => ({
-        id: folder.id,
-        fid: folder.fid,
-        title: folder.title,
-        mediaCount: folder.mediaCount,
-        itemCount: folder.itemCount,
-        aidCount: folder.aids.length,
-        synced: folder.synced
-      }))
-    });
+    writeManifest(mid, remoteMeta, shardMap, pendingIds, syncedAt);
     return makeIndex(
       folders,
       "network",
@@ -1200,7 +1264,12 @@
       );
       return markResult({ kind: "ok", index: index2 });
     }
-    const index = await syncFolders(mid, cachedFolders, remoteMeta);
+    const index = await syncFolders(
+      mid,
+      cachedFolders,
+      remoteMeta,
+      meta?.lastSyncAt ?? Date.now()
+    );
     return markResult({ kind: "ok", index });
   }
   function isFresh(entry) {
@@ -1245,7 +1314,7 @@
     forceNetwork = true;
   }
   const MIN_FOLDER_COUNT = 5;
-  const CARD_POSITION = "top-left";
+  const CARD_OFFSET = { left: 20, top: 84 };
   const MIN_VISIBLE_MS = 500;
   const INITIAL_REQUEST_MS = 300;
   const SAMPLE_THRESHOLD = 2;
@@ -1273,10 +1342,7 @@
     return state.done >= SAMPLE_THRESHOLD ? state.requestMsSum / state.done : INITIAL_REQUEST_MS;
   }
   function etaText(state) {
-    const remainingFolders = state.total - state.done;
-    if (remainingFolders <= 0) {
-      return "";
-    }
+    const remainingFolders = Math.max(0, state.total - state.done);
     const perFolderMs = state.intervalMs + averageRequestMs(state);
     const seconds = Math.ceil(
       remainingFolders * perFolderMs / 1e3
@@ -1284,7 +1350,7 @@
     return `\uFF0C\u7EA6\u5269 ${Math.max(1, seconds)} \u79D2`;
   }
   function progressText(state) {
-    return `\u6536\u85CF\u5939\u5DF2\u8BFB ${state.done}/${state.total}${etaText(state)}`;
+    return `\u6B63\u5728\u521D\u59CB\u5316\u6536\u85CF\u72B6\u6001\uFF0C\u6536\u85CF\u5939\u5DF2\u8BFB ${state.done}/${state.total}${etaText(state)}`;
   }
   function isCardAlive(state) {
     return state.card !== null && state.card.element.isConnected;
@@ -1310,7 +1376,8 @@
     const instance = Message({
       message,
       type,
-      position: CARD_POSITION,
+      left: CARD_OFFSET.left,
+      top: CARD_OFFSET.top,
       duration
     });
     state.card = instance;
