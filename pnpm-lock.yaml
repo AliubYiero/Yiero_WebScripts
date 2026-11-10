@@ -478,6 +478,67 @@ importers:
         specifier: ^0.3.0
         version: 0.3.0
 
+  src/com/bilibili/bilibili-live-quota:
+    dependencies:
+      '@yiero/gmlib':
+        specifier: workspace:*
+        version: link:../../../.Libs/gmlib
+      radash:
+        specifier: ^12.1.1
+        version: 12.1.1
+    devDependencies:
+      '@rollup/plugin-replace':
+        specifier: ^6.0.2
+        version: 6.0.3(rollup@4.59.0)
+      '@types/node':
+        specifier: ^22.10.2
+        version: 22.20.5
+      '@types/yamljs':
+        specifier: ^0.2.34
+        version: 0.2.34
+      '@vitest/coverage-v8':
+        specifier: ^2.1.8
+        version: 2.1.9(supports-color@8.1.1)(vitest@2.1.9(@types/node@22.20.5)(happy-dom@20.14.6)(jsdom@24.1.3(supports-color@8.1.1))(supports-color@8.1.1)(terser@5.51.2))
+      '@yiero/vite-plugin-scriptcat-auto-icon':
+        specifier: ^1.0.0
+        version: 1.0.0
+      '@yiero/vite-plugin-scriptcat-backup':
+        specifier: ^1.1.0
+        version: 1.1.0
+      '@yiero/vite-plugin-scriptcat-extract-grant':
+        specifier: ^1.0.4
+        version: 1.0.4
+      '@yiero/vite-plugin-scriptcat-meta-banner':
+        specifier: ^1.1.2
+        version: 1.1.2
+      '@yiero/vite-plugin-scriptcat-require-self':
+        specifier: ^1.0.4
+        version: 1.0.4
+      '@yiero/vite-plugin-scriptcat-script-push':
+        specifier: ^1.1.1
+        version: 1.1.1
+      jsdom:
+        specifier: ^24.0.0
+        version: 24.1.3(supports-color@8.1.1)
+      rollup:
+        specifier: 4.59.0
+        version: 4.59.0
+      terser:
+        specifier: ^5.37.0
+        version: 5.51.2
+      vite:
+        specifier: ^7.3.2
+        version: 7.3.7(@types/node@22.20.5)(jiti@2.7.0)(terser@5.51.2)(tsx@4.21.0)
+      vite-plugin-raw:
+        specifier: ^1.0.3
+        version: 1.0.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@22.20.5)(happy-dom@20.14.6)(jsdom@24.1.3(supports-color@8.1.1))(supports-color@8.1.1)(terser@5.51.2)
+      yamljs:
+        specifier: ^0.3.0
+        version: 0.3.0
+
   src/com/bilibili/bilibili-live-record:
     dependencies:
       '@yiero/gmlib':
