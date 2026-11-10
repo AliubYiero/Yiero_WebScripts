@@ -106,6 +106,21 @@
             "autoUpdate": true,
             "getLastUpdateWay": "file"
         },
+        "bilibili-live-quota": {
+            "name": "Bilibili直播引用弹幕显示",
+            "description": "在Bilibili直播栏中, 弹幕 @其他人 时, 显示其最后一条弹幕的发言. 可以更直观地知道弹幕在讨论什么.",
+            "version": "0.1.0",
+            "private": false,
+            "archive": false,
+            "lastUpdate": 1794338879521.802,
+            "scriptType": "web",
+            "userScriptFilepath": "backup/bilibili-live-quota.user.js",
+            "downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-quota/backup/bilibili-live-quota.user.js",
+            "downloadUrlFromScripCat": "",
+            "downloadUrlFromGreasyFork": "",
+            "autoUpdate": true,
+            "getLastUpdateWay": "file"
+        },
         "bilibili-live-record": {
             "name": "Bilibili直播时间点标记",
             "description": "在Bilibili直播中标记时间, 方便用户查阅",
@@ -217,7 +232,7 @@
             "version": "2.0.3",
             "private": false,
             "archive": false,
-            "lastUpdate": 1793986342665.8115,
+            "lastUpdate": 1793986342665.8113,
             "scriptType": "web",
             "userScriptFilepath": "backup/bilibili-video-timeline.user.js",
             "downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-video-timeline/backup/bilibili-video-timeline.user.js",

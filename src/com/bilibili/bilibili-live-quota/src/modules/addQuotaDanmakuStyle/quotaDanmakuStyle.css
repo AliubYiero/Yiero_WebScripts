@@ -1,0 +1,33 @@
+.bili-quota-has-reply {
+    & .bili-quota-item {
+        border-left: 3px solid #dcdcdc;
+        margin-bottom: 6px;
+        padding-left: 8px;
+
+        font-size: 12px;
+        line-height: 1.5;
+        color: #61666d;
+
+        word-break: break-all;
+    }
+
+    /* 引用中的用户名 */
+    & .bili-quota-name {
+        color: #fb7299;
+        margin-right: 4px;
+    }
+
+    /* 引用中的文本 */
+    & .bili-quota-text {
+        flex: 1;
+    }
+
+    /* 引用中的图片 */
+    & .bili-quota-image {
+        width: 32px;
+        height: 32px;
+        border-radius: 4px;
+        object-fit: cover;
+        flex-shrink: 0;
+    }
+}
