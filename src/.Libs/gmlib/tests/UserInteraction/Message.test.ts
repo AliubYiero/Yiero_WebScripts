@@ -559,6 +559,152 @@ describe('Message', () => {
         });
     });
 
+    describe('custom offset', () => {
+        it('should place message with custom top/left', () => {
+            const instance = Message({
+                message: '自定义定位',
+                left: 20,
+                top: 84,
+            });
+
+            expect(instance.element.style.left).toBe('20px');
+            expect(instance.element.style.top).toBe('84px');
+            // 自定义定位时快捷 position 不生效：不能带上它的 right/bottom
+            expect(instance.element.style.right).toBe('');
+            expect(instance.element.style.bottom).toBe('');
+        });
+
+        it('should accept css strings for custom offset', () => {
+            const instance = Message({
+                message: '字符串偏移',
+                left: '12px',
+                top: '30vh',
+            });
+
+            expect(instance.element.style.left).toBe('12px');
+            expect(instance.element.style.top).toBe('30vh');
+        });
+
+        it('should ignore position when custom offset is given', () => {
+            const instance = Message({
+                message: '都给',
+                position: 'bottom-right',
+                left: 10,
+                top: 10,
+            });
+
+            // position 的 bottom-right 不能盖掉自定义的 top/left
+            expect(instance.element.style.right).toBe('');
+            expect(instance.element.style.bottom).toBe('');
+            expect(instance.element.style.left).toBe('10px');
+            expect(instance.element.style.top).toBe('10px');
+        });
+
+        it('should stack custom offset messages downward from custom top', () => {
+            const first = Message({
+                message: '第一条',
+                left: 20,
+                top: 84,
+            });
+            const second = Message({
+                message: '第二条',
+                left: 20,
+                top: 84,
+            });
+
+            expect(first.element.style.top).toBe('84px');
+
+            const firstHeight = first.element.offsetHeight;
+            expect(second.element.style.top).toBe(
+                `${84 + firstHeight + 10}px`,
+            );
+            // 自定义的横向位置不被堆叠改动
+            expect(second.element.style.left).toBe('20px');
+        });
+
+        it('should stack upward when custom bottom is given', () => {
+            const first = Message({
+                message: '第一条',
+                left: 20,
+                bottom: 84,
+            });
+            const second = Message({
+                message: '第二条',
+                left: 20,
+                bottom: 84,
+            });
+
+            expect(first.element.style.bottom).toBe('84px');
+
+            const firstHeight = first.element.offsetHeight;
+            expect(second.element.style.bottom).toBe(
+                `${84 + firstHeight + 10}px`,
+            );
+        });
+
+        it('should not stack with messages of other placements', () => {
+            Message({ message: '快捷位置', position: 'top-left' });
+
+            const custom = Message({
+                message: '自定义',
+                left: 20,
+                top: 84,
+            });
+
+            expect(custom.element.style.top).toBe('84px');
+        });
+
+        it('should keep custom offset after neighbouring message closes', () => {
+            vi.useFakeTimers();
+
+            const first = Message({
+                message: '第一条',
+                left: 20,
+                top: 84,
+            });
+            const second = Message({
+                message: '第二条',
+                left: 20,
+                top: 84,
+            });
+
+            first.close();
+            vi.advanceTimersByTime(400);
+
+            // 第二张补位回到基础偏移，横向仍是自定义值
+            expect(second.element.style.top).toBe('84px');
+            expect(second.element.style.left).toBe('20px');
+        });
+
+        it('should reject empty custom offset value', () => {
+            expect(() =>
+                Message({ message: 'test', top: '' }),
+            ).toThrow('定位');
+        });
+
+        it('should keep non-px custom offset after recalculation', () => {
+            vi.useFakeTimers();
+
+            const first = Message({
+                message: '第一条',
+                left: 20,
+                top: '30vh',
+            });
+            const second = Message({
+                message: '第二条',
+                left: 20,
+                top: '30vh',
+            });
+
+            first.close();
+            vi.advanceTimersByTime(400);
+
+            // 基准是 vh、读不出像素：不位移，也不能拽回默认 20px
+            expect(second.element.style.top).toBe('30vh');
+            expect(second.element.style.left).toBe('20px');
+        });
+    });
+
     describe('message stacking', () => {
         it('should stack messages at top position', () => {
             const instance1 = Message({

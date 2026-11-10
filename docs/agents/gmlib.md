@@ -1,6 +1,6 @@
 # gmlib 速查
 
-`@yiero/gmlib` 是本仓自产的 GM 工具库，当前版本 **0.4.8**（以
+`@yiero/gmlib` 是本仓自产的 GM 工具库，当前版本 **0.4.9**（以
 `src/.Libs/gmlib/package.json` 为准）。值、类型都从同一个入口引入：
 
 ```ts
@@ -61,7 +61,12 @@ pnpm --filter @yiero/gmlib build
 
 - `Message('文本')` / `Message({ message, type, duration, position })`：
   它是可调用对象，另有 `Message.success` / `warning` / `error` /
-  `info`。全局同屏最多 3 条，超出自动关最早一条，上限跨位置共享。
+  `info`。全局同屏最多 3 条（只有非常驻计入淘汰），超出自动关最早
+  一条，上限跨位置共享。`duration: 0` 是常驻消息，不自动关也不被
+  挤掉；实例上的 `update({ message, type, duration })` 能原地改文案
+  与类型（`position` 不可改）。给了 `top` / `left` / `right` /
+  `bottom` 任一方向就接管定位，`position`（四边 20px 的快捷）失效，
+  同一组自定义边内部独立堆叠。
 
 - `onRouteChange(callback)` 返回取消函数：单例，**新调用会替换旧
   回调**；事件带 `to` / `from` / `type`，Chrome 102+ 走 Navigation

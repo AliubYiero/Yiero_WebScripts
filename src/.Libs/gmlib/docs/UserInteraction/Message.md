@@ -64,7 +64,30 @@ Message.info(message: string, options?: Omit<MessageDetail, 'type' | 'message'>)
 | `message`  | `string`                                                     | (必需)   | 要显示的消息内容                         |
 | `type`     | `'success'` | `'info'` | `'warning'` | `'error'`             | `'info'` | 消息类型，决定消息的样式和图标           |
 | `duration` | `number`                                                     | `3000`   | 消息显示的持续时间（毫秒），之后自动关闭。最小值：100ms；`0` 表示常驻（不自动关闭） |
-| `position` | `'top-left'` | `'top'` | `'top-right'`<br />``'left'`` | `right`<br />`bottom-left` | `bottom` | `bottom-right` | `'top'`  | 消息在页面上的显示位置                   |
+| `position` | `'top-left'` | `'top'` | `'top-right'`<br />``'left'`` | `right`<br />`bottom-left` | `bottom` | `bottom-right` | `'top'`  | 消息在页面上的显示位置（四边固定 20px 的快捷输入） |
+| `top`      | `number` \| `string`                                         | (可选)   | 距视口顶部的距离；`number` 按 px 处理，字符串原样 |
+| `left`     | `number` \| `string`                                         | (可选)   | 距视口左侧的距离                                 |
+| `right`    | `number` \| `string`                                         | (可选)   | 距视口右侧的距离                                 |
+| `bottom`   | `number` \| `string`                                         | (可选)   | 距视口底部的距离                                 |
+
+#### 自定义定位
+
+给了 `top` / `left` / `right` / `bottom` 里任意一个，这四个方向就接管定位，`position` 不再生效。`position` 只是「四边 20px」的快捷写法。
+
+```ts
+// 贴左上角，避开 64px 高的顶栏
+Message({
+  message: '正在初始化…',
+  left: 20,
+  top: 84,
+  duration: 0,
+});
+```
+
+- 数字按像素处理，字符串原样写进 CSS，因此 `'30vh'`、`'calc(20px + 1em)'` 这类值都可以
+- 同一组自定义边的消息互相堆叠：有 `bottom` 时向上排，否则向下排
+- 不同组（包括快捷 `position` 组）之间互不干扰，各自独立堆叠
+- 传入空字符串或非有限数字会抛错
 
 ### 快捷方法参数
 
@@ -154,6 +177,14 @@ Message.success('第三条消息'); // top: 160px
 Message.success('顶部消息', { position: 'top' });
 Message.success('底部消息', { position: 'bottom' });
 // 两条消息各自在自己的基础位置显示
+```
+
+自定义定位也按「用了哪几条边」分组：`{ left, top }` 与 `{ top, left }` 是同一组，`{ left, bottom }` 是另一组，它们各自从自己的基准边开始堆叠。
+
+```ts
+Message.success('第一条', { left: 20, top: 84 });
+Message.success('第二条', { left: 20, top: 84 }); // top: 84 + 高度 + 10
+Message.success('贴底', { left: 20, bottom: 84 }); // 另一组，不受上面两条影响
 ```
 
 ## 消息数量限制

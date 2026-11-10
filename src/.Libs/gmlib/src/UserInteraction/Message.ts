@@ -61,29 +61,115 @@ const MESSAGE_STACK_CONFIG = {
 };
 
 /**
+ * 自定义定位的四个方向值。
+ *
+ * 数字按 px 处理，字符串原样当作 CSS 值；任一方向给值就整体
+ * 接管定位，快捷 `position` 不再生效。
+ */
+interface ICustomOffset {
+    /** 自定义上边距,数字按 px 处理 */
+    top?: number | string;
+    /** 自定义左边距,数字按 px 处理 */
+    left?: number | string;
+    /** 自定义右边距,数字按 px 处理 */
+    right?: number | string;
+    /** 自定义下边距,数字按 px 处理;给了它则向上堆叠 */
+    bottom?: number | string;
+}
+
+/** 自定义定位支持的方向，顺序固定以便生成稳定的分组标识 */
+const CUSTOM_EDGES = ['top', 'left', 'right', 'bottom'] as const;
+
+/** 计算某个方向的 CSS 值 */
+function toCssValue(value: number | string): string {
+    return typeof value === 'number' ? `${value}px` : value;
+}
+
+/**
+ * 从自定义偏移里读出堆叠的基准像素值。
+ *
+ * 不能用 `Number.parseFloat` 直接吃 `'30vh'` 这类非 px 单位：
+ * 那会退化成 30，堆叠位置就与视觉基准脱节。读不出确定像素值
+ * 时返回 `null`，调用方放弃堆叠位移，宁可重叠也不跳到错误位置。
+ */
+function readOffsetPx(
+    value: number | string | undefined,
+): number | null {
+    if (typeof value === 'number') {
+        return value;
+    }
+
+    if (typeof value === 'string') {
+        const matched = /^(-?\d+(?:\.\d+)?)px$/.exec(value.trim());
+
+        if (matched) {
+            return Number(matched[1]);
+        }
+    }
+
+    return null;
+}
+
+/** 列出给了值的自定义方向，顺序固定，避免分组标识随键序漂移 */
+function activeEdges(
+    offset: ICustomOffset,
+): Array<(typeof CUSTOM_EDGES)[number]> {
+    return CUSTOM_EDGES.filter((edge) => offset[edge] !== undefined);
+}
+
+/** 是否给了任一自定义方向 */
+function hasCustomOffset(offset: ICustomOffset): boolean {
+    return activeEdges(offset).length > 0;
+}
+
+/**
+ * 给自定义偏移生成一个稳定的分组标识。
+ *
+ * 四边取值相同才算同一组，这样两组不同偏移的消息不会互相
+ * 挤位；顺序固定，避免 `{top,left}` 与 `{left,top}` 分出两组。
+ */
+function customPlacementKey(offset: ICustomOffset): string {
+    const edges = activeEdges(offset).map((edge) => {
+        const value = offset[edge];
+
+        return `${edge}:${toCssValue(value as number | string)}`;
+    });
+
+    return `custom(${edges.join(',')})`;
+}
+
+/**
  * 计算消息的堆叠偏移量
  * 根据同一位置的活动消息数量，计算新消息应显示的偏移位置
  *
- * @param position - 消息位置
+ * @param placementKey - 定位分组标识（快捷位置名或自定义定位串）
+ * @param baseOffset - 该分组的基准像素值；`null` 表示无法确定，不位移
+ * @param stackUp - 是否向上堆叠（有 bottom 锚点时）
  * @returns 偏移量对象 { top?, bottom? }
  *
  * @example
  * // 顶部位置，已有2条消息
- * calculateStackOffset('top'); // { top: '110px' } (假设每条消息高度40px)
- *
- * // 底部位置，已有1条消息
- * calculateStackOffset('bottom'); // { bottom: '70px' }
+ * calculateStackOffset('top', 20, false); // { top: '110px' } (假设每条消息高度40px)
  */
-function calculateStackOffset(position: string): {
+function calculateStackOffset(
+    placementKey: string,
+    baseOffset: number | null,
+    stackUp: boolean,
+): {
     top?: string;
     bottom?: string;
 } {
     // 获取同一位置的活动消息
     const samePositionMessages = activeMessages.filter(
-        (msg) => msg.element.dataset.position === position,
+        (msg) => msg.element.dataset.position === placementKey,
     );
 
     if (samePositionMessages.length === 0) {
+        return {};
+    }
+
+    // 基准不确定时不做位移：跳到一个猜出来的位置比重叠更糟
+    if (baseOffset === null) {
         return {};
     }
 
@@ -94,19 +180,13 @@ function calculateStackOffset(position: string): {
         );
     }, 0);
 
-    const isBottom = position.includes('bottom');
-
-    if (isBottom) {
-        // 底部位置: 向上堆叠
-        return {
-            bottom: `${MESSAGE_STACK_CONFIG.BASE_OFFSET + totalOffset}px`,
-        };
-    } else {
-        // 顶部/中间位置: 向下堆叠
-        return {
-            top: `${MESSAGE_STACK_CONFIG.BASE_OFFSET + totalOffset}px`,
-        };
+    if (stackUp) {
+        // 底部锚点: 向上堆叠
+        return { bottom: `${baseOffset + totalOffset}px` };
     }
+
+    // 顶部/中间位置: 向下堆叠
+    return { top: `${baseOffset + totalOffset}px` };
 }
 
 // 创建消息容器
@@ -167,22 +247,21 @@ function applyMessageTypeStyle(
 }
 
 /**
- * 根据消息位置计算动画偏移量
- * @param position - 消息位置
+ * 根据堆叠方向计算动画偏移量
+ * @param stackUp - 是否向上堆叠（底部锚点）
  * @param isEnter - 是否为入场动画
  * @returns translateY 偏移量 (px)
  */
 function getAnimationOffset(
-    position: string,
+    stackUp: boolean,
     isEnter: boolean,
 ): number {
-    const isBottom = position.includes('bottom');
     if (isEnter) {
         return 0;
     }
     // 底部位置: 消息向上移动消失 (正值)
     // 顶部位置: 消息向下移动消失 (负值)
-    return isBottom ? 20 : -20;
+    return stackUp ? 20 : -20;
 }
 
 /**
@@ -265,16 +344,37 @@ function validateMessageOptions(
             `Message: position 必须是 ${validPositions.join(' | ')} 之一`,
         );
     }
+
+    // 校验自定义定位
+
+    for (const edge of CUSTOM_EDGES) {
+        const value = detail[edge];
+
+        if (value === undefined) {
+            continue;
+        }
+
+        const isValidNumber =
+            typeof value === 'number' && Number.isFinite(value);
+        const isValidString =
+            typeof value === 'string' && value.trim() !== '';
+
+        if (!isValidNumber && !isValidString) {
+            throw new Error(
+                `Message: 自定义定位 ${edge} 必须是非空字符串或有限数字`,
+            );
+        }
+    }
 }
 
-interface MessageDetail {
+interface MessageDetail extends ICustomOffset {
     /** 消息内容 (必需) */
     message: string;
     /** 消息类型,默认 'info' */
     type?: 'success' | 'warning' | 'error' | 'info';
     /** 显示持续时间 (毫秒),默认 3000,最小值 100;0 表示常驻 */
     duration?: number;
-    /** 显示位置,默认 'top' */
+    /** 显示位置,默认 'top';给了任一自定义方向时不再生效 */
     position?:
         | 'top'
         | 'top-left'
@@ -373,8 +473,32 @@ const Message: MessageFunction = ((
     // 获取消息类型配置
     const typeConfig = messageTypes[messageType];
 
-    // 计算动画初始偏移量
-    const initialOffset = getAnimationOffset(messagePosition, false);
+    // 自定义定位接管后，快捷 position 的四边不再输出
+    const customOffset = hasCustomOffset(detail);
+    const placementKey = customOffset
+        ? customPlacementKey(detail)
+        : messagePosition;
+    const placementStyle = customOffset
+        ? activeEdges(detail)
+              .map(
+                  (edge) =>
+                      `${edge}: ${toCssValue(detail[edge] as number | string)};`,
+              )
+              .join(' ')
+        : Object.entries(messagePositions[messagePosition])
+              .map(([k, v]) => `${k}: ${v};`)
+              .join(' ');
+
+    // 堆叠基准：自定义定位从 top/bottom 取值，快捷位置用默认边距
+    const stackBase = customOffset
+        ? readOffsetPx(detail.bottom ?? detail.top)
+        : MESSAGE_STACK_CONFIG.BASE_OFFSET;
+    const stackUp = customOffset
+        ? detail.bottom !== undefined
+        : messagePosition.includes('bottom');
+
+    // 计算动画初始偏移量（方向跟随实际堆叠方向）
+    const initialOffset = getAnimationOffset(stackUp, false);
 
     // 设置消息元素样式
     messageEl.setAttribute(
@@ -396,14 +520,16 @@ const Message: MessageFunction = ((
                 opacity: 0;
                 pointer-events: auto;
                 cursor: pointer;
-                ${Object.entries(messagePositions[messagePosition])
-                    .map(([k, v]) => `${k}: ${v};`)
-                    .join(' ')}
+                ${placementStyle}
             `,
     );
 
     // 添加位置标识 (用于消息堆叠计算)
-    messageEl.dataset.position = messagePosition;
+    messageEl.dataset.position = placementKey;
+    // 记录堆叠基准与方向，供位置重算复用
+    messageEl.dataset.stackBase =
+        stackBase === null ? '' : String(stackBase);
+    messageEl.dataset.stackUp = stackUp ? '1' : '0';
 
     // 执行消息数量限制检查
     enforceMessageLimit();
@@ -449,7 +575,11 @@ const Message: MessageFunction = ((
     messageContainer.appendChild(messageEl);
 
     // 计算并应用堆叠偏移量
-    const stackOffset = calculateStackOffset(messagePosition);
+    const stackOffset = calculateStackOffset(
+        placementKey,
+        stackBase,
+        stackUp,
+    );
     if (stackOffset.top) {
         messageEl.style.top = stackOffset.top;
     }
@@ -488,7 +618,7 @@ const Message: MessageFunction = ((
 
         permanentMessages.delete(messageEl);
         timer = setTimeout(() => {
-            closeMessage(messageEl, messagePosition);
+            closeMessage(messageEl);
         }, messageDuration);
     };
 
@@ -497,21 +627,21 @@ const Message: MessageFunction = ((
     // 点击关闭
     messageEl.addEventListener('click', () => {
         clearAutoCloseTimer();
-        closeMessage(messageEl, messagePosition);
+        closeMessage(messageEl);
     });
 
     // 键盘支持: Escape 键关闭
     messageEl.addEventListener('keydown', (e: KeyboardEvent) => {
         if (e.key === 'Escape') {
             clearAutoCloseTimer();
-            closeMessage(messageEl, messagePosition);
+            closeMessage(messageEl);
         }
     });
 
     // 定义手动关闭方法
     const close = () => {
         clearAutoCloseTimer();
-        closeMessage(messageEl, messagePosition);
+        closeMessage(messageEl);
     };
 
     // 定义消息更新方法
@@ -587,11 +717,27 @@ function recalculateMessagePositions(): void {
 
     // 对每组消息重新计算位置
     for (const [position, messages] of positionGroups) {
-        const isBottom = position.includes('bottom');
-        let currentOffset = MESSAGE_STACK_CONFIG.BASE_OFFSET;
+        // 分组基准与方向建库时已记下；缺省时才回退到默认值
+        const first = messages[0];
+        const baseText = first?.element.dataset.stackBase ?? '';
+
+        // 基准读不出确定像素（如 '30vh'）：整组不位移，否则会把
+        // 消息从用户给的位置拽到默认边距上
+        if (baseText === '') {
+            continue;
+        }
+
+        const baseOffset = Number(baseText);
+        const stackUp =
+            (first?.element.dataset.stackUp ??
+                (position.includes('bottom') ? '1' : '0')) === '1';
+
+        let currentOffset = Number.isFinite(baseOffset)
+            ? baseOffset
+            : MESSAGE_STACK_CONFIG.BASE_OFFSET;
 
         for (const msg of messages) {
-            if (isBottom) {
+            if (stackUp) {
                 msg.element.style.bottom = `${currentOffset}px`;
             } else {
                 msg.element.style.top = `${currentOffset}px`;
@@ -603,10 +749,7 @@ function recalculateMessagePositions(): void {
 }
 
 // 关闭消息函数
-function closeMessage(
-    element: HTMLElement,
-    position: string = 'top',
-) {
+function closeMessage(element: HTMLElement) {
     // 从活动消息列表中移除
     const index = activeMessages.findIndex(
         (msg) => msg.element === element,
@@ -618,7 +761,9 @@ function closeMessage(
     // 重新计算剩余消息的堆叠位置
     recalculateMessagePositions();
 
-    const exitOffset = getAnimationOffset(position, false);
+    // 退出方向和分组方向一致：向上堆叠的组向下离场
+    const stackUp = element.dataset.stackUp === '1';
+    const exitOffset = getAnimationOffset(stackUp, false);
     element.style.opacity = '0';
     element.style.transform = `translateY(${exitOffset}px)`;
 

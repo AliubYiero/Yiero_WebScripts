@@ -1,5 +1,17 @@
 # 更新日志
 
+### 0.4.9 - feat
+
+**Message 支持自定义定位:**
+- 新增: `Message` 接受 `top` / `left` / `right` / `bottom` 四个位置参数, 数字按像素处理, 字符串原样作为 CSS 值
+- 变更: 给了任一自定义方向后, `position` 快捷值不再生效; `position` 保持不变, 仍是 20px 的快捷输入
+- 新增: 自定义定位的消息按「自定义边组合」独立分组堆叠, 不再和快捷位置的消息混排
+- 新增: 有 `bottom` 锚点时按向上方向堆叠与入场, 否则向下
+- 改进: 堆叠基准与方向记在元素的 `data-stack-base` / `data-stack-up` 上, 位置重算不再一律回到 20px
+- 变更: `calculateStackOffset` / `closeMessage` 改为按显式基准与方向工作, 不再从 `position` 字符串反推
+- 新增测试: `tests/UserInteraction/Message.test.ts` 补 `custom offset` 8 例
+- 文档: `docs/UserInteraction/Message.md` 补自定义定位参数与堆叠分组说明
+
 ### 0.4.8 - feat
 
 **Message 可更新与常驻:**
