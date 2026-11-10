@@ -8,8 +8,8 @@ import type {
 /** 本轮真正要取的夹数达到该值才出进度卡 */
 const MIN_FOLDER_COUNT = 5;
 
-/** 进度卡固定位置：避开视频列表主区与播放器控件 */
-const CARD_POSITION = 'top-left';
+/** 进度卡的固定偏移：贴左上角，避开顶栏 64px 高度 */
+const CARD_OFFSET = { left: 20, top: 84 } as const;
 
 /** 卡片创建后至少停留这么久才允许切终态（纯视觉防闪） */
 const MIN_VISIBLE_MS = 500;
@@ -104,15 +104,11 @@ function averageRequestMs(state: IRound): number {
 /**
  * 预计剩余时间部分。
  *
- * 剩余夹数为 0 时不显示时间：此时文案只剩计数。
+ * 剩余夹数为 0 时也给最小的一秒：用户要的文案里「约剩 m 秒」
+ * 是固定组成，最后一行不该突然少一截。
  */
 function etaText(state: IRound): string {
-    const remainingFolders = state.total - state.done;
-
-    if (remainingFolders <= 0) {
-        return '';
-    }
-
+    const remainingFolders = Math.max(0, state.total - state.done);
     const perFolderMs = state.intervalMs + averageRequestMs(state);
     const seconds = Math.ceil(
         (remainingFolders * perFolderMs) / 1000,
@@ -123,7 +119,7 @@ function etaText(state: IRound): string {
 
 /** 进行中的卡文案 */
 function progressText(state: IRound): string {
-    return `收藏夹已读 ${state.done}/${state.total}${etaText(state)}`;
+    return `正在初始化收藏状态，收藏夹已读 ${state.done}/${state.total}${etaText(state)}`;
 }
 
 /** 卡是否还在页面上：自动关闭或用户关掉后都不在 */
@@ -173,7 +169,8 @@ function mountCard(
     const instance = Message({
         message,
         type,
-        position: CARD_POSITION,
+        left: CARD_OFFSET.left,
+        top: CARD_OFFSET.top,
         duration,
     });
 

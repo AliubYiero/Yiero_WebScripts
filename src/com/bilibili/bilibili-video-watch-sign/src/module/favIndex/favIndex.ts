@@ -276,6 +276,47 @@ function markResult(result: FavIndexLoadResult): FavIndexLoadResult {
 }
 
 /**
+ * 把当前分片状态整份写回 manifest。
+ *
+ * 每落地一个夹就写一次：页面在初始化途中刷新时，已经存进
+ * 存储的夹必须算作已同步，下一轮 diff 才能只补剩下的夹，
+ * 不必从 0 重新遍历。
+ *
+ * `pendingIds` 里的夹一律按未同步落盘，即使旧分片声称已同步：
+ * 它们要么还没取、要么远端 mediaCount 变了正等着重取，写成
+ * 已同步会让 TTL 分支把这份半成品当成完整索引直接返回。
+ */
+function writeManifest(
+    mid: number,
+    remoteMeta: IFavFolderMeta[],
+    shardMap: Map<number, IFavFolderShard>,
+    pendingIds: ReadonlySet<number>,
+    lastSyncAt: number,
+): void {
+    writeMeta({
+        version: 2,
+        mid,
+        lastSyncAt,
+        folders: remoteMeta.map((folder) => {
+            const shard = shardMap.get(folder.id);
+
+            return {
+                id: folder.id,
+                fid: folder.fid,
+                title: folder.title,
+                // 失败的夹保留旧分片里的 mediaCount，与分片对齐
+                mediaCount: shard?.mediaCount ?? folder.mediaCount,
+                itemCount: shard?.itemCount ?? 0,
+                aidCount: shard?.aids.length ?? 0,
+                synced:
+                    !pendingIds.has(folder.id) &&
+                    (shard?.synced ?? false),
+            };
+        }),
+    });
+}
+
+/**
  * 用远端列表与旧分片增量同步：只拉变化夹的 ids，写分片与
  * manifest，返回新索引。
  */
@@ -283,6 +324,7 @@ async function syncFolders(
     mid: number,
     cachedFolders: IFavFolderShard[],
     remoteMeta: IFavFolderMeta[],
+    previousSyncedAt: number,
 ): Promise<IFavIndex> {
     const { refresh, remove } = favFolderDiff(
         cachedFolders,
@@ -320,6 +362,9 @@ async function syncFolders(
 
     const failedFolderIds: number[] = [];
     let done = 0;
+
+    // 本轮还没落地的夹：落盘时它们一律记未同步
+    const pendingIds = new Set(refreshIds);
 
     // total 取差值里本轮真正要取的夹数
     emitStart(refresh.length);
@@ -364,6 +409,18 @@ async function syncFolders(
             });
         }
 
+        pendingIds.delete(folder.id);
+
+        // 每落地一个夹就整份落盘：中途刷新不会丢掉已取的夹。
+        // 时间戳仍记上一轮完成的时刻，半成品不算一次同步。
+        writeManifest(
+            mid,
+            remoteMeta,
+            shardMap,
+            pendingIds,
+            previousSyncedAt,
+        );
+
         done++;
         emitProgress({
             phase: 'progress',
@@ -378,22 +435,11 @@ async function syncFolders(
             (folder): folder is IFavFolderShard =>
                 folder !== undefined,
         );
+
+    // 本轮到此结束：只有这时才把 manifest 的时间戳推到现在
     const syncedAt = Date.now();
 
-    writeMeta({
-        version: 2,
-        mid,
-        lastSyncAt: syncedAt,
-        folders: folders.map((folder) => ({
-            id: folder.id,
-            fid: folder.fid,
-            title: folder.title,
-            mediaCount: folder.mediaCount,
-            itemCount: folder.itemCount,
-            aidCount: folder.aids.length,
-            synced: folder.synced,
-        })),
-    });
+    writeManifest(mid, remoteMeta, shardMap, pendingIds, syncedAt);
 
     return makeIndex(
         folders,
@@ -476,7 +522,12 @@ async function loadFavIndex(
 
     // 6) + 7) diff → 拉变化夹 ids → 写分片与 manifest
     // start 由 syncFolders 在拿到 diff 后带 refresh 数发出
-    const index = await syncFolders(mid, cachedFolders, remoteMeta);
+    const index = await syncFolders(
+        mid,
+        cachedFolders,
+        remoteMeta,
+        meta?.lastSyncAt ?? Date.now(),
+    );
 
     return markResult({ kind: 'ok', index });
 }

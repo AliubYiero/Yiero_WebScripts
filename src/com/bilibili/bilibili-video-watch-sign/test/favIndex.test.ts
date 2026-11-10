@@ -98,11 +98,15 @@ interface ISeedFolder {
 /**
  * 直接往内存里塞旧同步结果，模拟上一轮已经同步过的索引。
  */
-function seedCache(folders: ISeedFolder[], mid = MID): void {
+function seedCache(
+    folders: ISeedFolder[],
+    mid = MID,
+    lastSyncAt = OLD,
+): void {
     const meta: IFavIndexMeta = {
         version: 2,
         mid,
-        lastSyncAt: OLD,
+        lastSyncAt,
         folders: folders.map((item) => ({
             id: item.id,
             fid: item.id / 100,
@@ -277,6 +281,129 @@ describe('ensureFavIndex', () => {
             },
         ]);
         expect(marker()).toBe('network');
+    });
+
+    it('初始化中途刷新：已写入存储的夹不再重取', async () => {
+        vi.mocked(api_getFavFolderList).mockResolvedValue(
+            listResponse([
+                folder(100, 1),
+                folder(200, 1),
+                folder(300, 1),
+            ]),
+        );
+
+        // 第一轮：100 成功、200 挂起，模拟初始化中途页面刷新
+        vi.mocked(api_getFavResourceIds).mockImplementation(
+            async (mediaId: number) => {
+                if (mediaId === 200) {
+                    return new Promise(() => {});
+                }
+
+                return idsResponse([resource(mediaId)]);
+            },
+        );
+
+        void ensureFavIndex();
+        for (let i = 0; i < 4; i++) {
+            await flushMicrotasks();
+        }
+
+        // 每落地一个夹就整份 manifest 写一次：未取到的记未同步
+        const partial = memory.get(metaKey(MID)) as IFavIndexMeta;
+        expect(partial.folders).toMatchObject([
+            { id: 100, synced: true },
+            { id: 200, synced: false },
+            { id: 300, synced: false },
+        ]);
+        expect(memory.get(aidsKey(MID, 100))).toEqual([100]);
+
+        // 刷新页面：模块内存清空，存储与分片还在
+        forceRefreshFavIndex();
+        vi.mocked(api_getFavResourceIds).mockClear();
+        vi.mocked(api_getFavResourceIds).mockImplementation(
+            async (mediaId: number) =>
+                idsResponse([resource(mediaId)]),
+        );
+
+        const { events, stop } = captureProgress();
+        const resumed = await ensureFavIndex();
+        stop();
+
+        expect(resumed.kind).toBe('ok');
+        // 100 已存过，这一轮只取剩下的两个
+        expect(vi.mocked(api_getFavResourceIds).mock.calls).toEqual([
+            [200],
+            [300],
+        ]);
+        expect(events).toEqual([
+            { phase: 'start', total: 2, intervalMs: 500 },
+            { phase: 'progress', done: 1, total: 2 },
+            { phase: 'progress', done: 2, total: 2 },
+            { phase: 'end', result: resumed },
+        ]);
+    });
+
+    it('中断时待刷新的夹不算已同步：TTL 分支不会返回半成品', async () => {
+        // 两个夹的 mediaCount 都变了，都要重取；时间戳停在 NOW
+        seedCache(
+            [
+                { id: 100, mediaCount: 1, aids: [1] },
+                { id: 300, mediaCount: 1, aids: [9] },
+            ],
+            MID,
+            NOW,
+        );
+
+        vi.mocked(api_getFavFolderList).mockResolvedValue(
+            listResponse([folder(100, 2), folder(300, 2)]),
+        );
+
+        // 100 先落地，300 挂起：模拟初始化中途页面刷新
+        vi.mocked(api_getFavResourceIds).mockImplementation(
+            async (mediaId: number) => {
+                if (mediaId === 300) {
+                    return new Promise(() => {});
+                }
+
+                return idsResponse([resource(1), resource(2)]);
+            },
+        );
+
+        void ensureFavIndex();
+        for (let i = 0; i < 4; i++) {
+            await flushMicrotasks();
+        }
+
+        const partial = memory.get(metaKey(MID)) as IFavIndexMeta;
+
+        // 300 还没取到：不能沿用旧分片的 synced:true，否则
+        // itemCount===mediaCount 会让它看起来已经完整
+        expect(partial.folders).toMatchObject([
+            { id: 100, mediaCount: 2, itemCount: 2, synced: true },
+            { id: 300, synced: false },
+        ]);
+        // 半成品不算一次同步：时间戳不动
+        expect(partial.lastSyncAt).toBe(NOW);
+
+        // 刷新页面后立刻再加载：TTL 还没过，但半成品必须回源
+        forceRefreshFavIndex();
+        vi.mocked(api_getFavFolderList).mockClear();
+        vi.mocked(api_getFavResourceIds).mockClear();
+        vi.mocked(api_getFavResourceIds).mockResolvedValue(
+            idsResponse([resource(9), resource(10)]),
+        );
+
+        const resumed = await ensureFavIndex();
+
+        expect(resumed.kind).toBe('ok');
+        if (resumed.kind !== 'ok') return;
+
+        // 没被 TTL 分支半成品挡住：重新 list-all，且只补 300
+        expect(api_getFavFolderList).toHaveBeenCalledTimes(1);
+        expect(vi.mocked(api_getFavResourceIds).mock.calls).toEqual([
+            [300],
+        ]);
+        expect(resumed.index.source).toBe('network');
     });
 
     it('TTL 内复用缓存：不再 list-all', async () => {

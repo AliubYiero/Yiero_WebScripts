@@ -229,7 +229,7 @@
         "bilibili-video-watch-sign": {
             "name": "Bilibili视频观看状态标记",
             "description": "基于收藏夹内容, 自动标记Bilibili视频的观看状态(已看/未看)",
-            "version": "1.3.0",
+            "version": "1.3.1",
             "private": false,
             "archive": false,
             "lastUpdate": 1794244558000,

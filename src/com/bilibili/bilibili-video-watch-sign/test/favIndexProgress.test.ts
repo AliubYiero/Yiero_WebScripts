@@ -122,8 +122,21 @@ describe('收藏夹索引进度卡', () => {
         emit({ phase: 'start', total: 5, intervalMs: 500 });
 
         expect(getCards()).toHaveLength(1);
-        expect(cardText()).toContain('收藏夹已读 0/5');
+        expect(cardText()).toContain(
+            '正在初始化收藏状态，收藏夹已读 0/5',
+        );
         expect(cardIcon()).toBe('i');
+    });
+
+    it('卡片固定在左上角 20/84 的位置', () => {
+        emit({ phase: 'start', total: 5, intervalMs: 500 });
+
+        const card = getCard();
+
+        expect(card?.style.left).toBe('20px');
+        expect(card?.style.top).toBe('84px');
+        expect(card?.style.right).toBe('');
+        expect(card?.style.bottom).toBe('');
     });
 
     it('本轮没有要取的夹且索引不可用时，绕过阈值出错误卡', () => {
@@ -146,12 +159,16 @@ describe('收藏夹索引进度卡', () => {
         emit({ phase: 'progress', done: 3, total: 8 });
         expect(getCards()).toHaveLength(1);
         expect(getCard()).toBe(card);
-        expect(cardText()).toContain('收藏夹已读 3/8');
+        expect(cardText()).toContain(
+            '正在初始化收藏状态，收藏夹已读 3/8',
+        );
 
         emit({ phase: 'progress', done: 8, total: 8 });
         expect(getCards()).toHaveLength(1);
         expect(getCard()).toBe(card);
-        expect(cardText()).toContain('收藏夹已读 8/8');
+        expect(cardText()).toContain(
+            '正在初始化收藏状态，收藏夹已读 8/8',
+        );
 
         // 真实加载不会在 500ms 内读完，先过掉最短驻留
         vi.advanceTimersByTime(1000);
@@ -161,36 +178,45 @@ describe('收藏夹索引进度卡', () => {
         expect(cardIcon()).toBe('✓');
     });
 
-    it('预计时间随本轮实测均值收敛，剩余 0 个夹时不显示时间', () => {
+    it('预计时间随本轮实测均值收敛，最后一个夹也保留剩余时间', () => {
         emit({ phase: 'start', total: 8, intervalMs: 500 });
 
         // 首个估值：8 个夹 × (500 间隔 + 300 首猜) = 6.4s，向上取整
-        expect(cardText()).toContain('收藏夹已读 0/8，约剩 7 秒');
+        expect(cardText()).toContain(
+            '正在初始化收藏状态，收藏夹已读 0/8，约剩 7 秒',
+        );
 
         // 首个夹不等间隔：耗时 600ms
         vi.advanceTimersByTime(600);
         emit({ phase: 'progress', done: 1, total: 8 });
-        expect(cardText()).toContain('收藏夹已读 1/8，约剩 6 秒');
+        expect(cardText()).toContain(
+            '正在初始化收藏状态，收藏夹已读 1/8，约剩 6 秒',
+        );
 
         // 第二个夹：等 500ms 间隔 + 实测 900ms
         vi.advanceTimersByTime(1400);
         emit({ phase: 'progress', done: 2, total: 8 });
         // 实测均值 (600 + 900) / 2 = 750，每夹 1250ms，剩 6 个 ≈ 7.5s
-        expect(cardText()).toContain('收藏夹已读 2/8，约剩 8 秒');
+        expect(cardText()).toContain(
+            '正在初始化收藏状态，收藏夹已读 2/8，约剩 8 秒',
+        );
 
         vi.advanceTimersByTime(1400);
         emit({ phase: 'progress', done: 3, total: 8 });
         // 均值 (600 + 900 + 900) / 3 = 800，每夹 1300ms，剩 5 个 = 6.5s
-        expect(cardText()).toContain('收藏夹已读 3/8，约剩 7 秒');
+        expect(cardText()).toContain(
+            '正在初始化收藏状态，收藏夹已读 3/8，约剩 7 秒',
+        );
 
         for (let done = 4; done <= 8; done++) {
             vi.advanceTimersByTime(1400);
             emit({ phase: 'progress', done, total: 8 });
         }
 
-        // 剩余 0 个夹：文案只剩计数
-        expect(cardText()).toContain('收藏夹已读 8/8');
-        expect(cardText()).not.toContain('约剩');
+        // 剩余 0 个夹：时间部分保留最小值，文案结构不变
+        expect(cardText()).toContain(
+            '正在初始化收藏状态，收藏夹已读 8/8，约剩 1 秒',
+        );
     });
 
     it('成功终态：文案带夹数，2 秒后自动消失', () => {
@@ -280,7 +306,9 @@ describe('收藏夹索引进度卡', () => {
         emit({ phase: 'progress', done: 5, total: 5 });
         emit({ phase: 'end', result: ok(5) });
 
-        expect(cardText()).toContain('收藏夹已读 5/5');
+        expect(cardText()).toContain(
+            '正在初始化收藏状态，收藏夹已读 5/5',
+        );
         expect(cardIcon()).toBe('i');
 
         // 到 500ms 满，才切成 success
@@ -319,7 +347,9 @@ describe('收藏夹索引进度卡', () => {
         // 下一轮按阈值重新判断
         emit({ phase: 'start', total: 5, intervalMs: 500 });
         expect(getCards()).toHaveLength(1);
-        expect(cardText()).toContain('收藏夹已读 0/5');
+        expect(cardText()).toContain(
+            '正在初始化收藏状态，收藏夹已读 0/5',
+        );
     });
 
     it('用户关掉卡片后，本轮失败也不补卡；下一轮未登录仍出卡', () => {
@@ -354,7 +384,9 @@ describe('收藏夹索引进度卡', () => {
         // 新页面按自己的加载重新判断
         emit({ phase: 'start', total: 6, intervalMs: 500 });
         expect(getCards()).toHaveLength(1);
-        expect(cardText()).toContain('收藏夹已读 0/6');
+        expect(cardText()).toContain(
+            '正在初始化收藏状态，收藏夹已读 0/6',
+        );
     });
 
     it('上一轮的终态卡消失后，本轮没收到 start 也能出未登录卡', () => {
@@ -415,7 +447,9 @@ describe('收藏夹索引进度卡', () => {
 
         // 屏幕上只有新一轮那一张，不能并排两张
         expect(getCards()).toHaveLength(1);
-        expect(cardText()).toContain('收藏夹已读 0/6');
+        expect(cardText()).toContain(
+            '正在初始化收藏状态，收藏夹已读 0/6',
+        );
     });
 
     it('路由切换后，旧加载迟到的 end 不再弹卡', () => {
@@ -434,7 +468,9 @@ describe('收藏夹索引进度卡', () => {
         // 新页面照常按自己的加载出卡
         emit({ phase: 'start', total: 6, intervalMs: 500 });
         expect(getCards()).toHaveLength(1);
-        expect(cardText()).toContain('收藏夹已读 0/6');
+        expect(cardText()).toContain(
+            '正在初始化收藏状态，收藏夹已读 0/6',
+        );
     });
 
     it('本轮夹数不到阈值但有夹失败，绕过阈值出警告卡', () => {
