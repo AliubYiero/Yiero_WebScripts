@@ -1,8 +1,9 @@
-import { elementWaiter } from '@yiero/gmlib';
-import { mutationListen } from './utils/mutationListen.ts';
-import { repeatTimeStore } from './store/repeatTimeStore.ts';
-import { repeatMinuteStore } from './store/repeatMinuteStore.ts';
+import { elementWaiter, gmMenuCommand } from '@yiero/gmlib';
+import { createBlockToggle } from './module/blockToggle.ts';
+import { detectSpam } from './module/spamDetector.ts';
+import { perMinuteStore } from './store/perMinuteStore.ts';
 import { showLogStore } from './store/showLogStore.ts';
+import { mutationListen } from './utils/mutationListen.ts';
 
 /**
  * 弹幕数据
@@ -37,10 +38,23 @@ const tempBannedDanmakuMap = new Map<string, number>();
 /** 用户弹幕发送时间记录 */
 const userDanmakuTimeMap = new Map<string, number[]>();
 
-/** 刷屏检测次数 */
-const repeatTime = repeatTimeStore.get();
-/** 刷屏检测时间窗口（秒） */
-const repeatTimeWindow = repeatMinuteStore.get() * 60;
+/**
+ * 清空全部内存记录
+ *
+ * 关闭弹幕屏蔽时调用, 重开后所有账号从零重新计数.
+ */
+function clearAllMemory() {
+    bannedDanmakuSet.clear();
+    bannedVideoDanmakuSet.clear();
+    bannedUserSet.clear();
+    tempBannedDanmakuMap.clear();
+    userDanmakuTimeMap.clear();
+}
+
+/** 弹幕屏蔽开关 */
+const blockToggle = createBlockToggle(clearAllMemory);
+/** 刷屏检测间隔 (条/分钟) */
+const perMinute = perMinuteStore.get();
 /** 显示控制台日志 */
 const showLog = showLogStore.get();
 
@@ -62,8 +76,8 @@ function logHiddenDanmaku(
     if (!showLog) return;
 
     console.groupCollapsed(`${LOG_PREFIX} ${reason}`, danmaku);
-    console.log(`${LOG_PREFIX} 发布者:`, uname);
-    console.log(`${LOG_PREFIX} 弹幕内容:`, danmaku);
+    console.info(`${LOG_PREFIX} 发布者:`, uname);
+    console.info(`${LOG_PREFIX} 弹幕内容:`, danmaku);
     console.groupEnd();
 }
 
@@ -89,21 +103,6 @@ function hideElement(
 }
 
 /**
- * 清理过期的弹幕时间记录
- */
-function cleanupOldTimestamps(
-    timestamps: number[],
-    currentTime: number,
-) {
-    while (
-        timestamps.length > 0 &&
-        currentTime - timestamps[0] > repeatTimeWindow
-    ) {
-        timestamps.shift();
-    }
-}
-
-/**
  * 检测是否为重复评论弹幕
  */
 function checkRepeatDanmaku(
@@ -124,10 +123,12 @@ function checkRepeatDanmaku(
  * 检测用户是否刷屏或已被禁言
  */
 function checkSpamUser(element: HTMLElement, data: DanmakuDataset) {
-    const { danmaku, uname, timestamp } = data;
+    const { danmaku, uname, uid, timestamp } = data;
+    // 计数与禁言名单都用账号 id, 缺失时回退昵称
+    const userKey = uid || uname;
 
     // 已禁言用户
-    if (bannedUserSet.has(uname)) {
+    if (bannedUserSet.has(userKey)) {
         hideElement(element, '隐藏禁言用户弹幕', uname, danmaku);
         if (!bannedVideoDanmakuSet.has(danmaku)) {
             tempBannedDanmakuMap.set(danmaku, Date.now());
@@ -136,32 +137,35 @@ function checkSpamUser(element: HTMLElement, data: DanmakuDataset) {
     }
 
     // 刷屏检测
-    if (repeatTime === 0 || repeatTimeWindow === 0) {
+    if (perMinute <= 0) {
         return;
     }
 
     const currentTime = Number(timestamp);
-    const userTimestamps = userDanmakuTimeMap.get(uname);
-
-    // 首次发送弹幕
-    if (!userTimestamps) {
-        userDanmakuTimeMap.set(uname, [currentTime]);
+    // 时间戳无效的弹幕只做禁言判断, 不进刷屏统计
+    if (!Number.isFinite(currentTime)) {
         return;
     }
 
-    // 清理过期时间戳
-    cleanupOldTimestamps(userTimestamps, currentTime);
+    const recordedTimestamps = userDanmakuTimeMap.get(userKey) ?? [];
+    const { spam, timestamps } = detectSpam(
+        recordedTimestamps,
+        currentTime,
+        perMinute,
+    );
 
-    // 检测刷屏
-    if (userTimestamps.length >= repeatTime) {
-        bannedUserSet.add(uname);
-        hideElement(element, '当前用户刷屏, 已屏蔽', uname, danmaku);
+    if (spam) {
+        bannedUserSet.add(userKey);
+        // 禁言命中后移除计数, 避免时间戳数组无界增长
+        userDanmakuTimeMap.delete(userKey);
+        hideElement(element, '当前用户刷屏, 已禁言', uname, danmaku);
         if (!bannedVideoDanmakuSet.has(danmaku)) {
             tempBannedDanmakuMap.set(danmaku, Date.now());
         }
-    } else {
-        userTimestamps.push(currentTime);
+        return;
     }
+
+    userDanmakuTimeMap.set(userKey, timestamps);
 }
 
 /**
@@ -170,6 +174,8 @@ function checkSpamUser(element: HTMLElement, data: DanmakuDataset) {
 function handleCommentDanmakuCheck(
     mutationRecords: MutationRecord[],
 ) {
+    if (!blockToggle.isActive()) return;
+
     mutationListen(mutationRecords, (element) => {
         const data = getDanmakuData(element);
         const { danmaku, ts } = data;
@@ -188,6 +194,8 @@ function handleCommentDanmakuCheck(
  * 处理直播弹幕文本变化
  */
 function handleVideoDanmakuMutation(records: MutationRecord[]) {
+    if (!blockToggle.isActive()) return;
+
     const seenDanmaku = new Set<string>();
 
     for (const record of records) {
@@ -293,8 +301,27 @@ async function initVideoDanmakuObserver() {
     });
 }
 
+/**
+ * 注册弹幕屏蔽开关菜单
+ *
+ * 必须在等待聊天区元素之前同步注册, 聊天区未加载时仍能关闭屏蔽.
+ */
+function registerBlockToggleMenu() {
+    gmMenuCommand.createToggle({
+        active: {
+            title: '弹幕屏蔽：开启',
+            onClick: () => blockToggle.disable(),
+        },
+        inactive: {
+            title: '弹幕屏蔽：关闭',
+            onClick: () => blockToggle.enable(),
+        },
+    });
+}
+
 (async () => {
     addHideStyle();
+    registerBlockToggleMenu();
     await Promise.all([
         initCommentDanmakuObserver(),
         initVideoDanmakuObserver(),
