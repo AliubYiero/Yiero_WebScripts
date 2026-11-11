@@ -250,6 +250,17 @@
       }
     };
   }
+  function parseDanmakuTimestamp(ts, timestamp) {
+    const seconds = Number(ts) * 1e3;
+    if (Number.isFinite(seconds) && seconds > 0) {
+      return seconds;
+    }
+    const milliseconds = Number(timestamp);
+    if (Number.isFinite(milliseconds) && milliseconds > 0) {
+      return milliseconds;
+    }
+    return Number.NaN;
+  }
   const DEFAULT_WINDOW_MS = 6e4;
   function detectSpam(recordedTimestamps, currentTimestamp, perMinute2, windowMs = DEFAULT_WINDOW_MS) {
     if (perMinute2 <= 0) {
@@ -311,6 +322,11 @@
     element.classList.add("hide");
     logHiddenDanmaku(reason, uname, danmaku);
   }
+  function rememberTempBan(danmaku) {
+    if (!bannedVideoDanmakuSet.has(danmaku)) {
+      tempBannedDanmakuMap.set(danmaku, Date.now());
+    }
+  }
   function checkRepeatDanmaku(element, data) {
     const { danmaku, uname } = data;
     if (bannedDanmakuSet.has(danmaku)) {
@@ -320,19 +336,17 @@
     bannedDanmakuSet.add(danmaku);
   }
   function checkSpamUser(element, data) {
-    const { danmaku, uname, uid, timestamp } = data;
+    const { danmaku, uname, uid, ts, timestamp } = data;
     const userKey = uid || uname;
     if (bannedUserSet.has(userKey)) {
       hideElement(element, "\u9690\u85CF\u7981\u8A00\u7528\u6237\u5F39\u5E55", uname, danmaku);
-      if (!bannedVideoDanmakuSet.has(danmaku)) {
-        tempBannedDanmakuMap.set(danmaku, Date.now());
-      }
+      rememberTempBan(danmaku);
       return;
     }
     if (perMinute <= 0) {
       return;
     }
-    const currentTime = Number(timestamp);
+    const currentTime = parseDanmakuTimestamp(ts, timestamp);
     if (!Number.isFinite(currentTime)) {
       return;
     }
@@ -346,9 +360,7 @@
       bannedUserSet.add(userKey);
       userDanmakuTimeMap.delete(userKey);
       hideElement(element, "\u5F53\u524D\u7528\u6237\u5237\u5C4F, \u5DF2\u7981\u8A00", uname, danmaku);
-      if (!bannedVideoDanmakuSet.has(danmaku)) {
-        tempBannedDanmakuMap.set(danmaku, Date.now());
-      }
+      rememberTempBan(danmaku);
       return;
     }
     userDanmakuTimeMap.set(userKey, timestamps);

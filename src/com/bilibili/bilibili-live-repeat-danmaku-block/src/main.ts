@@ -1,5 +1,6 @@
 import { elementWaiter, gmMenuCommand } from '@yiero/gmlib';
 import { createBlockToggle } from './module/blockToggle.ts';
+import { parseDanmakuTimestamp } from './module/danmakuTimestamp.ts';
 import { detectSpam } from './module/spamDetector.ts';
 import { perMinuteStore } from './store/perMinuteStore.ts';
 import { showLogStore } from './store/showLogStore.ts';
@@ -103,6 +104,17 @@ function hideElement(
 }
 
 /**
+ * 记录禁言用户发送的弹幕
+ *
+ * 评论弹幕先记下来, 直播弹幕之后出现同一条时同步隐藏.
+ */
+function rememberTempBan(danmaku: string) {
+    if (!bannedVideoDanmakuSet.has(danmaku)) {
+        tempBannedDanmakuMap.set(danmaku, Date.now());
+    }
+}
+
+/**
  * 检测是否为重复评论弹幕
  */
 function checkRepeatDanmaku(
@@ -123,16 +135,14 @@ function checkRepeatDanmaku(
  * 检测用户是否刷屏或已被禁言
  */
 function checkSpamUser(element: HTMLElement, data: DanmakuDataset) {
-    const { danmaku, uname, uid, timestamp } = data;
+    const { danmaku, uname, uid, ts, timestamp } = data;
     // 计数与禁言名单都用账号 id, 缺失时回退昵称
     const userKey = uid || uname;
 
     // 已禁言用户
     if (bannedUserSet.has(userKey)) {
         hideElement(element, '隐藏禁言用户弹幕', uname, danmaku);
-        if (!bannedVideoDanmakuSet.has(danmaku)) {
-            tempBannedDanmakuMap.set(danmaku, Date.now());
-        }
+        rememberTempBan(danmaku);
         return;
     }
 
@@ -141,7 +151,7 @@ function checkSpamUser(element: HTMLElement, data: DanmakuDataset) {
         return;
     }
 
-    const currentTime = Number(timestamp);
+    const currentTime = parseDanmakuTimestamp(ts, timestamp);
     // 时间戳无效的弹幕只做禁言判断, 不进刷屏统计
     if (!Number.isFinite(currentTime)) {
         return;
@@ -159,9 +169,7 @@ function checkSpamUser(element: HTMLElement, data: DanmakuDataset) {
         // 禁言命中后移除计数, 避免时间戳数组无界增长
         userDanmakuTimeMap.delete(userKey);
         hideElement(element, '当前用户刷屏, 已禁言', uname, danmaku);
-        if (!bannedVideoDanmakuSet.has(danmaku)) {
-            tempBannedDanmakuMap.set(danmaku, Date.now());
-        }
+        rememberTempBan(danmaku);
         return;
     }
 
