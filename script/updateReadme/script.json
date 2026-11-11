@@ -139,10 +139,10 @@
         "bilibili-live-repeat-danmaku-block": {
             "name": "Bilibili直播弹幕刷屏屏蔽",
             "description": "用于B站直播间的弹幕净化脚本. 屏蔽独轮车, 屏蔽重复弹幕, 屏蔽刷屏用户.",
-            "version": "1.0.3",
+            "version": "1.1.0",
             "private": false,
             "archive": false,
-            "lastUpdate": 1776437547000,
+            "lastUpdate": 1794411154000,
             "scriptType": "web",
             "userScriptFilepath": "backup/bilibili-live-repeat-danmaku-block.user.js",
             "downloadUrlFromGithub": "https://github.com/AliubYiero/Yiero_WebScripts/raw/refs/heads/main/src/com/bilibili/bilibili-live-repeat-danmaku-block/backup/bilibili-live-repeat-danmaku-block.user.js",
